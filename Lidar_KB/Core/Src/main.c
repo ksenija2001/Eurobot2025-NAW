@@ -17,11 +17,11 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <lidar.h>
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lidar.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,12 +101,40 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_UART_DMAStop(&huart1);
+  HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USART1_IRQn);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+//  uint8_t msg[] = {0xFF, 0xFF};
+//  HAL_UART_Transmit_DMA(&huart1, msg, 2);
+//  HAL_Delay(100);
+//  Lidar_Get_Health(&huart1);
+  HAL_Delay(100);
+//  uint8_t data[] = {0xff, 0xff, 0xff, 0xff};
+//  HAL_UART_Transmit_DMA(&huart1, data, 4);
+//  HAL_Delay(10);
+//  uint8_t data1[] = {0xff, 0x00, 0xff, 0xff};
+//  HAL_UART_Transmit_DMA(&huart1, data1, 4);
+//  Lidar_Reset(&huart1);
+//  HAL_Delay(2000);
+  Lidar_Stop(&huart1);
+  HAL_Delay(100);
+//  Lidar_Get_Info(&huart1);
+//  HAL_Delay(100);
   Lidar_Get_Lidar_Conf(&huart1);
+  HAL_Delay(100);
+//  Lidar_Motor_Speed(&huart1, 256);
+//  HAL_Delay(1);
+//  Lidar_Scan(&huart1);
+//  HAL_Delay(1);
+//  Lidar_Get_Health(&huart1);
+  //Lidar_Get_Samplerate(&huart1);
+//  Lidar_Motor_Speed(&huart1, 0);
+//  Lidar_Motor_Speed(&huart1, 256);
+  //Lidar_Express_Scan(&huart1);
   while (1)
   {
 //	 Lidar_Get_Health(&huart1);

@@ -39,5 +39,8 @@ void Lidar_Get_Health(UART_HandleTypeDef *huart);
 void Lidar_Motor_Speed(UART_HandleTypeDef *huart, uint16_t rpm);
 void Lidar_Get_Samplerate(UART_HandleTypeDef *huart);
 void Lidar_Get_Lidar_Conf(UART_HandleTypeDef *huart);
+void Lidar_Get_Info(UART_HandleTypeDef *huart);
+void Lidar_Scan(UART_HandleTypeDef *huart);
+uint8_t Lidar_CRC(uint8_t msg[], uint8_t length);
 
 #endif /* INC_LIDAR_H_ */

@@ -14,7 +14,7 @@ void Lidar_Receive_Response(UART_HandleTypeDef *huart, uint8_t length){
 	HAL_UART_Receive_DMA(huart, rx_buff, length);
 }
 
-uint8_t Lidar_CRC(uint8_t *msg, uint8_t length){
+uint8_t Lidar_CRC(uint8_t msg[], uint8_t length){
 	uint8_t crc = 0;
 	uint8_t i;
 
@@ -74,7 +74,7 @@ void Lidar_Get_Health(UART_HandleTypeDef *huart){
 	uint8_t msg[] = {START, GET_HEALTH};
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 	// No response exists for this command, host system should wait for at least 1ms before sending another request
-	HAL_Delay(1);
+	//HAL_Delay(1);
 
 	Lidar_Receive_Response(huart, 7);
 }
@@ -89,13 +89,25 @@ void Lidar_Get_Samplerate(UART_HandleTypeDef *huart){
 	Lidar_Receive_Response(huart, 7);
 }
 
-void Lidar_Get_Lidar_Conf(UART_HandleTypeDef *huart){
-	uint8_t msg[8] = {START, GET_LIDAR_CONF, 0x04, 0xB9, 0x01, 0xFC, 0x00};
-	msg[7] = Lidar_CRC(&msg, 7);
+void Lidar_Get_Info(UART_HandleTypeDef *huart){
+	uint8_t msg[8] = {START, GET_INFO};
 
-	HAL_UART_Transmit_DMA(huart, msg, 8);
+	HAL_UART_Transmit_DMA(huart, msg, 2);
 	// No response exists for this command, host system should wait for at least 1ms before sending another request
 	//HAL_Delay(1);
+
+	Lidar_Receive_Response(huart, 7);
+}
+
+void Lidar_Get_Lidar_Conf(UART_HandleTypeDef *huart){
+	// 0x7C payload signifies Get Typical Scan Mode command, response contains 2 bytes
+	uint8_t msg[] = {START, GET_LIDAR_CONF, 0x0F, 0x7F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	msg[9] = Lidar_CRC(msg, 9);
+
+	HAL_UART_Transmit_DMA(huart, msg, 10);
+
+	// No response exists for this command, host system should wait for at least 1ms before sending another request
+	HAL_Delay(1);
 
 	Lidar_Receive_Response(huart, 7);
 }
@@ -106,8 +118,8 @@ void Lidar_Motor_Speed(UART_HandleTypeDef *huart, uint16_t rpm){
 		rpm = 600;
 	}
 
-	uint8_t msg[6] = {START, MOTOR_SPEED, 2, (uint8_t)(rpm & 0xff), (uint8_t)(rpm >> 8)};
-	uint8_t crc = Lidar_CRC(&msg, 5);
+	uint8_t msg[] = {START, MOTOR_SPEED, 0x02, (uint8_t)(rpm & 0xff), (uint8_t)(rpm >> 8), 0x00};
+	uint8_t crc = Lidar_CRC(msg, 5);
 	msg[5] = crc;
 
 	HAL_UART_Transmit_DMA(huart, msg, 6);
@@ -115,7 +127,24 @@ void Lidar_Motor_Speed(UART_HandleTypeDef *huart, uint16_t rpm){
 	HAL_Delay(1);
 }
 
-void Lidar_Express_Scan(UART_HandleTypeDef *huart){
+void Lidar_Scan(UART_HandleTypeDef *huart){
+	uint8_t msg[8] = {START, SCAN};
 
+	HAL_UART_Transmit_DMA(huart, msg, 2);
+	// No response exists for this command, host system should wait for at least 1ms before sending another request
+	//HAL_Delay(1);
+
+	Lidar_Receive_Response(huart, 7);
+}
+
+void Lidar_Express_Scan(UART_HandleTypeDef *huart){
+	uint8_t msg[9] = {START, EXPRESS_SCAN, 0x05, 0x82, 0x00, 0x00, 0x00, 0x00, 0x00};
+	msg[8] = Lidar_CRC(msg, 8);
+
+	HAL_UART_Transmit_DMA(huart, msg, 9);
+	// No response exists for this command, host system should wait for at least 1ms before sending another request
+	//HAL_Delay(1);
+
+	Lidar_Receive_Response(huart, 7);
 }
 
