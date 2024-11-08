@@ -101,44 +101,78 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_DMAStop(&huart1);
-  HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(USART1_IRQn);
+  //HAL_UART_DMAStop(&huart1);
+  //HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+  //HAL_NVIC_EnableIRQ(USART1_IRQn);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  uint8_t msg[] = {0xFF, 0xFF};
-//  HAL_UART_Transmit_DMA(&huart1, msg, 2);
-//  HAL_Delay(100);
-//  Lidar_Get_Health(&huart1);
-  HAL_Delay(100);
-//  uint8_t data[] = {0xff, 0xff, 0xff, 0xff};
-//  HAL_UART_Transmit_DMA(&huart1, data, 4);
-//  HAL_Delay(10);
-//  uint8_t data1[] = {0xff, 0x00, 0xff, 0xff};
-//  HAL_UART_Transmit_DMA(&huart1, data1, 4);
+  // Lidar initialization
 //  Lidar_Reset(&huart1);
-//  HAL_Delay(2000);
+//  HAL_Delay(15);
+  Lidar_Get_Info(&huart1);
+  HAL_Delay(3);
+  Lidar_Unknown(&huart1);
+  HAL_Delay(0.15);
+  Lidar_Get_Info(&huart1);
+  HAL_Delay(3);
+  Lidar_Get_Health(&huart1);
+  HAL_Delay(2);
+  Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
+  HAL_Delay(1);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 200);
+  HAL_Delay(2);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 400);
+  HAL_Delay(2);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 600);
+  HAL_Delay(2);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 800);
+  HAL_Delay(6);
   Lidar_Stop(&huart1);
-  HAL_Delay(100);
+  HAL_Delay(6);
 //  Lidar_Get_Info(&huart1);
-//  HAL_Delay(100);
-  Lidar_Get_Lidar_Conf(&huart1);
-  HAL_Delay(100);
-//  Lidar_Motor_Speed(&huart1, 256);
-//  HAL_Delay(1);
-//  Lidar_Scan(&huart1);
-//  HAL_Delay(1);
-//  Lidar_Get_Health(&huart1);
-  //Lidar_Get_Samplerate(&huart1);
-//  Lidar_Motor_Speed(&huart1, 0);
-//  Lidar_Motor_Speed(&huart1, 256);
-  //Lidar_Express_Scan(&huart1);
+//  HAL_Delay(3);
+//  Lidar_Get_Info(&huart1);
+//  HAL_Delay(3);
+  Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
+  HAL_Delay(12);
+  Lidar_Express_Scan(&huart1);
+  HAL_Delay(12000);
+  Lidar_Stop(&huart1);
+  HAL_Delay(2);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 0);
+  HAL_Delay(3);
+  Lidar_Motor_Stop(&htim3, TIM_CHANNEL_1);
+  Lidar_Get_Health(&huart1);
+  HAL_Delay(3);
+//  Lidar_Get_Info(&huart1);
+//  HAL_Delay(3);
+//  Lidar_Get_Lidar_Conf(&huart1, 0x7C, 0x04, 0x00);
+//  HAL_Delay(2);
+//  Lidar_Stop(&huart1);
+//  HAL_Delay(110);
+//  Lidar_Get_Info(&huart1);
+//  HAL_Delay(3);
+//  Lidar_Get_Lidar_Conf(&huart1, 0x71, 0x06, 0x03);
+//  HAL_Delay(2);
+//  Lidar_Get_Lidar_Conf(&huart1, 0x74, 0x06, 0x03);
+//  HAL_Delay(2);
+//  Lidar_Get_Lidar_Conf(&huart1, 0x75, 0x06, 0x03);
+//  HAL_Delay(2);
+//  Lidar_Get_Lidar_Conf(&huart1, 0x7F, 0x06, 0x03);
+//  HAL_Delay(3);
+//  Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
+//  HAL_Delay(12);
+//  Lidar_Motor_Speed(&huart1, 300);
+//  HAL_Delay(10);
+//  Lidar_Express_Scan(&huart1);
+//  HAL_Delay(4000);
+//  Lidar_Stop(&huart1);
+//  Lidar_Motor_Speed(&htim3, 1, 300);
+//  Lidar_Motor_Stop();
   while (1)
   {
-//	 Lidar_Get_Health(&huart1);
-//	 HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -247,18 +281,28 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 0 */
 
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
 
   /* USER CODE BEGIN TIM3_Init 1 */
-
+  // 25kHz PWM signal
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 5759;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
     Error_Handler();
