@@ -109,49 +109,38 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   // Lidar initialization
-//  Lidar_Reset(&huart1);
-//  HAL_Delay(15);
+  // Lidar_Get_Samplerate(&huart1);
   Lidar_Get_Info(&huart1);
-  HAL_Delay(3);
   Lidar_Unknown(&huart1);
-  HAL_Delay(0.15);
   Lidar_Get_Info(&huart1);
-  HAL_Delay(3);
   Lidar_Get_Health(&huart1);
-  HAL_Delay(2);
   Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
-  HAL_Delay(1);
-  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 200);
-  HAL_Delay(2);
-  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 400);
-  HAL_Delay(2);
-  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 600);
-  HAL_Delay(2);
-  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 800);
-  HAL_Delay(6);
-  Lidar_Stop(&huart1);
-  HAL_Delay(6);
-//  Lidar_Get_Info(&huart1);
-//  HAL_Delay(3);
-//  Lidar_Get_Info(&huart1);
-//  HAL_Delay(3);
-  Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
-  HAL_Delay(12);
-  Lidar_Express_Scan(&huart1);
-  HAL_Delay(12000);
-  Lidar_Stop(&huart1);
-  HAL_Delay(2);
-  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 0);
-  HAL_Delay(3);
-  Lidar_Motor_Stop(&htim3, TIM_CHANNEL_1);
-  Lidar_Get_Health(&huart1);
-  HAL_Delay(3);
-//  Lidar_Get_Info(&huart1);
-//  HAL_Delay(3);
-//  Lidar_Get_Lidar_Conf(&huart1, 0x7C, 0x04, 0x00);
-//  HAL_Delay(2);
+
+//  Debugging scan modes:
+
+//  Lidar_Get_Lidar_Conf(&huart1, 0x70, 0x04, 0x00);
+//  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 460);
 //  Lidar_Stop(&huart1);
 //  HAL_Delay(110);
+//  Lidar_Get_Info(&huart1);
+//  for(int i=0; i<5; i++){
+//	  Lidar_Get_Lidar_Conf(&huart1, 0x71, 0x06, i);
+//	  Lidar_Get_Lidar_Conf(&huart1, 0x74, 0x06, i);
+//	  Lidar_Get_Lidar_Conf(&huart1, 0x75, 0x06, i);
+//	  Lidar_Get_Lidar_Conf(&huart1, 0x7F, 0x06, i);
+//	  Lidar_Get_Info(&huart1);
+//  }
+
+//  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 460);
+//  Lidar_Stop(&huart1);
+//  HAL_Delay(6);
+//  Lidar_Get_Info(&huart1);
+//  Lidar_Get_Info(&huart1);
+//  Lidar_Get_Lidar_Conf(&huart1, 0x7C, 0x04, 0x00);
+//  HAL_Delay(2);
+//  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 460);
+//  Lidar_Stop(&huart1);
+//  HAL_Delay(1000);
 //  Lidar_Get_Info(&huart1);
 //  HAL_Delay(3);
 //  Lidar_Get_Lidar_Conf(&huart1, 0x71, 0x06, 0x03);
@@ -162,15 +151,22 @@ int main(void)
 //  HAL_Delay(2);
 //  Lidar_Get_Lidar_Conf(&huart1, 0x7F, 0x06, 0x03);
 //  HAL_Delay(3);
-//  Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
-//  HAL_Delay(12);
-//  Lidar_Motor_Speed(&huart1, 300);
+  Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
+//  HAL_Delay(2);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 800);
+  Lidar_Stop(&huart1);
+  HAL_Delay(2000);
 //  HAL_Delay(10);
-//  Lidar_Express_Scan(&huart1);
-//  HAL_Delay(4000);
-//  Lidar_Stop(&huart1);
-//  Lidar_Motor_Speed(&htim3, 1, 300);
-//  Lidar_Motor_Stop();
+  Lidar_Express_Scan(&huart1, 0x01);
+  HAL_Delay(6000);
+  Lidar_Stop(&huart1);
+//  HAL_Delay(2);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 0);
+  Lidar_Motor_Stop(&htim3, TIM_CHANNEL_1);
+  Lidar_Get_Health(&huart1);
+//  HAL_Delay(3);
+
+
   while (1)
   {
     /* USER CODE END WHILE */

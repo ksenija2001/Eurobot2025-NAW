@@ -35,24 +35,47 @@ typedef struct {
 	uint8_t packet_num;
 } sDescriptor_t;
 
+// Lidar hardware information
+typedef struct{
+	uint8_t model;
+	uint8_t firmware_minor;
+	uint8_t firmware_major;
+	uint8_t hardware;
+	uint16_t standard_samplerate;
+	uint16_t express_samplerate;
+} sInfo_t;
 
-void Lidar_Receive_Response(UART_HandleTypeDef *huart, uint8_t length);
+// Lidar scan mode informations
+typedef struct{
+	uint32_t sample_duration;
+	uint32_t max_distance;
+	uint8_t  answer_type;
+	uint8_t  name[20];
+} sScanMode_t;
+
+// Lidar health data
+typedef struct{
+	uint8_t status;
+	uint16_t error_code;
+} sHealth_t;
+
+// Commands without response
 void Lidar_Stop(UART_HandleTypeDef *huart);
 void Lidar_Reset(UART_HandleTypeDef *huart);
 void Lidar_Unknown(UART_HandleTypeDef *huart);
+
+// Commands with response
 void Lidar_Get_Health(UART_HandleTypeDef *huart);
-void Lidar_Motor_Start(TIM_HandleTypeDef *tim, uint8_t channel);
-void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
-void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm);
-
-
-//void Lidar_Motor_Speed(UART_HandleTypeDef *huart, uint16_t rpm);
 void Lidar_Get_Samplerate(UART_HandleTypeDef *huart);
 void Lidar_Get_Lidar_Conf(UART_HandleTypeDef *huart, uint8_t config, uint8_t request_length, uint8_t mode);
 void Lidar_Get_Info(UART_HandleTypeDef *huart);
 void Lidar_Scan(UART_HandleTypeDef *huart);
+void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id);
+
+// Helper functions
+void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
+void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm);
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length);
-void Lidar_Express_Scan(UART_HandleTypeDef *huart);
 
 
 #endif /* INC_LIDAR_H_ */
