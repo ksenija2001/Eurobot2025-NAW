@@ -61,6 +61,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LIDAR_PWM_Pin GPIO_PIN_6
 #define LIDAR_PWM_GPIO_Port GPIOA
+#define TIME_TEST_Pin GPIO_PIN_0
+#define TIME_TEST_GPIO_Port GPIOB
 #define LED_CAN_RX_Pin GPIO_PIN_9
 #define LED_CAN_RX_GPIO_Port GPIOA
 #define LED_CAN_TX_Pin GPIO_PIN_10

@@ -3,6 +3,7 @@
 #define INC_LIDAR_H_
 
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 #include "stm32g4xx_hal.h"
 
@@ -59,6 +60,20 @@ typedef struct{
 	uint16_t error_code;
 } sHealth_t;
 
+typedef struct{
+	uint8_t sync;          // identifies the start of a new response packet - 0xA5
+	uint8_t checksum;      // XOR of all data bytes in response packet
+	float_t start_angle;  // reference value for the angle data in current response packet
+	uint8_t S;             // start flag of new scan
+} sResponse_t;
+
+typedef struct{
+	float_t distance1;
+	float_t distance2;
+	float_t theta1;
+	float_t theta2;
+} sCabin_t;
+
 // Commands without response
 void Lidar_Stop(UART_HandleTypeDef *huart);
 void Lidar_Reset(UART_HandleTypeDef *huart);
@@ -75,7 +90,7 @@ void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id);
 // Helper functions
 void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
 void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm);
-uint8_t Lidar_CRC(uint8_t msg[], uint8_t length);
+uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
 
 
 #endif /* INC_LIDAR_H_ */
