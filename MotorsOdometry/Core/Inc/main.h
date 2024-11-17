@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define Motor1_RPM_Pin GPIO_PIN_0
+#define Motor1_RPM_GPIO_Port GPIOF
 #define Encoder1_A_Pin GPIO_PIN_0
 #define Encoder1_A_GPIO_Port GPIOC
 #define Encoder1_B_Pin GPIO_PIN_1
@@ -79,6 +81,8 @@ void Error_Handler(void);
 #define Encoder2_A_GPIO_Port GPIOA
 #define Encoder2_B_Pin GPIO_PIN_6
 #define Encoder2_B_GPIO_Port GPIOA
+#define Motor2_RPM_Pin GPIO_PIN_7
+#define Motor2_RPM_GPIO_Port GPIOA
 #define IN1_Pin GPIO_PIN_0
 #define IN1_GPIO_Port GPIOB
 #define IN2_Pin GPIO_PIN_1
@@ -99,10 +103,12 @@ void Error_Handler(void);
 #define LED_CAN_TX_GPIO_Port GPIOA
 #define IMU_SCL_Pin GPIO_PIN_15
 #define IMU_SCL_GPIO_Port GPIOA
-#define IMU_SMBA_Pin GPIO_PIN_5
-#define IMU_SMBA_GPIO_Port GPIOB
+#define IMU_SMBA_INT1_Pin GPIO_PIN_5
+#define IMU_SMBA_INT1_GPIO_Port GPIOB
 #define IMU_SDA_Pin GPIO_PIN_7
 #define IMU_SDA_GPIO_Port GPIOB
+#define IMU_INT2_Pin GPIO_PIN_9
+#define IMU_INT2_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
