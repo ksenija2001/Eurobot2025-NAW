@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 #include "stm32g4xx_hal.h"
 
@@ -74,6 +75,13 @@ typedef struct{
 	float_t theta2;
 } sCabin_t;
 
+typedef struct{
+	uint16_t duty;
+	uint16_t target_rpm;
+	uint16_t rpm;
+	int8_t rpm_inc;
+} sPWM_t;
+
 // Commands without response
 void Lidar_Stop(UART_HandleTypeDef *huart);
 void Lidar_Reset(UART_HandleTypeDef *huart);
@@ -89,7 +97,7 @@ void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id);
 
 // Helper functions
 void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
-void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm);
+void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_rpm);
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
 
 

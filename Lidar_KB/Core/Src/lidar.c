@@ -10,6 +10,12 @@ sDescriptor_t response_desc = {
 	.packet_num = 0
 };
 
+//union U_F{
+//	float f;
+//	uint8_t u[4];
+//}convert_float;
+
+// Variables for parsing lidar express scan data
 uint8_t awaiting_response_desc;  // flag that indicates whether the next received packet will be a descriptor or data
 sResponse_t response;
 sResponse_t last_response = {0};
@@ -17,6 +23,14 @@ sCabin_t cabin;
 float_t delta_theta1;
 float_t delta_theta2;
 float_t angle_diff;
+
+// Variables for lidar PWM control
+sPWM_t lidar_pwm = {
+		.duty = 0,
+		.target_rpm = 0,
+		.rpm = 0,
+		.rpm_inc = 1
+};
 
 // Debug variables
 sInfo_t lidar_info;
@@ -153,15 +167,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			}
 
 			break;
-		case 0x84:  // Express scan in scan mode 1
+		case 0x82:  // Express scan in scan mode 1
 			// TODO Measure time it takes to process one response packet
 
-			response.sync        = (rx_buff[1] & 0xF0) | (rx_buff[0] & 0xF0);     // should be 0x5A
-			response.checksum    = (rx_buff[1] & 0x0F) | (rx_buff[0] & 0x0F);
+			response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
+			response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
 			response.start_angle = (float_t)((uint16_t)((rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64.0;
 			response.S           = rx_buff[3] & 0x80;
-
-			if(response.checksum != Lidar_CRC(rx_buff, response_desc.length, 4)){
+			uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
+			if(response.checksum != crc){
 				// bad message
 				break;
 			}
@@ -172,6 +186,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 				// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
 				uint8_t k = 1;
+				// float_t msg[2];
 				for(uint8_t i=4; i<response_desc.length; i=i+5){
 					cabin.distance1 = (float_t)((uint16_t)(last_rx_buff[i+1] << 5) | (last_rx_buff[i] & 0xFC)) / 4.0;  // TODO check if /4 is needed - it's mentioned in the SCAN section, but not in EXPRESS SCAN
 					delta_theta1    = (float_t)((uint16_t)(last_rx_buff[i] & 0x18) | (last_rx_buff[i+4] & 0x0F));
@@ -182,9 +197,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					cabin.theta2    = last_response.start_angle + angle_diff/32 * (k+1) - delta_theta1;
 
 					k = k+2;
-
-					// TODO Send two samples to host system
-					//HAL_UART_Transmit(huart, pData, Size, Timeout);
 				}
 			}
 
@@ -199,8 +211,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	// Single response mode will send a descriptor and only one data packet
 	// Multiple response mode will send a descriptor and multiple data packets
-	if((response_desc.send_mode == 0 && response_desc.packet_num == 0) ||
-	   (response_desc.send_mode == 1 && response_desc.packet_num < response_desc.length)){
+	if((response_desc.send_mode == 0 && response_desc.packet_num == 0) || response_desc.send_mode == 1){
 		// Enables DMA receive, data won't be received if not called again
 		HAL_UART_Receive_DMA(huart, rx_buff, response_desc.length);
 	} else {
@@ -300,18 +311,36 @@ void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel){
 }
 
 // Sets duty cycle for lidar PWM signal and starts the PWM timer
-void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm){
+void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_ramp){
 	// Cap max speed of lidar to 800RPM
 	if(rpm > 800) rpm = 800;
+	lidar_pwm.target_rpm = rpm;
+	lidar_pwm.rpm_inc *= (lidar_pwm.target_rpm - lidar_pwm.rpm)/abs(lidar_pwm.target_rpm - lidar_pwm.rpm); // changes sign of increment
 
-	// Duty cycle with regards to the experimental sensitivity measured for this lidar
-	uint16_t duty = round(PWM_ARR * (PWM_SENS * rpm + PWM_SENS_OFFSET) / 100);
-	if(rpm == 0) duty = 0;
+	// Increments rpm every 1ms for
+	HAL_TIM_Base_Start_IT(tim_ramp);
 
-	TIM3->CCR1 = duty;
+	TIM3->CCR1 = 0;
 	HAL_TIM_PWM_Start(tim, channel);
 
-	HAL_Delay(10);
+	// Waits for lidar to reach speed
+	HAL_Delay(1000);
+}
+
+// Called from stm32g4xx_it.c in HAL interrupt handler for TIM6
+void TIM6_IT(TIM_HandleTypeDef *tim){
+	// lidar pwm in increment by rpm_inc every 1ms until equal to target rpm
+	if(lidar_pwm.target_rpm != lidar_pwm.rpm){
+		lidar_pwm.rpm += lidar_pwm.rpm_inc;
+	} else {
+		HAL_TIM_Base_Stop_IT(tim);
+	}
+
+	// Duty cycle with regards to the experimental sensitivity measured for this lidar
+	lidar_pwm.duty = round(PWM_ARR * (PWM_SENS * lidar_pwm.rpm + PWM_SENS_OFFSET) / 100);
+	if(lidar_pwm.rpm == 0) lidar_pwm.duty = 0;
+
+	TIM3->CCR1 = lidar_pwm.duty;
 }
 
 // Each measurement sample will be sent out individually in data packets of 5 bytes
