@@ -10,13 +10,7 @@ sDescriptor_t response_desc = {
 	.packet_num = 0
 };
 
-//union U_F{
-//	float f;
-//	uint8_t u[4];
-//}convert_float;
-
 // Variables for parsing lidar express scan data
-uint8_t awaiting_response_desc;  // flag that indicates whether the next received packet will be a descriptor or data
 sResponse_t response;
 sResponse_t last_response = {0};
 sCabin_t cabin;
@@ -86,146 +80,11 @@ float_t Angle_Diff(float_t w1, float_t w2){
 	}
 }
 
-// Transmit complete callback that initiates DMA receive of descriptor
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
-	if(awaiting_response_desc){
-		HAL_UART_Receive_DMA(huart, rx_buff, 7);
-	}
-}
-
-// Receive complete callback, triggered when data is ready to be read
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if(awaiting_response_desc){
-		// Before all useful data a descriptor is sent with information about the useful data: number of bytes, single/multiple packets, data(command) type
-		awaiting_response_desc = 0;
-		response_desc.length = (uint32_t)((rx_buff[5]<<24) &  0x3FFFFFFF) | (uint32_t)(rx_buff[4]<<16) | (uint32_t)(rx_buff[3]<<8) | rx_buff[2];
-		response_desc.send_mode = rx_buff[5] >> 6;
-		response_desc.data_type = rx_buff[6];
-	} else {
-		// Every time a packet with data is received it's counted so as to know when to stop listening for new packets
-		response_desc.packet_num++;
-
-		switch(response_desc.data_type){
-		case 0x04: // GET_INFO
-			lidar_info.model          = rx_buff[0];
-			lidar_info.firmware_minor = rx_buff[1];
-			lidar_info.firmware_major = rx_buff[2];
-			lidar_info.hardware       = rx_buff[3];
-			// serial_number in rx_buff[4] to rx_buff[19] is discarded
-			break;
-		case 0x06: // GET_HEALTH - returns 3 bytes
-			health.status = rx_buff[0];
-			switch(health.status){
-			case 0x00:  // Good
-				break;
-			case 0x01:  // Warning
-				// TODO handle warning
-				break;
-			case 0x02:  // Error
-				health.error_code = (uint16_t)(rx_buff[2] << 8) | rx_buff[1];
-				// TODO handle error
-				break;
-			default:
-				break;
-			}
-
-			break;
-		case 0x15: // GET_SAMPLERATE
-			lidar_info.standard_samplerate = (uint16_t)(rx_buff[1]<<8) | rx_buff[0]; // 0x1B9 = 441us
-			lidar_info.express_samplerate = (uint16_t)(rx_buff[3]<<8) | rx_buff[2];  // 0x0FC = 252us
-			break;
-		case 0x20: // GET_LIDAR_CONF
-			uint8_t response_type = rx_buff[0]; // other 3 bytes of type are not used
-
-			switch(response_type){
-			case 0x70:
-				num_scan_modes = (uint16_t)(rx_buff[5]<<8) | rx_buff[4];
-				break;
-			case 0x71:
-				scan_mode.sample_duration = (uint32_t)(rx_buff[7]<<24) | (uint32_t)(rx_buff[6]<<16) | (uint32_t)(rx_buff[5]<<8) | rx_buff[4];
-				scan_mode.sample_duration /= (1<<8);
-				break;
-			case 0x74:
-				scan_mode.max_distance = (uint32_t)(rx_buff[7]<<24) | (uint32_t)(rx_buff[6]<<16) | (uint32_t)(rx_buff[5]<<8) | rx_buff[4];
-				scan_mode.max_distance /= (1<<8);
-				break;
-			case 0x75:
-				scan_mode.answer_type = rx_buff[4];
-				break;
-			case 0x7C:
-				typ_scan_mode = (uint16_t)(rx_buff[5]<<8) | rx_buff[4];
-				break;
-			case 0x7F:
-				uint8_t i = 4;
-				for(i=4; rx_buff[i] != 0x00; ++i)
-					scan_mode.name[i-4] = rx_buff[i];
-				scan_mode.name[i-4] = '\0';
-				break;
-			default:
-				break;
-			}
-
-			break;
-		case 0x82:  // Express scan in scan mode 1
-			// TODO Measure time it takes to process one response packet
-
-			response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
-			response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
-			response.start_angle = (float_t)((uint16_t)((rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64.0;
-			response.S           = rx_buff[3] & 0x80;
-			uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
-			if(response.checksum != crc){
-				// bad message
-				break;
-			}
-
-			// information about the next start_angle is needed to calculate theta for this data response
-			if(last_response.sync != 0){
-				angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
-
-				// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
-				uint8_t k = 1;
-				// float_t msg[2];
-				for(uint8_t i=4; i<response_desc.length; i=i+5){
-					cabin.distance1 = (float_t)((uint16_t)(last_rx_buff[i+1] << 5) | (last_rx_buff[i] & 0xFC)) / 4.0;  // TODO check if /4 is needed - it's mentioned in the SCAN section, but not in EXPRESS SCAN
-					delta_theta1    = (float_t)((uint16_t)(last_rx_buff[i] & 0x18) | (last_rx_buff[i+4] & 0x0F));
-					cabin.theta1    = last_response.start_angle + angle_diff/32 * k - delta_theta1;
-
-					cabin.distance2 = (float_t)((uint16_t)(last_rx_buff[i+3] << 5) | (last_rx_buff[i+2] & 0xFC)) / 4.0;
-					delta_theta2    = (float_t)((uint16_t)(last_rx_buff[i+2] & 0x18) | (last_rx_buff[i+4] & 0xF0));
-					cabin.theta2    = last_response.start_angle + angle_diff/32 * (k+1) - delta_theta1;
-
-					k = k+2;
-				}
-			}
-
-			last_response = response;
-			memcpy(rx_buff, last_rx_buff, sizeof(rx_buff));
-
-			break;
-		default:
-			break;
-		}
-	}
-
-	// Single response mode will send a descriptor and only one data packet
-	// Multiple response mode will send a descriptor and multiple data packets
-	if((response_desc.send_mode == 0 && response_desc.packet_num == 0) || response_desc.send_mode == 1){
-		// Enables DMA receive, data won't be received if not called again
-		HAL_UART_Receive_DMA(huart, rx_buff, response_desc.length);
-	} else {
-		response_desc.packet_num = 0;
-	}
-
-}
-
 // Stops the current scanning state and enters IDLE state
 void Lidar_Stop(UART_HandleTypeDef *huart){
 	uint8_t msg[] = {START, STOP};
 
 	// No response exists for this command, host system should wait for at least 1ms before sending another request
-	awaiting_response_desc = 0;
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 
 	HAL_Delay(1);
@@ -236,7 +95,6 @@ void Lidar_Reset(UART_HandleTypeDef *huart){
 	uint8_t msg[] = {START, RESET};
 
 	// No response exists for this command, host system should wait for at least 10ms before sending another request
-	awaiting_response_desc = 0;
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 
 	HAL_Delay(10);
@@ -247,7 +105,6 @@ void Lidar_Unknown(UART_HandleTypeDef *huart){
 	uint8_t msg[] = {START, 0xFF, 0x04, 0x00, 0x00, 0x00, 0x00, 0x5E};
 
 	// No response exists for this command, host system should wait for at least 10ms before sending another request
-	awaiting_response_desc = 0;
 	HAL_UART_Transmit_DMA(huart, msg, 8);
 
 	HAL_Delay(1);
@@ -257,7 +114,7 @@ void Lidar_Unknown(UART_HandleTypeDef *huart){
 void Lidar_Get_Health(UART_HandleTypeDef *huart){
 	uint8_t msg[] = {START, GET_HEALTH};
 
-	awaiting_response_desc = 1;
+	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 
 	// Minimal time needed for the response to come in before sending next command
@@ -268,7 +125,7 @@ void Lidar_Get_Health(UART_HandleTypeDef *huart){
 void Lidar_Get_Samplerate(UART_HandleTypeDef *huart){
 	uint8_t msg[8] = {START, GET_SAMPLERATE};
 
-	awaiting_response_desc = 1;
+	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 
 	// Minimal time needed for the response to come in before sending next command
@@ -280,7 +137,7 @@ void Lidar_Get_Samplerate(UART_HandleTypeDef *huart){
 void Lidar_Get_Info(UART_HandleTypeDef *huart){
 	uint8_t msg[8] = {START, GET_INFO};
 
-	awaiting_response_desc = 1;
+	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 	// Minimal time needed for the response to come in before sending next command
 	HAL_Delay(3);
@@ -299,7 +156,7 @@ void Lidar_Get_Lidar_Conf(UART_HandleTypeDef *huart, uint8_t config, uint8_t req
 	uint8_t msg[] = {START, GET_LIDAR_CONF, request_length, config, 0x00, 0x00, 0x00, mode, 0x00, 0x00};
 	msg[length] = Lidar_CRC(msg, length, 0);
 
-	awaiting_response_desc = 1;
+	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, length+1);
 
 	HAL_Delay(2);
@@ -324,7 +181,7 @@ void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TI
 	HAL_TIM_PWM_Start(tim, channel);
 
 	// Waits for lidar to reach speed
-	HAL_Delay(1000);
+	HAL_Delay(700);
 }
 
 // Called from stm32g4xx_it.c in HAL interrupt handler for TIM6
@@ -347,7 +204,7 @@ void TIM6_IT(TIM_HandleTypeDef *tim){
 void Lidar_Scan(UART_HandleTypeDef *huart){
 	uint8_t msg[8] = {START, SCAN};
 
-	awaiting_response_desc = 1;
+	Change_Size_DMA(7);
 	HAL_UART_Transmit(huart, msg, 2, 100);
 	// No response exists for this command, host system should wait for at least 1ms before sending another request
 	HAL_Delay(1);
@@ -358,10 +215,135 @@ void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id){
 	uint8_t msg[9] = {START, EXPRESS_SCAN, 0x05, scan_mode_id, 0x00, 0x00, 0x00, 0x00, 0x00};
 	msg[8] = Lidar_CRC(msg, 8, 0);
 
-	awaiting_response_desc = 1;
+	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 9);
 
 	HAL_Delay(1);
+}
+
+// 10us interrupt - lidar sends response 14us after request
+void TIM7_IT(TIM_HandleTypeDef *tim){
+	/* Waits for new data to be received by DMA */
+	if(data_buf.new_data){
+		data_buf.new_data = 0;
+
+		/* Saves current state of buffer in case a new DMA receive interrupt occurs */
+		memcpy(rx_buff, data_buf.data, data_buf.length);
+
+		if(data_buf.length == 7){
+			// Before all useful data a descriptor is sent with information about the useful data: number of bytes, single/multiple packets, data(command) type
+			response_desc.length = (uint32_t)((rx_buff[5]<<24) &  0x3FFFFFFF) | (uint32_t)(rx_buff[4]<<16) | (uint32_t)(rx_buff[3]<<8) | rx_buff[2];
+			//response_desc.send_mode = rx_buff[5] >> 6;
+			response_desc.data_type = rx_buff[6];
+
+			Change_Size_DMA(response_desc.length);
+		} else {
+			// Every time a packet with data is received it's counted so as to know when to stop listening for new packets
+			//response_desc.packet_num++;
+
+			switch(response_desc.data_type){
+			case 0x04: // GET_INFO
+				lidar_info.model          = rx_buff[0];
+				lidar_info.firmware_minor = rx_buff[1];
+				lidar_info.firmware_major = rx_buff[2];
+				lidar_info.hardware       = rx_buff[3];
+				// serial_number in rx_buff[4] to rx_buff[19] is discarded
+				break;
+			case 0x06: // GET_HEALTH - returns 3 bytes
+				health.status = rx_buff[0];
+				switch(health.status){
+				case 0x00:  // Good
+					break;
+				case 0x01:  // Warning
+					// TODO handle warning
+					break;
+				case 0x02:  // Error
+					health.error_code = (uint16_t)(rx_buff[2] << 8) | rx_buff[1];
+					// TODO handle error
+					break;
+				default:
+					break;
+				}
+
+				break;
+			case 0x15: // GET_SAMPLERATE
+				lidar_info.standard_samplerate = (uint16_t)(rx_buff[1]<<8) | rx_buff[0]; // 0x1B9 = 441us
+				lidar_info.express_samplerate = (uint16_t)(rx_buff[3]<<8) | rx_buff[2];  // 0x0FC = 252us
+				break;
+			case 0x20: // GET_LIDAR_CONF
+				uint8_t response_type = rx_buff[0]; // other 3 bytes of type are not used
+
+				switch(response_type){
+				case 0x70:
+					num_scan_modes = (uint16_t)(rx_buff[5]<<8) | rx_buff[4];
+					break;
+				case 0x71:
+					scan_mode.sample_duration = (uint32_t)(rx_buff[7]<<24) | (uint32_t)(rx_buff[6]<<16) | (uint32_t)(rx_buff[5]<<8) | rx_buff[4];
+					scan_mode.sample_duration /= (1<<8);
+					break;
+				case 0x74:
+					scan_mode.max_distance = (uint32_t)(rx_buff[7]<<24) | (uint32_t)(rx_buff[6]<<16) | (uint32_t)(rx_buff[5]<<8) | rx_buff[4];
+					scan_mode.max_distance /= (1<<8);
+					break;
+				case 0x75:
+					scan_mode.answer_type = rx_buff[4];
+					break;
+				case 0x7C:
+					typ_scan_mode = (uint16_t)(rx_buff[5]<<8) | rx_buff[4];
+					break;
+				case 0x7F:
+					uint8_t i = 4;
+					for(i=4; rx_buff[i] != 0x00; ++i)
+						scan_mode.name[i-4] = rx_buff[i];
+					scan_mode.name[i-4] = '\0';
+					break;
+				default:
+					break;
+				}
+
+				break;
+			case 0x82:  // Express scan in scan mode 1
+				// TODO check if the buffer makes sense, crc is failing too many times
+				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
+				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
+				response.start_angle = (float_t)((uint16_t)((rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64.0;
+				response.S           = rx_buff[3] & 0x80;
+				uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
+				if(response.checksum != crc){
+					// bad message
+					break;
+				}
+
+				// TODO fix shiffting, values are too big
+				// information about the next start_angle is needed to calculate theta for this data response
+				if(last_response.sync != 0){
+					angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
+
+					// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
+					uint8_t k = 1;
+					// float_t msg[2];
+					for(uint8_t i=4; i<response_desc.length; i=i+5){
+						cabin.distance1 = (float_t)((uint16_t)(last_rx_buff[i+1] << 5) | (last_rx_buff[i] & 0xFC)) / 4.0;  // TODO check if /4 is needed - it's mentioned in the SCAN section, but not in EXPRESS SCAN
+						delta_theta1    = (float_t)((uint16_t)(last_rx_buff[i] & 0x18) | (last_rx_buff[i+4] & 0x0F));
+						cabin.theta1    = last_response.start_angle + angle_diff/32 * k - delta_theta1;
+
+						cabin.distance2 = (float_t)((uint16_t)(last_rx_buff[i+3] << 5) | (last_rx_buff[i+2] & 0xFC)) / 4.0;
+						delta_theta2    = (float_t)((uint16_t)(last_rx_buff[i+2] & 0x18) | (last_rx_buff[i+4] & 0xF0));
+						cabin.theta2    = last_response.start_angle + angle_diff/32 * (k+1) - delta_theta1;
+
+						k = k+2;
+					}
+				}
+
+				last_response = response;
+				memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
+
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }
 
 // Order of commands sent by SDK when using this lidar

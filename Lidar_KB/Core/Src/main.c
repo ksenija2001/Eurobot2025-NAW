@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lidar.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,7 +31,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,6 +43,7 @@ FDCAN_HandleTypeDef hfdcan1;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -61,6 +61,7 @@ static void MX_FDCAN1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -103,23 +104,29 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_DMAStop(&huart1);
   HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(USART1_IRQn);
+
+  Start_DMA(&huart1, 84);
+  HAL_TIM_Base_Start_IT(&htim7);   /* Timer for  */
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   // Lidar initialization
   // Lidar_Get_Samplerate(&huart1);
-  //Lidar_Reset(&huart1);
-  //HAL_Delay(10000);
+//  Lidar_Reset(&huart1);
+//  HAL_Delay(5000);
+
   Lidar_Get_Info(&huart1);
   Lidar_Unknown(&huart1);
   Lidar_Get_Info(&huart1);
   Lidar_Get_Health(&huart1);
   Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
+  Lidar_Stop(&huart1);
 
 //  Debugging scan modes:
 
@@ -136,45 +143,35 @@ int main(void)
 //	  Lidar_Get_Info(&huart1);
 //  }
 
-//  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 460);
-//  Lidar_Stop(&huart1);
-//  HAL_Delay(6);
-//  Lidar_Get_Info(&huart1);
-//  Lidar_Get_Info(&huart1);
-//  Lidar_Get_Lidar_Conf(&huart1, 0x7C, 0x04, 0x00);
-//  HAL_Delay(2);
-//  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 460);
-//  Lidar_Stop(&huart1);
-//  HAL_Delay(1000);
-//  Lidar_Get_Info(&huart1);
-//  HAL_Delay(3);
-//  Lidar_Get_Lidar_Conf(&huart1, 0x71, 0x06, 0x03);
-//  HAL_Delay(2);
-//  Lidar_Get_Lidar_Conf(&huart1, 0x74, 0x06, 0x03);
-//  HAL_Delay(2);
-//  Lidar_Get_Lidar_Conf(&huart1, 0x75, 0x06, 0x03);
-//  HAL_Delay(2);
-//  Lidar_Get_Lidar_Conf(&huart1, 0x7F, 0x06, 0x03);
-//  HAL_Delay(3);
+
+  Lidar_Get_Info(&huart1);
+  Lidar_Get_Info(&huart1);
 
   Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
   Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 800, &htim6);
   Lidar_Stop(&huart1);
 
   Lidar_Express_Scan(&huart1, 0x01);
-  HAL_Delay(5000);
+
+  uint32_t milis = HAL_GetTick();
+  while (1)
+  {
+	if(HAL_GetTick() - milis > 5000) break;
+
+	if(HAL_UART_GetError(&huart1) != HAL_OK){
+		uint32_t error = HAL_UART_GetError(&huart1);
+		break;
+	}
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+
   Lidar_Stop(&huart1);
 
   //Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 0, &htim6);
   Lidar_Motor_Stop(&htim3, TIM_CHANNEL_1);
   Lidar_Get_Health(&huart1);
-
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
   /* USER CODE END 3 */
 }
 
@@ -361,6 +358,44 @@ static void MX_TIM6_Init(void)
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 0;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 1439;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
 
 }
 

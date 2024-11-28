@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "stm32g4xx_hal.h"
+#include "dma.h"
 
 #define BUFFER_SIZE 128
 #define PWM_ARR 5759
@@ -99,6 +100,10 @@ void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id);
 void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
 void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_rpm);
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
+void TIM6_IT(TIM_HandleTypeDef *tim);
+void TIM7_IT(TIM_HandleTypeDef *tim);
 
+extern uint8_t rx_buff[BUFFER_SIZE];
+extern sDescriptor_t response_desc;
 
 #endif /* INC_LIDAR_H_ */
