@@ -20,10 +20,8 @@ float_t angle_diff;
 
 // Variables for lidar PWM control
 sPWM_t lidar_pwm = {
-		.duty = 0,
-		.target_rpm = 0,
-		.rpm = 0,
-		.rpm_inc = 1
+		.ccr1 = 0,
+		.inc = 1
 };
 
 // Debug variables
@@ -171,33 +169,30 @@ void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel){
 void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_ramp){
 	// Cap max speed of lidar to 800RPM
 	if(rpm > 800) rpm = 800;
-	lidar_pwm.target_rpm = rpm;
-	lidar_pwm.rpm_inc *= (lidar_pwm.target_rpm - lidar_pwm.rpm)/abs(lidar_pwm.target_rpm - lidar_pwm.rpm); // changes sign of increment
+	float duty = (PWM_SENS * rpm + PWM_SENS_OFFSET) / 100;
+	lidar_pwm.ccr1 = round(PWM_ARR * duty);
 
-	// Increments rpm every 1ms for
+	if(rpm == 0) lidar_pwm.ccr1 = 0;
+	lidar_pwm.inc = lidar_pwm.ccr1 > TIM3->CCR1 ? 1:-1;
+
+	if(duty > 0.3) TIM3->CCR1 = round(PWM_ARR * 0.3);
+
+	// Increments rpm every 0.5ms for
 	HAL_TIM_Base_Start_IT(tim_ramp);
 
-	TIM3->CCR1 = 0;
 	HAL_TIM_PWM_Start(tim, channel);
 
 	// Waits for lidar to reach speed
-	HAL_Delay(700);
+	HAL_Delay(2000);
 }
 
-// Called from stm32g4xx_it.c in HAL interrupt handler for TIM6
+// Called from stm32g4xx_it.c in HAL interrupt handler for TIM6 every 0.5ms
 void TIM6_IT(TIM_HandleTypeDef *tim){
-	// lidar pwm in increment by rpm_inc every 1ms until equal to target rpm
-	if(lidar_pwm.target_rpm != lidar_pwm.rpm){
-		lidar_pwm.rpm += lidar_pwm.rpm_inc;
+	if(TIM3->CCR1 != lidar_pwm.ccr1){
+		TIM3->CCR1 += lidar_pwm.inc;
 	} else {
 		HAL_TIM_Base_Stop_IT(tim);
 	}
-
-	// Duty cycle with regards to the experimental sensitivity measured for this lidar
-	lidar_pwm.duty = round(PWM_ARR * (PWM_SENS * lidar_pwm.rpm + PWM_SENS_OFFSET) / 100);
-	if(lidar_pwm.rpm == 0) lidar_pwm.duty = 0;
-
-	TIM3->CCR1 = lidar_pwm.duty;
 }
 
 // Each measurement sample will be sent out individually in data packets of 5 bytes
@@ -303,6 +298,7 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 
 				break;
 			case 0x82:  // Express scan in scan mode 1
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 				// TODO check if the buffer makes sense, crc is failing too many times
 				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
 				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
@@ -323,7 +319,10 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 					uint8_t k = 1;
 					// float_t msg[2];
 					for(uint8_t i=4; i<response_desc.length; i=i+5){
+						HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 						cabin.distance1 = (float_t)((uint16_t)(last_rx_buff[i+1] << 5) | (last_rx_buff[i] & 0xFC)) / 4.0;  // TODO check if /4 is needed - it's mentioned in the SCAN section, but not in EXPRESS SCAN
+						HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+
 						delta_theta1    = (float_t)((uint16_t)(last_rx_buff[i] & 0x18) | (last_rx_buff[i+4] & 0x0F));
 						cabin.theta1    = last_response.start_angle + angle_diff/32 * k - delta_theta1;
 
@@ -338,6 +337,7 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				last_response = response;
 				memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
 
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 				break;
 			default:
 				break;

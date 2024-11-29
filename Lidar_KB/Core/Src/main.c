@@ -169,7 +169,7 @@ int main(void)
 
   Lidar_Stop(&huart1);
 
-  //Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 0, &htim6);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 0, &htim6);
   Lidar_Motor_Stop(&htim3, TIM_CHANNEL_1);
   Lidar_Get_Health(&huart1);
   /* USER CODE END 3 */
@@ -343,7 +343,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 2;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 47999;
+  htim6.Init.Period = 23999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -483,10 +483,17 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(TIME_TEST_GPIO_Port, TIME_TEST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|LED_CAN_RX_Pin|LED_CAN_TX_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_CAN_RX_Pin|LED_CAN_TX_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(TIME_TEST_GPIO_Port, TIME_TEST_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : PA0 PA1 LED_CAN_RX_Pin LED_CAN_TX_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|LED_CAN_RX_Pin|LED_CAN_TX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : TIME_TEST_Pin */
   GPIO_InitStruct.Pin = TIME_TEST_Pin;
@@ -494,13 +501,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(TIME_TEST_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LED_CAN_RX_Pin LED_CAN_TX_Pin */
-  GPIO_InitStruct.Pin = LED_CAN_RX_Pin|LED_CAN_TX_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

@@ -77,10 +77,8 @@ typedef struct{
 } sCabin_t;
 
 typedef struct{
-	uint16_t duty;
-	uint16_t target_rpm;
-	uint16_t rpm;
-	int8_t rpm_inc;
+	uint16_t ccr1;
+	int8_t inc;
 } sPWM_t;
 
 // Commands without response
