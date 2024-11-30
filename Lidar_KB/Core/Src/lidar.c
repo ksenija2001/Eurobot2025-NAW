@@ -175,7 +175,7 @@ void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TI
 	if(rpm == 0) lidar_pwm.ccr1 = 0;
 	lidar_pwm.inc = lidar_pwm.ccr1 > TIM3->CCR1 ? 1:-1;
 
-	if(duty > 0.3) TIM3->CCR1 = round(PWM_ARR * 0.3);
+	//if(duty > 0.3) TIM3->CCR1 = round(PWM_ARR * 0.3);
 
 	// Increments rpm every 0.5ms for
 	HAL_TIM_Base_Start_IT(tim_ramp);
@@ -183,7 +183,7 @@ void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TI
 	HAL_TIM_PWM_Start(tim, channel);
 
 	// Waits for lidar to reach speed
-	HAL_Delay(2000);
+	HAL_Delay(500);
 }
 
 // Called from stm32g4xx_it.c in HAL interrupt handler for TIM6 every 0.5ms

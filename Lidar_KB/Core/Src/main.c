@@ -121,11 +121,12 @@ int main(void)
 //  Lidar_Reset(&huart1);
 //  HAL_Delay(5000);
 
-  Lidar_Get_Info(&huart1);
-  Lidar_Unknown(&huart1);
-  Lidar_Get_Info(&huart1);
+  //Lidar_Get_Info(&huart1);
+  //Lidar_Unknown(&huart1);
+  //Lidar_Get_Info(&huart1);
   Lidar_Get_Health(&huart1);
-  Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 800, &htim6);
+  //Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
   Lidar_Stop(&huart1);
 
 //  Debugging scan modes:
@@ -145,11 +146,11 @@ int main(void)
 
 
   Lidar_Get_Info(&huart1);
-  Lidar_Get_Info(&huart1);
+  //Lidar_Get_Info(&huart1);
 
   Lidar_Get_Lidar_Conf(&huart1, 0x01, 0x04, 0x00);
-  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 800, &htim6);
-  Lidar_Stop(&huart1);
+
+  //Lidar_Stop(&huart1);
 
   Lidar_Express_Scan(&huart1, 0x01);
 
@@ -343,7 +344,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 2;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 23999;
+  htim6.Init.Period = 11999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
