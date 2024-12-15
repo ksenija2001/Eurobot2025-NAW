@@ -14,8 +14,6 @@ sDescriptor_t response_desc = {
 sResponse_t response;
 sResponse_t last_response = {0};
 sCabin_t cabin;
-float_t delta_theta1;
-float_t delta_theta2;
 float_t angle_diff;
 
 // Variables for lidar PWM control
@@ -30,6 +28,19 @@ sScanMode_t scan_mode;  // debugging structure for finding differences between s
 sHealth_t health;
 uint16_t num_scan_modes = 5;  // this lidar supports 5 scan modes
 uint16_t typ_scan_mode = 3;   // typical scan mode is Sensitivity
+
+union U_F{
+	float f;
+	uint8_t u[4];
+} convert_theta1, convert_theta2, convert_distance1, convert_distance2;
+
+UART_HandleTypeDef *huart2_pc;
+
+uint8_t cabin_bytes[17];
+uint16_t distance;
+int8_t delta_theta;
+uint8_t u_delta_theta;
+
 
 // Since Sensitivity utilizes ultra capsulated data format - which is hard to decode, scan mode 1 will be used
 
@@ -61,12 +72,11 @@ uint16_t typ_scan_mode = 3;   // typical scan mode is Sensitivity
 // Calculates XOR of all bytes in message to be sent to lidar
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start){
 	uint8_t crc = 0;
-	uint8_t i;
 
-	for(i=start; i<length; ++i){
-		crc ^= msg[i];
+	for(uint8_t j=start; j<length; ++j){
+		crc ^= msg[j];
 	}
-	return crc;
+	return crc; // ^ 0xff;
 }
 
 // Nromalization of angles defined by rplidar protocol
@@ -206,9 +216,11 @@ void Lidar_Scan(UART_HandleTypeDef *huart){
 }
 
 // Sends 32 measurements at once
-void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id){
+void Lidar_Express_Scan(UART_HandleTypeDef *huart, UART_HandleTypeDef *huart_pc, uint8_t scan_mode_id){
 	uint8_t msg[9] = {START, EXPRESS_SCAN, 0x05, scan_mode_id, 0x00, 0x00, 0x00, 0x00, 0x00};
 	msg[8] = Lidar_CRC(msg, 8, 0);
+
+	huart2_pc = huart_pc;
 
 	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 9);
@@ -287,10 +299,10 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 					typ_scan_mode = (uint16_t)(rx_buff[5]<<8) | rx_buff[4];
 					break;
 				case 0x7F:
-					uint8_t i = 4;
-					for(i=4; rx_buff[i] != 0x00; ++i)
-						scan_mode.name[i-4] = rx_buff[i];
-					scan_mode.name[i-4] = '\0';
+					uint8_t j = 4;
+					for(j=4; rx_buff[j] != 0x00; ++j)
+						scan_mode.name[j-4] = rx_buff[j];
+					scan_mode.name[j-4] = '\0';
 					break;
 				default:
 					break;
@@ -299,38 +311,51 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				break;
 			case 0x82:  // Express scan in scan mode 1
 				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-				// TODO check if the buffer makes sense, crc is failing too many times
 				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
 				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
-				response.start_angle = (float_t)((uint16_t)((rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64.0;
+				response.start_angle = (float_t)((((uint16_t)(rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64);
 				response.S           = rx_buff[3] & 0x80;
 				uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
 				if(response.checksum != crc){
 					// bad message
+					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+					last_response = response;
+					memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
+
+					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+
 					break;
 				}
 
-				// TODO fix shiffting, values are too big
 				// information about the next start_angle is needed to calculate theta for this data response
 				if(last_response.sync != 0){
 					angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
 
 					// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
-					uint8_t k = 1;
-					// float_t msg[2];
-					for(uint8_t i=4; i<response_desc.length; i=i+5){
-						HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-						cabin.distance1 = (float_t)((uint16_t)(last_rx_buff[i+1] << 5) | (last_rx_buff[i] & 0xFC)) / 4.0;  // TODO check if /4 is needed - it's mentioned in the SCAN section, but not in EXPRESS SCAN
-						HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+					for(uint8_t i=4, k=1; i<response_desc.length; i=i+5, k=k+2){
 
-						delta_theta1    = (float_t)((uint16_t)(last_rx_buff[i] & 0x18) | (last_rx_buff[i+4] & 0x0F));
-						cabin.theta1    = last_response.start_angle + angle_diff/32 * k - delta_theta1;
+						// distance1 and theta1
+						distance = ( ((uint16_t)last_rx_buff[i+1] << 8) | (last_rx_buff[i] & 0xFC) ) >> 2;
+						cabin.distance1 = (float_t)distance;
 
-						cabin.distance2 = (float_t)((uint16_t)(last_rx_buff[i+3] << 5) | (last_rx_buff[i+2] & 0xFC)) / 4.0;
-						delta_theta2    = (float_t)((uint16_t)(last_rx_buff[i+2] & 0x18) | (last_rx_buff[i+4] & 0xF0));
-						cabin.theta2    = last_response.start_angle + angle_diff/32 * (k+1) - delta_theta1;
+						u_delta_theta = ((last_rx_buff[i] & 0x03) << 4) | (last_rx_buff[i+4] & 0x0F);
+						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
 
-						k = k+2;
+						cabin.theta1    = last_response.start_angle + ((angle_diff/32.0) * k) - (float_t)delta_theta / 8.0;
+
+						// distance2 and theta2
+						distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
+						cabin.distance2 = (float_t)distance;
+
+						u_delta_theta = ((last_rx_buff[i+2] & 0x03) << 4) | ((last_rx_buff[i+4] & 0xF0) >> 4);
+						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
+
+						cabin.theta2    = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float_t)delta_theta / 8.0;
+
+						// Debug info sent over UART
+						Cabin_To_Bytes(cabin, cabin_bytes);
+						HAL_UART_Transmit(huart2_pc, cabin_bytes, 17, 100);
 					}
 				}
 
@@ -345,6 +370,24 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 		}
 	}
 }
+
+void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes){
+	cabin_bytes[0] = START;
+
+	convert_theta1.f = cabin.theta1;
+	convert_theta2.f = cabin.theta2;
+	convert_distance1.f = cabin.distance1;
+	convert_distance2.f = cabin.distance2;
+
+	for(int j=0; j<4; ++j){
+		cabin_bytes[j+1]    = convert_theta1.u[j];
+		cabin_bytes[j+1+4]  = convert_distance1.u[j];
+		cabin_bytes[j+1+8]  = convert_theta2.u[j];
+		cabin_bytes[j+1+12] = convert_distance2.u[j];
+	}
+
+}
+
 
 // Order of commands sent by SDK when using this lidar
 // GET_INFO - return 20 bytes

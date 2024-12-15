@@ -48,7 +48,7 @@ void Change_Size_DMA(uint8_t size){
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 	currCNDTR = __HAL_DMA_GET_COUNTER(huart->hdmarx);
 
 	/* Ignore IDLE Timeout when the received characters exactly filled up the DMA buffer and DMA Rx Complete IT is generated,
@@ -88,5 +88,5 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
 	data_buf.length = length;
 	data_buf.new_data = 1;
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 }
