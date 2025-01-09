@@ -22,6 +22,7 @@
 #include "stm32g4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lidar.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,8 +56,11 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef hdma_usart1_rx;
-extern DMA_HandleTypeDef hdma_usart1_tx;
+extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim7;
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern DMA_HandleTypeDef hdma_usart2_tx;
+extern UART_HandleTypeDef huart2;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -207,7 +211,7 @@ void DMA1_Channel1_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
 
   /* USER CODE END DMA1_Channel1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart1_rx);
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
   /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
 
   /* USER CODE END DMA1_Channel1_IRQn 1 */
@@ -221,10 +225,52 @@ void DMA1_Channel2_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
 
   /* USER CODE END DMA1_Channel2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart1_tx);
+  HAL_DMA_IRQHandler(&hdma_usart2_tx);
   /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
 
   /* USER CODE END DMA1_Channel2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
+  */
+void USART2_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART2_IRQn 0 */
+
+  /* USER CODE END USART2_IRQn 0 */
+  HAL_UART_IRQHandler(&huart2);
+  /* USER CODE BEGIN USART2_IRQn 1 */
+
+  /* USER CODE END USART2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM6 global interrupt, DAC1 and DAC3 channel underrun error interrupts.
+  */
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+  TIM6_IT(&htim6);
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim6);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+
+  /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM7 global interrupt.
+  */
+void TIM7_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM7_IRQn 0 */
+  TIM7_IT(&htim7);
+  /* USER CODE END TIM7_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim7);
+  /* USER CODE BEGIN TIM7_IRQn 1 */
+
+  /* USER CODE END TIM7_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

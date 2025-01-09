@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lidar.h"
+#include "dma.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,10 +44,12 @@
 FDCAN_HandleTypeDef hfdcan1;
 
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 
-UART_HandleTypeDef huart1;
-DMA_HandleTypeDef hdma_usart1_rx;
-DMA_HandleTypeDef hdma_usart1_tx;
+UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
 
@@ -58,7 +61,9 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_TIM3_Init(void);
-static void MX_USART1_UART_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_TIM6_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -99,19 +104,46 @@ int main(void)
   MX_DMA_Init();
   MX_FDCAN1_Init();
   MX_TIM3_Init();
-  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
+  MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
+  HAL_UART_DMAStop(&huart2);
+  HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USART2_IRQn);
 
+  Start_DMA(&huart2, 84);
+  HAL_TIM_Base_Start_IT(&htim7);   /* Timer for  */
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  Lidar_Get_Health(&huart2);
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 800, &htim6);
+  Lidar_Stop(&huart2);
+  Lidar_Get_Info(&huart2);
+
+  Lidar_Get_Lidar_Conf(&huart2, 0x01, 0x04, 0x00);
+
+  Lidar_Express_Scan(&huart2, 0x00); // Legacy Express Scan
+  uint32_t milis = HAL_GetTick();
   while (1)
   {
+    if(HAL_GetTick() - milis > 10000) break;
+
+	if(HAL_UART_GetError(&huart2) != HAL_OK){
+		uint32_t error = HAL_UART_GetError(&huart2);
+		break;
+	}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
+  Lidar_Stop(&huart2);
+
+  Lidar_Motor_Speed(&htim3, TIM_CHANNEL_1, 0, &htim6);
+  Lidar_Motor_Stop(&htim3, TIM_CHANNEL_1);
+  Lidar_Get_Health(&huart2);
   /* USER CODE END 3 */
 }
 
@@ -225,7 +257,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 5759;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
@@ -254,50 +286,126 @@ static void MX_TIM3_Init(void)
 }
 
 /**
-  * @brief USART1 Initialization Function
+  * @brief TIM6 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_USART1_UART_Init(void)
+static void MX_TIM6_Init(void)
 {
 
-  /* USER CODE BEGIN USART1_Init 0 */
+  /* USER CODE BEGIN TIM6_Init 0 */
 
-  /* USER CODE END USART1_Init 0 */
+  /* USER CODE END TIM6_Init 0 */
 
-  /* USER CODE BEGIN USART1_Init 1 */
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-  /* USER CODE END USART1_Init 1 */
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 2;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 11999;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART1_Init 2 */
+  /* USER CODE BEGIN TIM6_Init 2 */
 
-  /* USER CODE END USART1_Init 2 */
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 0;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 1439;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 
@@ -334,8 +442,8 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED_R_Pin|LED_G_Pin|LED_B_Pin, GPIO_PIN_RESET);
