@@ -1,0 +1,10 @@
+# STM32CubeIDE
+*/.settings/
+*/.metadata/
+*/Debug/
+
+# Python
+*/venv/
+/__pycache__
+*.egg-info
+/logs
