@@ -294,16 +294,16 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* hfdcan)
 }
 
 /**
-* @brief SMBUS MSP Initialization
+* @brief I2C MSP Initialization
 * This function configures the hardware resources used in this example
-* @param hsmbus: SMBUS handle pointer
+* @param hi2c: I2C handle pointer
 * @retval None
 */
-void HAL_SMBUS_MspInit(SMBUS_HandleTypeDef* hsmbus)
+void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-  if(hsmbus->Instance==I2C1)
+  if(hi2c->Instance==I2C1)
   {
   /* USER CODE BEGIN I2C1_MspInit 0 */
 
@@ -322,7 +322,6 @@ void HAL_SMBUS_MspInit(SMBUS_HandleTypeDef* hsmbus)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**I2C1 GPIO Configuration
     PA15     ------> I2C1_SCL
-    PB5     ------> I2C1_SMBA
     PB7     ------> I2C1_SDA
     */
     GPIO_InitStruct.Pin = IMU_SCL_Pin;
@@ -332,12 +331,12 @@ void HAL_SMBUS_MspInit(SMBUS_HandleTypeDef* hsmbus)
     GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
     HAL_GPIO_Init(IMU_SCL_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = IMU_SMBA_INT1_Pin|IMU_SDA_Pin;
+    GPIO_InitStruct.Pin = IMU_SDA_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(IMU_SDA_GPIO_Port, &GPIO_InitStruct);
 
     /* Peripheral clock enable */
     __HAL_RCC_I2C1_CLK_ENABLE();
@@ -349,14 +348,14 @@ void HAL_SMBUS_MspInit(SMBUS_HandleTypeDef* hsmbus)
 }
 
 /**
-* @brief SMBUS MSP De-Initialization
+* @brief I2C MSP De-Initialization
 * This function freeze the hardware resources used in this example
-* @param hsmbus: SMBUS handle pointer
+* @param hi2c: I2C handle pointer
 * @retval None
 */
-void HAL_SMBUS_MspDeInit(SMBUS_HandleTypeDef* hsmbus)
+void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 {
-  if(hsmbus->Instance==I2C1)
+  if(hi2c->Instance==I2C1)
   {
   /* USER CODE BEGIN I2C1_MspDeInit 0 */
 
@@ -366,12 +365,9 @@ void HAL_SMBUS_MspDeInit(SMBUS_HandleTypeDef* hsmbus)
 
     /**I2C1 GPIO Configuration
     PA15     ------> I2C1_SCL
-    PB5     ------> I2C1_SMBA
     PB7     ------> I2C1_SDA
     */
     HAL_GPIO_DeInit(IMU_SCL_GPIO_Port, IMU_SCL_Pin);
-
-    HAL_GPIO_DeInit(IMU_SMBA_INT1_GPIO_Port, IMU_SMBA_INT1_Pin);
 
     HAL_GPIO_DeInit(IMU_SDA_GPIO_Port, IMU_SDA_Pin);
 
