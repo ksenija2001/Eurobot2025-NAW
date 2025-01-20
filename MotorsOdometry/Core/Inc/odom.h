@@ -10,9 +10,9 @@
 
 #include <math.h>
 #include <stm32g4xx.h>
+#include "interrupts.h"
 
 #define PPR         8192      // 4*2048 inc
-#define ODOM_TIME   1         // ms,  1kHz = 1/0.001
 #define FILTER      0.5       // determines how much of the old value will be kept
 
 //#define WHEEL_DIAMETER 70
@@ -29,12 +29,21 @@ typedef struct {
 	float right_speed;
 } sOdom_t;
 
+typedef struct {
+	float diameter;
+	float track;
+	float inc_mm;
+
+	uint16_t curr_inc;
+	uint16_t last_inc;
+} sEncoderWheel_t;
+
 sOdom_t* Odometry_New(void);
 sOdom_t* Odometry_Old(void);
-void Reset_Encoders(sOdom_t* new_odom);
-void Config(float diameter, float distance);
+void Reset_Odometry(sOdom_t* new_odom);
+void Config_Encoder_Wheel(sEncoderWheel_t* wheel, float diameter, float track);
 
-extern volatile float wheel_diameter;
-extern volatile float wheel_distance;
+extern sEncoderWheel_t left;
+extern sEncoderWheel_t right;
 
 #endif /* INC_ODOM_H_ */
