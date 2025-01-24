@@ -1,0 +1,62 @@
+AX_Servo:
+  - RightVacuumLift:
+      id: 1
+      angles:
+        - Top: 0
+        - Bottom: 300 # temp
+  - RightVacuum:
+      id: 2
+      angles:
+        - Top: 240
+        - Middle: 150
+        - Bottom: 60
+  - LeftVacuumLift:
+      id: 3
+      angles:
+        - Top: 300 # temp
+        - Bottom: 0
+  - LeftVacuum:
+      id: 4
+      angles:
+        - Top: 60
+        - Middle: 150
+        - Bottom: 240
+  - RightGripLift:
+      id: 5
+      angles:
+        - Top: 0
+        - Middle:
+        - Bottom: 300
+  - LeftGripLift:
+      id: 6
+      angles:
+        - Top: 300
+        - Middle:
+        - Bottom: 0
+  - CenterSwing:
+      id: 7
+      angles:
+        - Top: 240
+        - Bottom: 150
+  - CenterLift:
+      id: 8
+      angles:
+        - Top: 0
+        - Bottom: 242
+  - BackRightLift:
+      id: 9
+      angles:
+        - Top: 240
+        - Bottom: 150
+  - BackLeftLift:
+      id: 10
+      angles:
+        - Top: 0
+        - Bottom: 242
+
+MG_Servo:
+  - RightGrip:
+      id:
+  - LeftGript:
+      id:
+  -
