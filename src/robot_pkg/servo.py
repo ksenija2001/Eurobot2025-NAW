@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
+import can
+from queue import Queue
 
 @dataclass
 class ServoPositions():
@@ -31,6 +33,15 @@ class Servo(Enum):
 
     BACK_RIGHT_LIFT   = 9, ServoPositions(top=240,             bottom=150)
     BACK_LEFT_LIFT    =10, ServoPositions(top=  0,             bottom=242)
+
+
+class ServoMoving:
+
+    def __init__(self, can_queue: Queue):
+        self.can_queue = can_queue
+    
+    def send(self, ids:list, positions:list):
+        pass
 
 
 if __name__ == "__main__":
