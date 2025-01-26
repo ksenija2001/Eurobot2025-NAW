@@ -1,0 +1,10 @@
+[INFO   ][17:57:27]:main: Started code
+[DEBUG  ][17:57:27]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:57:27]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:57:27]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:57:27]:can.interfaces.socketcan.socketcan: Bound socket.
+[INFO   ][17:57:27]:can: CAN Handler initialised.
+[DEBUG  ][17:57:27]:can: CAN receiving thread started.
+[DEBUG  ][17:57:27]:can: CAN sending thread started.
+[INFO   ][17:57:32]:can: Message IDs.GET_POSITION sent
+[DEBUG  ][17:57:37]:can: Threads stopped.

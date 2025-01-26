@@ -9,13 +9,14 @@ LOG_TODAY = os.path.join(LOG_PATH, str(datetime.date.today()))
 class LogHandler:
 
     def __init__(self, old=7) -> None:
-        self.remove_logs(old)
 
         if os.path.exists(LOG_TODAY):
             print("Log directory exists.")
         else:
-            os.mkdir(LOG_TODAY)
+            os.makedirs(LOG_TODAY)
             print("Log directory created.")
+        
+        self.remove_logs(old)
 
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.log_filename = LOG_TODAY + '/log_' + str(now)
@@ -26,8 +27,13 @@ class LogHandler:
         except:
             print("No logging.conf found")
         
-        root = logging.getLogger()
-        root.info("Log started")
+        self.root = logging.getLogger()
+        self.root.info("Log started")
+    
+    def get_loggers(self) -> tuple[logging.Logger]:
+        main = logging.getLogger("main")
+        can = logging.getLogger("can")
+        return main, can
 
     def remove_logs(self, old) -> None:
         subfolders = [f.name for f in os.scandir(LOG_PATH) if f.is_dir()]
@@ -38,10 +44,12 @@ class LogHandler:
 
     def __del__(self):
         file_size = os.path.getsize(self.log_filename + '.log')
+        self.root.info(f"Finished {self.log_filename + '.log'} of size {file_size}")
+
         if file_size == 0:
             print("Log empty.")
             os.remove(self.log_filename + '.log')
 
 if __name__ == "__main__":
-    log__handle = LogHandler()
+    pass #log = LogHandler()
 

@@ -1,0 +1,46 @@
+[INFO   ][17:55:48]:main: Started code
+[INFO   ][17:55:48]:can: CAN Handler initialised.
+[DEBUG  ][17:55:48]:can: CAN receiving thread started.
+[DEBUG  ][17:55:48]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[DEBUG  ][17:55:48]:can: CAN sending thread started.
+[INFO   ][17:55:49]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:55:49]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:55:49]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:55:49]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[DEBUG  ][17:55:49]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:55:49]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:55:49]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:55:49]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:55:50]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[DEBUG  ][17:55:50]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:55:50]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:55:51]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:55:51]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:55:52]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[DEBUG  ][17:55:52]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:55:52]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:55:52]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:55:52]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:55:53]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[INFO   ][17:55:53]:can: Message IDs.GET_POSITION sent
+[DEBUG  ][17:55:53]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:55:53]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:55:53]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:55:53]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:55:54]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[DEBUG  ][17:55:59]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:55:59]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:56:02]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:56:02]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:56:04]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[DEBUG  ][17:56:04]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:56:04]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:56:04]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:56:04]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:56:04]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[DEBUG  ][17:56:05]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
+[INFO   ][17:56:05]:can.interfaces.socketcan.socketcan: Created a socket
+[DEBUG  ][17:56:05]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
+[DEBUG  ][17:56:07]:can.interfaces.socketcan.socketcan: Bound socket.
+[DEBUG  ][17:56:07]:can.interfaces.socketcan.socketcan: Closing raw can socket
+[DEBUG  ][17:56:07]:can: Threads stopped.

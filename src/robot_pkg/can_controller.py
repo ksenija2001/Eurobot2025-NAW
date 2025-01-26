@@ -1,0 +1,158 @@
+import can
+from enum import Enum
+from threading import Thread, Event
+from queue import Queue, Empty
+import struct
+import logging
+
+class IDs(Enum):
+    SET_POSITION = 0xAA0,
+    GET_POSITION = 0xBB0,
+    SET_PUMP     = 0xCC0,
+    SET_SERVO_POSITION = 0xDD0,
+    GET_SERVO_POSITION = 0xDD1,
+    GET_SERVO_DONE     = 0xDD2,
+
+class CanGateway:
+    '''
+        Handles packet parsing and message priorities
+    '''
+
+    def init(self, msg_types:dict[IDs, Queue]):
+        self.running = False
+        pass
+
+    
+
+    def start_checking(self):
+        self.running = True
+
+    def check_queue(self, queue:Queue):
+        while self.running:
+            msg = queue.get()
+            self.parse(msg.arbitration_id)
+            
+    def parse(self, msg_id):
+        if msg_id == IDs.GET_POSITION:
+            pass
+        elif msg_id == IDs.GET_SERVO_DONE:
+            pass
+        elif msg_id == IDs.GET_SERVO_POSITION:
+            pass
+
+    def wait_for(self, msg_ids:list) -> bool:
+        pass
+
+                
+
+
+
+
+class CanNetwork:
+    '''
+        Handles all traffic on CAN network - sending and receiving of packets
+    '''
+
+    def __init__(self, channel, interface, max_queue_size, log: logging.Logger):
+        can.rc['interface'] = interface
+        can.rc['channel'] = channel
+        can.rc['fd'] = True
+
+        self.bus = can.Bus()
+
+        self.logger = log
+
+        self.msg_receive_queues = {}
+        self.msg_send_queues = {}
+        self.max_queue_size = max_queue_size
+
+        self._recv_thread = Thread(target=self.receive)
+        self._send_thread = Thread(target=self.send)
+        self.running = False
+
+        self.logger.info("CAN Handler initialised.")
+
+    def init_queues(self, max_queue_size=0):
+        for msg_type in IDs:
+            self.msg_receive_queues[msg_type.name] = Queue(maxsize=max_queue_size)
+            self.msg_send_queues[msg_type.name] = Queue(maxsize=max_queue_size)
+
+    def send_msg(self, msg_id:IDs, data):
+        '''
+            msg_id: ID of sent data,
+            data  : bytes to be sent on CAN network
+        '''
+        msg = can.Message(arbitration_id=msg_id.value, data=data, is_extended_id=False, is_fd=True)
+
+        try:
+            # self.bus.send(msg)
+            self.logger.info(f"Message {msg_id} sent") # on {bus.channel_info}")
+        except can.CanError as e:
+            self.logger.warning(f"Message {msg_id} NOT sent: {e}")
+
+    def request_msg(self, msg_id:IDs, size):
+        '''
+            msg_id: ID of requested data,
+            size  : expected size of the received data
+        '''
+
+        msg = can.Message(arbitration_id=msg_id.value, dlc=size, data=[], is_extended_id=False, is_fd=True, is_remote_frame=True)
+
+        try:
+            # with can.Bus() as bus:
+            #     bus.send(msg)
+            print(f"Message sent") # on {bus.channel_info}")
+        except can.CanError:
+            print("[ERROR] Message NOT sent")
+    
+    def start_threads(self):
+        self.init_queues(self.max_queue_size)
+
+        self.running = True
+        self._recv_thread.start()
+        self.logger.debug(f"CAN receiving thread started.")
+
+        self._send_thread.start()
+        self.logger.debug(f"CAN sending thread started.")
+    
+    def stop_threads(self):
+        self.running = False
+        self._recv_thread.join()
+        self._send_thread.join()
+        self.logger.debug(f"Threads stopped.")
+
+    def receive(self):
+        while self.running:
+            try:
+                msg = self.bus.recv(timeout=0.1)                  # blocks until a message is ready
+                if msg is not None:
+                    msg_id = msg.arbitration_id
+                    self.msg_queues[msg_id].put(msg)  # stores received message in appropriate queue
+            
+                    self.logger.debug(f"Message {msg_id} put into queue.")
+
+            except can.CanError as e:
+                self.logger.warning(f"Message NOT received correctly: {e}")
+    
+    def send(self):
+        while self.running:
+            
+            for key, queue in self.msg_send_queues.items():   #   priorities are determined by the order they were listed in IDs
+                try:
+                    
+                    if queue.qsize() > 0:
+                        print(key)
+                        id, data = queue.get(block=False)
+                        self.send_msg(id, data)
+                except Empty:
+                    pass
+                    #print(f"Queueu empty")
+    
+    def __del__(self):
+        self.bus.shutdown()
+                    
+                
+                
+
+
+      
