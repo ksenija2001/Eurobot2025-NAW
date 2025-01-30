@@ -103,8 +103,6 @@ void Error_Handler(void);
 #define LED_CAN_TX_GPIO_Port GPIOA
 #define IMU_SCL_Pin GPIO_PIN_15
 #define IMU_SCL_GPIO_Port GPIOA
-#define IMU_SMBA_INT1_Pin GPIO_PIN_5
-#define IMU_SMBA_INT1_GPIO_Port GPIOB
 #define IMU_SDA_Pin GPIO_PIN_7
 #define IMU_SDA_GPIO_Port GPIOB
 #define IMU_INT2_Pin GPIO_PIN_9
