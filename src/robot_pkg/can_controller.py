@@ -6,12 +6,18 @@ import struct
 import logging
 
 class IDs(Enum):
-    SET_POSITION = 0xAA0,
-    GET_POSITION = 0xBB0,
-    SET_PUMP     = 0xCC0,
-    SET_SERVO_POSITION = 0xDD0,
-    GET_SERVO_POSITION = 0xDD1,
-    GET_SERVO_DONE     = 0xDD2,
+    RESET_ODOM  = 0x4F0
+    ODOM_CONFIG = 0x4F1
+
+    GET_ODOM = 0x4FF
+
+    SET_MOTOR_SPEED = 0x4D0
+    SET_MOTOR_RPM   = 0x4D1
+
+    GET_MOTOR_SPEED = 0x4DF
+
+    SET_SERVO_POSITIONS = 0x530
+
 
 class CanGateway:
     '''
