@@ -7,6 +7,9 @@
 
 #include "motor_control.h"
 
+extern ADC_HandleTypeDef hadc1;
+extern ADC_HandleTypeDef hadc2;
+
 sMotorConfig_t left_motor = {
 		.TIM = {
 				.channel = TIM_CHANNEL_1},
@@ -29,13 +32,16 @@ sMotorConfig_t right_motor = {
 		}
 };
 
-uint8_t Init_Motor(sMotorConfig_t* motor, TIM_HandleTypeDef* htim){
+uint8_t Init_Motor(sMotorConfig_t* motor, TIM_HandleTypeDef* htim, ADC_HandleTypeDef* hadc){
 	uint8_t status = HAL_OK;
 
 	motor->TIM.tim = htim;
+	motor->ADC.adc = hadc;
+
+	status |= HAL_ADCEx_Calibration_Start(hadc, ADC_SINGLE_ENDED);
+    status |= HAL_ADC_Start_DMA(hadc, (uint32_t*)motor->ADC.output, 1);
 
 	HAL_GPIO_WritePin(motor->IO.EN.port, motor->IO.EN.pin, GPIO_PIN_SET);
-
 	status |= HAL_TIM_PWM_Start(htim, motor->TIM.channel);
 
 	return status;
@@ -52,11 +58,28 @@ void Set_RPM(sMotorConfig_t* motor, uint32_t rpm){
 	Set_Duty_Cycle(motor, duty_cycle);
 }
 
-void Set_Speed(sMotorConfig_t* motor, float speed, uint8_t direction){
+void Set_Direction(sMotorConfig_t* motor, uint8_t direction){
+	HAL_GPIO_WritePin(motor->IO.Direction.port, motor->IO.Direction.pin, (direction & 0x01));
+}
+
+// speed is always positive, direction defines if the rotation is in the positive or negative direction
+void Set_Speed(sMotorConfig_t* motor, uint16_t speed, uint8_t direction){
 	uint32_t rpm = (uint32_t)(speed * 60 * REDUCTION) / (M_PI * WHEEL_DIAMETER);
 
-	HAL_GPIO_WritePin(motor->IO.Direction.port, motor->IO.Direction.pin, direction);
+	Set_Direction(motor, direction);
 	Set_RPM(motor, rpm);
+}
+
+// SamplingTime = 640.5cycles => (640.5+12.5)/144MHz => Conversions every 4.53us
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	float voltage;
+	if (hadc == left_motor.ADC.adc){
+		voltage = (float)((V_MAX - V_MIN)/ADC_RES) * left_motor.ADC.output;
+		left_motor.currRPM = -RPM_MAX + (uint16_t)(2*RPM_MAX/V_MAX * voltage);
+	} else if (hadc == right_motor.ADC.adc){
+		voltage = (float)((V_MAX - V_MIN)/ADC_RES) * right_motor.ADC.output;
+		right_motor.currRPM = -RPM_MAX + (uint16_t)(2*RPM_MAX/V_MAX * voltage);
+	}
 }
 
 
