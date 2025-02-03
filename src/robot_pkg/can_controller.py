@@ -2,6 +2,7 @@ import can
 from enum import Enum
 from threading import Thread, Event
 from queue import Queue, Empty
+from collections import deque
 import struct
 import logging
 
@@ -19,35 +20,35 @@ class IDs(Enum):
     SET_SERVO_POSITIONS = 0x530
 
 
-class CanGateway:
-    '''
-        Handles packet parsing and message priorities
-    '''
+# class CanGateway:
+#     '''
+#         Handles packet parsing and message priorities
+#     '''
 
-    def init(self, msg_types:dict[IDs, Queue]):
-        self.running = False
-        pass
+#     def init(self, msg_types:dict[IDs, deque]):
+#         self.running = False
+#         pass
 
     
 
-    def start_checking(self):
-        self.running = True
+#     def start_checking(self):
+#         self.running = True
 
-    def check_queue(self, queue:Queue):
-        while self.running:
-            msg = queue.get()
-            self.parse(msg.arbitration_id)
+#     def check_queue(self, queue:deque):
+#         while self.running:
+#             msg = queue.get()
+#             self.parse(msg.arbitration_id)
             
-    def parse(self, msg_id):
-        if msg_id == IDs.GET_POSITION:
-            pass
-        elif msg_id == IDs.GET_SERVO_DONE:
-            pass
-        elif msg_id == IDs.GET_SERVO_POSITION:
-            pass
+#     def parse(self, msg_id):
+#         if msg_id == IDs.GET_POSITION:
+#             pass
+#         elif msg_id == IDs.GET_SERVO_DONE:
+#             pass
+#         elif msg_id == IDs.GET_SERVO_POSITION:
+#             pass
 
-    def wait_for(self, msg_ids:list) -> bool:
-        pass
+#     def wait_for(self, msg_ids:list) -> bool:
+#         pass
 
                 
 
@@ -80,21 +81,21 @@ class CanNetwork:
 
     def init_queues(self, max_queue_size=0):
         for msg_type in IDs:
-            self.msg_receive_queues[msg_type.name] = Queue(maxsize=max_queue_size)
-            self.msg_send_queues[msg_type.name] = Queue(maxsize=max_queue_size)
+            self.msg_receive_queues[msg_type.value] = deque(maxlen=max_queue_size)
+            self.msg_send_queues[msg_type.value] = deque(maxlen=max_queue_size)
 
-    def send_msg(self, msg_id:IDs, data):
+    def send_msg(self, msg_id:int, data):
         '''
             msg_id: ID of sent data,
             data  : bytes to be sent on CAN network
         '''
-        msg = can.Message(arbitration_id=msg_id.value, data=data, is_extended_id=False, is_fd=True)
+        msg = can.Message(arbitration_id=msg_id, data=data, is_extended_id=False, is_fd=True)
 
         try:
-            # self.bus.send(msg)
-            self.logger.info(f"Message {msg_id} sent") # on {bus.channel_info}")
+            self.bus.send(msg)
+            self.logger.debug(f"Message {IDs(msg_id).name} sent") # on {bus.channel_info}")
         except can.CanError as e:
-            self.logger.warning(f"Message {msg_id} NOT sent: {e}")
+            self.logger.warning(f"Message {IDs(msg_id).name} NOT sent: {e}")
 
     def request_msg(self, msg_id:IDs, size):
         '''
@@ -116,16 +117,16 @@ class CanNetwork:
 
         self.running = True
         self._recv_thread.start()
-        self.logger.debug(f"CAN receiving thread started.")
+        self.logger.info(f"CAN receiving thread started.")
 
         self._send_thread.start()
-        self.logger.debug(f"CAN sending thread started.")
+        self.logger.info(f"CAN sending thread started.")
     
     def stop_threads(self):
         self.running = False
         self._recv_thread.join()
         self._send_thread.join()
-        self.logger.debug(f"Threads stopped.")
+        self.logger.info(f"Threads stopped.")
 
     def receive(self):
         while self.running:
@@ -133,9 +134,10 @@ class CanNetwork:
                 msg = self.bus.recv(timeout=0.1)                  # blocks until a message is ready
                 if msg is not None:
                     msg_id = msg.arbitration_id
-                    self.msg_queues[msg_id].put(msg)  # stores received message in appropriate queue
+                    self.msg_receive_queues[msg_id].append(msg)  # stores received message in appropriate queue
             
-                    self.logger.debug(f"Message {msg_id} put into queue.")
+                    self.logger.debug(f"Message {IDs(msg_id).name} put into queue.")
+                    self.logger.debug(f"Queue length: {len(self.msg_receive_queues[msg_id])}")
 
             except can.CanError as e:
                 self.logger.warning(f"Message NOT received correctly: {e}")
@@ -146,10 +148,10 @@ class CanNetwork:
             for key, queue in self.msg_send_queues.items():   #   priorities are determined by the order they were listed in IDs
                 try:
                     
-                    if queue.qsize() > 0:
-                        print(key)
-                        id, data = queue.get(block=False)
-                        self.send_msg(id, data)
+                    if len(queue) > 0:
+                        data = queue.pop()
+                        self.send_msg(key, data)
+
                 except Empty:
                     pass
                     #print(f"Queueu empty")

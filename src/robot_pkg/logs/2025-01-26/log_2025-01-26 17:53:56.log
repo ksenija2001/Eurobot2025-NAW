@@ -1,9 +1,0 @@
-[INFO   ][17:53:56]:main: Started code
-[INFO   ][17:53:56]:can: CAN Handler initialised.
-[DEBUG  ][17:53:56]:can: CAN receiving thread started.
-[DEBUG  ][17:53:56]:can: can config: {'interface': 'socketcan', 'channel': 'can0', 'fd': True}
-[DEBUG  ][17:53:56]:can: CAN sending thread started.
-[INFO   ][17:54:01]:can: Message IDs.GET_POSITION sent
-[INFO   ][17:54:06]:can.interfaces.socketcan.socketcan: Created a socket
-[DEBUG  ][17:54:06]:can.interfaces.socketcan.socketcan: Binding socket to channel=can0
-[DEBUG  ][17:54:06]:can.interfaces.socketcan.socketcan: Bound socket.

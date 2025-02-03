@@ -12,5 +12,7 @@ dependencies = [
     'python-can'
 ]
 
+
+
 [project.scripts]
-#your-cli-command = "example.source:main"
+start_main = "robot_pkg.main:main_func"
