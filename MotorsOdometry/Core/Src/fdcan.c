@@ -16,10 +16,9 @@ uint8_t RxData[9];
 FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t TxData[64];
 
-union U_F{
-	float f;
-	uint8_t u[4];
-}convert_float;
+uint8_t send_status = HAL_ERROR;
+uint8_t receive_status = HAL_ERROR;
+
 
 uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan){
 	uint8_t status = HAL_ERROR;
@@ -42,52 +41,67 @@ uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan){
 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
+   //receive_status = HAL_ERROR;
 	// CHAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
   if((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
   {
 
     /* Retreive Rx messages from RX FIFO0 */
-    if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
-    {
-		/* Reception Error */
-		Error_Handler();
+    receive_status = HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, RxData);
+
+    receive_status |= HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+
+    if (receive_status == HAL_OK){
+    	switch(RxHeader.Identifier){
+    	    case 0x4F0: // Reset odometry
+    	    	sOdom_t new_odom = {
+    	    			.x = Bytes2Float(RxData, 0),
+    					.y = Bytes2Float(RxData, 4),
+    					.theta = Bytes2Float(RxData, 8),
+    	    	};
+
+    	    	Reset_Odometry(&new_odom);
+
+    	    	break;
+    	    case 0x4F1:  // Wheel parameters configuration
+    	    	float left_diameter = Bytes2Float(RxData, 0);
+    	    	float right_diameter = Bytes2Float(RxData, 4);
+    			float track = Bytes2Float(RxData, 8);
+
+    			Config_Encoder_Wheel(&left, left_diameter, track);
+    			Config_Encoder_Wheel(&right, right_diameter, track);
+
+    	    	break;
+    	    case 0x4D0:  // Set reference for motor speed
+    	    	int16_t left_speed = Bytes2Int16(RxData, 0);
+    	    	int16_t right_speed = Bytes2Int16(RxData, 2);
+
+    	    	Set_Speed(&left_motor,  left_speed);
+    	    	Set_Speed(&right_motor, right_speed);
+
+    	    	break;
+    	    case 0x4D1:  // Set reference for motor RPM
+    	    	uint16_t left_RPM = Bytes2Int16(RxData, 0);
+    			uint16_t right_RPM = Bytes2Int16(RxData, 2);
+    			uint8_t left_dir = RxData[4];
+    			uint8_t right_dir = RxData[5];
+
+    			Set_RPM(&left_motor, left_RPM);
+    			Set_Direction(&left_motor, left_dir);
+    			Set_RPM(&right_motor, right_RPM);
+    			Set_Direction(&right_motor, right_dir);
+
+    			break;
+    	    default:
+    	    	receive_status = HAL_ERROR;
+    	    }
+
     }
-
-    if (HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
-    {
-      /* Notification Error */
-      Error_Handler();
-    }
-
-    switch(RxHeader.Identifier){
-    case 0x4F0:
-    	sOdom_t new_odom = {
-    			.x = Bytes2Float(RxData, 0),
-				.y = Bytes2Float(RxData, 4),
-				.theta = Bytes2Float(RxData, 8),
-    	};
-
-    	Reset_Odometry(&new_odom);
-
-    	break;
-    case 0x4F1:
-    	float diameter = Bytes2Float(RxData, 1);
-		float track = Bytes2Float(RxData, 5);
-
-		if (RxData[0]){
-			Config_Encoder_Wheel(&left, diameter, track);
-		} else {
-			Config_Encoder_Wheel(&right, diameter, track);
-		}
-
-    	break;
-    }
-
   }
 }
 
 uint8_t FDCAN_Send_Data(uint32_t id, uint32_t dlc, uint8_t size, uint8_t* data){
-	uint8_t status = HAL_ERROR;
+	//send_status = HAL_ERROR;
 
 	// Configure TX Header for FDCAN
 	TxHeader.Identifier = id;
@@ -100,20 +114,11 @@ uint8_t FDCAN_Send_Data(uint32_t id, uint32_t dlc, uint8_t size, uint8_t* data){
 	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	TxHeader.MessageMarker = 0;
 
-	memcpy(data, TxData, size);
+	memcpy(TxData, data, size);
 
-	status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData);
+	send_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData);
 
-	return status;
+	return send_status;
 }
 
-// Converts uint8_t bytes into a float number
-float Bytes2Float(uint8_t msg[], uint8_t start)
-{
-	convert_float.u[0] = msg[start];
-	convert_float.u[1] = msg[start+1];
-	convert_float.u[2] = msg[start+2];
-	convert_float.u[3] = msg[start+3];
 
-	return convert_float.f;
-}

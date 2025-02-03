@@ -31,7 +31,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "odom.h"
+#include "motor_control.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
