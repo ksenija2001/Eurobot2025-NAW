@@ -57,9 +57,13 @@ extern int16_t IMU_RAW_DATA_ACC_X;
 extern int16_t IMU_RAW_DATA_ACC_Y;
 extern int16_t IMU_RAW_DATA_ACC_Z;
 
-extern float IMU_DATA_GYR_X;
-extern float IMU_DATA_GYR_Y;
-extern float IMU_DATA_GYR_Z;
+extern float IMU_DATA_ANGLE_X;
+extern float IMU_DATA_ANGLE_Y;
+extern float IMU_DATA_ANGLE_Z;
+
+extern int16_t IMU_RAW_DATA_GYR_X;
+extern int16_t IMU_RAW_DATA_GYR_Y;
+extern int16_t IMU_RAW_DATA_GYR_Z;
 
 extern I2C_HandleTypeDef hi2c1;
 extern DMA_HandleTypeDef hdma_i2c1_tx;
@@ -72,12 +76,17 @@ HAL_StatusTypeDef __IMU_GENERATE_CLOCK_PULSE();
 HAL_StatusTypeDef __IMU_INIT_GPIO();
 HAL_StatusTypeDef __IMU_INIT_I2C();
 
-HAL_StatusTypeDef IMU_Init(IMU* imu, uint8_t dev_addr, I2C_HandleTypeDef* comm_line);
+HAL_StatusTypeDef IMU_INIT(IMU* imu, uint8_t dev_addr, I2C_HandleTypeDef* comm_line);
+HAL_StatusTypeDef IMU_INIT_DMA(IMU *imu, uint8_t dev_addr, I2C_HandleTypeDef *comm_line);
 HAL_StatusTypeDef __IMU_RESET(IMU *imu);
+
+HAL_StatusTypeDef IMU_I2C_DMA_Callback(IMU *imu, I2C_HandleTypeDef *hi2c);
 
 HAL_StatusTypeDef __IMU_Calibrate(IMU *imu);
 HAL_StatusTypeDef __IMU_OFFSET_SUBTRACT(IMU *imu);
 
+HAL_StatusTypeDef IMU_DATA_EXTRACT();
+HAL_StatusTypeDef IMU_DATA_EXTRACT_AND_CONVERT(uint8_t dt);
 HAL_StatusTypeDef IMU_Read_DATA(IMU* imu);
 
 HAL_StatusTypeDef IMU_Read_ACC(IMU* imu);
@@ -91,6 +100,6 @@ HAL_StatusTypeDef IMU_Read_GYR_Y(IMU* imu);
 HAL_StatusTypeDef IMU_Read_GYR_Z(IMU* imu);
 
 float __IMU_Convert_ACC(int16_t data);
-float __IMU_Convert_GYR(int16_t data);
+float __IMU_Convert_GYR(int16_t raw_data, float prev_angle, uint8_t dt);
 
 #endif /* INC_IMU_H_ */

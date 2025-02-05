@@ -49,9 +49,7 @@ DMA_HandleTypeDef hdma_i2c1_tx;
 /* USER CODE BEGIN PV */
 
 IMU imu;
-uint8_t data[12] = {0};
-uint8_t data_received = 0;
-HAL_StatusTypeDef test = HAL_I2C_ERROR_NONE;
+uint8_t dt = 25;
 
 /* USER CODE END PV */
 
@@ -68,8 +66,7 @@ static void MX_I2C1_Init(void);
 /* USER CODE BEGIN 0 */
 
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c){
-	data_received = 1;
-	HAL_I2C_Mem_Read_DMA(&hi2c1, 0xd6, 0x22, 1, data, 12);
+	IMU_I2C_DMA_Callback(&imu, hi2c);
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c){
@@ -111,33 +108,23 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
+
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  //HAL_Delay(100);
 
   HAL_Delay(50);
-  IMU_Init(&imu, IMU_ADDRESS, &hi2c1);
-  //__IMU_Calibrate(&imu);
+  IMU_INIT_DMA(&imu, IMU_ADDRESS, &hi2c1);
   HAL_Delay(50);
-  test = HAL_I2C_Mem_Read_DMA(&hi2c1, 0xd6, 0x22, 1, data, 12);
 
   while (1)
   {
-	  if(data_received){
-		  data_received = 0;
-		  IMU_RAW_DATA_ACC_X = (uint16_t) data[6] << 8 | (uint16_t) data[7] << 0;
-		  IMU_RAW_DATA_ACC_Y = (uint16_t) data[8] << 8 | (uint16_t) data[9] << 0;
-		  IMU_RAW_DATA_ACC_Z = (uint16_t) data[10] << 8 | (uint16_t) data[11] << 0;
+	  IMU_DATA_EXTRACT_AND_CONVERT(dt);
+	  HAL_Delay(dt);
 
-		  IMU_DATA_ACC_X = __IMU_Convert_ACC(IMU_RAW_DATA_ACC_X);
-		  IMU_DATA_ACC_Y = __IMU_Convert_ACC(IMU_RAW_DATA_ACC_Y);
-		  IMU_DATA_ACC_Z = __IMU_Convert_ACC(IMU_RAW_DATA_ACC_Z);
-	  }
-//
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

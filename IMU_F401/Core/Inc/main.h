@@ -33,6 +33,7 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 
 #include "imu.h"
+#include "quaterion.h"
 
 /* USER CODE END Includes */
 
