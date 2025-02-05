@@ -9,8 +9,8 @@
 #define INC_FDCAN_H_
 
 #include "main.h"
-#include "odom.h"
-#include "motor_control.h"
+//#include "odom.h"
+//#include "motor_control.h"
 #include "string.h"
 #include "stdlib.h"
 #include "utils.h"
