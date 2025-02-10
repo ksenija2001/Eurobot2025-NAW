@@ -6,6 +6,8 @@ from robot_pkg.paths import CONFIG_PATH, LOG_PATH
 
 LOG_TODAY = os.path.join(LOG_PATH, str(datetime.date.today()))
 
+### tail -f log_filename.log | grep node_name
+
 class LogHandler:
 
     def __init__(self, old=7) -> None:
@@ -29,11 +31,10 @@ class LogHandler:
         
         self.root = logging.getLogger()
         self.root.info("Log started")
+        self.root.info(f"Log filename: {self.log_filename}.log")
     
-    def get_loggers(self) -> tuple[logging.Logger]:
-        main = logging.getLogger("main")
-        can = logging.getLogger("can")
-        return main, can
+    def get_logger(self, name) -> tuple[logging.Logger]:
+        return logging.getLogger(name)
 
     def remove_logs(self, old) -> None:
         subfolders = [f.name for f in os.scandir(LOG_PATH) if f.is_dir()]

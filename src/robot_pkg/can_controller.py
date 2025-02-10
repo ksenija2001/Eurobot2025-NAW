@@ -5,6 +5,7 @@ from queue import Queue, Empty
 from collections import deque
 import struct
 import logging
+import time
 
 class IDs(Enum):
     RESET_ODOM  = 0x4F0
@@ -84,19 +85,6 @@ class CanNetwork:
             self.msg_receive_queues[msg_type.value] = deque(maxlen=max_queue_size)
             self.msg_send_queues[msg_type.value] = deque(maxlen=max_queue_size)
 
-    def send_msg(self, msg_id:int, data):
-        '''
-            msg_id: ID of sent data,
-            data  : bytes to be sent on CAN network
-        '''
-        msg = can.Message(arbitration_id=msg_id, data=data, is_extended_id=False, is_fd=True)
-
-        try:
-            self.bus.send(msg)
-            self.logger.debug(f"Message {IDs(msg_id).name} sent") # on {bus.channel_info}")
-        except can.CanError as e:
-            self.logger.warning(f"Message {IDs(msg_id).name} NOT sent: {e}")
-
     def request_msg(self, msg_id:IDs, size):
         '''
             msg_id: ID of requested data,
@@ -137,24 +125,31 @@ class CanNetwork:
                     self.msg_receive_queues[msg_id].append(msg)  # stores received message in appropriate queue
             
                     self.logger.debug(f"Message {IDs(msg_id).name} put into queue.")
-                    self.logger.debug(f"Queue length: {len(self.msg_receive_queues[msg_id])}")
-
+                    # self.logger.debug(f"Queue length: {len(self.msg_receive_queues[msg_id])}")
             except can.CanError as e:
                 self.logger.warning(f"Message NOT received correctly: {e}")
-    
-    def send(self):
-        while self.running:
             
+            time.sleep(0.0005) # 0.5ms
+
+    def send(self):
+        key = None
+        while self.running:
             for key, queue in self.msg_send_queues.items():   #   priorities are determined by the order they were listed in IDs
                 try:
                     
                     if len(queue) > 0:
                         data = queue.pop()
-                        self.send_msg(key, data)
+                        msg = can.Message(arbitration_id=key, data=data, is_extended_id=False, is_fd=True)
 
+                        self.bus.send(msg)
+                        self.logger.debug(f"Message {IDs(key).name} sent")
+                
                 except Empty:
                     pass
-                    #print(f"Queueu empty")
+                except can.CanError as e:
+                        self.logger.warning(f"Message {IDs(key).name} NOT sent: {e}")
+
+            time.sleep(0.001) # 1ms
     
     def __del__(self):
         self.bus.shutdown()
