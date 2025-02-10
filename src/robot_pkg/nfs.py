@@ -19,7 +19,7 @@ class Channels(Enum):
     REVERSE = 5    # switch
     SPEED = 6      # switch
 
-MAX_RPM = 12100
+MAX_RPM = 9380
 
 class PPM_Receiver:
 
@@ -82,7 +82,7 @@ class PPM_Receiver:
         if abs(rpm) > MAX_RPM:
             rpm = sign * MAX_RPM
 
-        ramp = speed * 0.01
+        ramp = speed * 0.04
         if rpm != 0 and actual_rpm + ramp < rpm:
             actual_rpm += ramp
         elif rpm != 0 and actual_rpm - ramp > rpm:
@@ -112,7 +112,7 @@ class PPM_Receiver:
                                      steer,
                                      speed,
                                      direction)
-        self.rpm_left = self.separate_rpm(self.rpm_right, 
+        self.rpm_right = self.separate_rpm(self.rpm_right, 
                                      throttle,
                                      -steer,
                                      speed,
@@ -121,13 +121,13 @@ class PPM_Receiver:
         self.log.debug(f"{Channels.REVERSE.value}:{(int)(direction)} {Channels.SPEED.value}:{(int)(speed):5d} {Channels.THROTTLE.value}:{(int)(throttle):3d} {Channels.STEER.value}:{(int)(steer):4d}")
         self.log.info(f"RPM_left:{self.rpm_left:6d} RPM_right:{self.rpm_right:6d}\n")
 
-        nfs_msg = struct.pack('4i', self.rpm_left, self.rpm_right, direction, direction)
+        nfs_msg = struct.pack('2i', self.rpm_left, self.rpm_right)
         self.queue.append(nfs_msg)
 
 
 if __name__ == "__main__":
     log_handler = LogHandler()
-    nfs_log = log_handler.get_loggers("nfs")
+    nfs_log = log_handler.get_logger("nfs")
     can_log = log_handler.get_logger("can")
     odom_log = log_handler.get_logger("odom")
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     time.sleep(1)
 
-    rec = PPM_Receiver(17, 8, nfs_log, can_handler.msg_send_queues[IDs.SET_MOTOR_RPM.value])
+    rec = PPM_Receiver(17, 8, can_handler.msg_send_queues[IDs.SET_MOTOR_RPM.value], nfs_log)
     rec.start()
 
     try:
@@ -152,3 +152,5 @@ if __name__ == "__main__":
             
     except KeyboardInterrupt:
         rec.stop()
+        odom.stop()
+        can_handler.stop_threads()
