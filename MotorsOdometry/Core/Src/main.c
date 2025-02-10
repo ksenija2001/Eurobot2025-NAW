@@ -117,25 +117,58 @@ int main(void)
   MX_TIM6_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t status = HAL_I2C_IsDeviceReady(&hi2c1, 0x6A << 1, 100, 100);
+  FDCAN_Init(&hfdcan1);
 
-//  HAL_TIM_Base_Start(&htim1);
-//  HAL_TIM_Base_Start(&htim3);
+  Init_Encoder(&left, &htim1);
+  Init_Encoder(&right, &htim3);
+  Config_Encoder_Wheel(&left, 73.0, 348.0);
+  Config_Encoder_Wheel(&right, 73.0, 348.0);
 
-//  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-//  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+  Init_Motor(&left_motor, &htim2, &hadc1);
+  Init_Motor(&right_motor, &htim2, &hadc2);
 
+  HAL_Delay(1000);
+
+  HAL_TIM_Base_Start_IT(&htim6);
+
+  uint8_t i2c_status = HAL_I2C_IsDeviceReady(&hi2c1, 0x6A << 1, 100, 100);
+
+  //Set_RPM(&left_motor, 5000);
+  //Set_RPM(&right_motor, -5000);
 
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t some_status = 0;
   while (1)
   {
-	  if (status == HAL_OK){
+	  if (i2c_status == HAL_OK){
 		  HAL_GPIO_TogglePin(GPIOB, LED_G_Pin);
-		  HAL_Delay(500);
+		  some_status = 1;
+	  }
+
+	  if (send_status == HAL_OK){
+		  send_status = HAL_ERROR;
+		  HAL_GPIO_TogglePin(LED_CAN_TX_GPIO_Port, LED_CAN_TX_Pin);
+		  some_status = 1;
+	  } else {
+		  HAL_GPIO_WritePin(LED_CAN_TX_GPIO_Port, LED_CAN_TX_Pin, GPIO_PIN_RESET);
+	  }
+
+	  if (receive_status == HAL_OK){
+		  receive_status = HAL_ERROR;
+		  HAL_GPIO_TogglePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin);
+		  some_status = 1;
+	  } else {
+		  HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_RESET);
+	  }
+
+	  if (some_status){
+		  some_status = 0;
+		  HAL_Delay(50);
+
 	  }
     /* USER CODE END WHILE */
 
@@ -224,7 +257,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc1.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -291,7 +324,7 @@ static void MX_ADC2_Init(void)
   hadc2.Init.DiscontinuousConvMode = DISABLE;
   hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc2.Init.DMAContinuousRequests = DISABLE;
+  hadc2.Init.DMAContinuousRequests = ENABLE;
   hadc2.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc2.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc2) != HAL_OK)
@@ -432,16 +465,16 @@ static void MX_TIM1_Init(void)
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
-  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_FALLING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 0;
+  sConfig.IC1Filter = 10;
   sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 0;
+  sConfig.IC2Filter = 10;
   if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -535,16 +568,16 @@ static void MX_TIM3_Init(void)
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_FALLING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 0;
+  sConfig.IC1Filter = 10;
   sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 0;
+  sConfig.IC2Filter = 10;
   if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -693,6 +726,7 @@ static void MX_GPIO_Init(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
+	HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)

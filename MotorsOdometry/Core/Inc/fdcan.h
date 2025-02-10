@@ -18,5 +18,9 @@
 uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan);
 uint8_t FDCAN_Send_Data(uint32_t id, uint32_t dlc, uint8_t size, uint8_t* data);
 
+extern uint8_t send_status;
+extern uint8_t receive_status;
+
+
 
 #endif /* INC_FDCAN_H_ */

@@ -13,7 +13,7 @@ union U_F{
 }convert_float;
 
 union U_I{
-	int16_t i;
+	int32_t i;
 	uint8_t u[2];
 }convert_int;
 
@@ -39,9 +39,11 @@ float Bytes2Float(uint8_t msg[], uint8_t start)
 }
 
 // Converts uint8_t bytes into a int16 number
-int16_t Bytes2Int16(uint8_t msg[], uint8_t start){
+int16_t Bytes2Int32(uint8_t msg[], uint8_t start){
 	convert_int.u[0] = msg[start];
 	convert_int.u[1] = msg[start+1];
+	convert_int.u[2] = msg[start+2];
+	convert_int.u[3] = msg[start+3];
 
 	return convert_int.i;
 }
