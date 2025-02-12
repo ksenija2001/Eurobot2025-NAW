@@ -39,6 +39,8 @@ class PPM_Receiver:
 
         self.rpm_left = 0
         self.rpm_right = 0
+        self.last_left = 1
+        self.last_right = 1
 
     def start(self):
         try:
@@ -107,6 +109,7 @@ class PPM_Receiver:
 
         steer = (int)(0.2 * (self.channels[Channels.STEER.value] - 1000) - 100)
 
+
         self.rpm_left = self.separate_rpm(self.rpm_left, 
                                      throttle,
                                      steer,
@@ -118,12 +121,15 @@ class PPM_Receiver:
                                      speed,
                                      direction)
 
-        self.log.debug(f"{Channels.REVERSE.value}:{(int)(direction)} {Channels.SPEED.value}:{(int)(speed):5d} {Channels.THROTTLE.value}:{(int)(throttle):3d} {Channels.STEER.value}:{(int)(steer):4d}")
-        self.log.info(f"RPM_left:{self.rpm_left:6d} RPM_right:{self.rpm_right:6d}\n")
+        if self.rpm_left != self.last_left or self.rpm_right != self.last_right:
+            self.log.debug(f"{Channels.REVERSE.value}:{(int)(direction)} {Channels.SPEED.value}:{(int)(speed):5d} {Channels.THROTTLE.value}:{(int)(throttle):3d} {Channels.STEER.value}:{(int)(steer):4d}")
+            self.log.info(f"RPM_left:{self.rpm_left:6d} RPM_right:{self.rpm_right:6d}\n")
 
-        nfs_msg = struct.pack('2i', self.rpm_left, self.rpm_right)
-        self.queue.append(nfs_msg)
+            nfs_msg = struct.pack('2i', self.rpm_left, self.rpm_right)
+            self.queue.append(nfs_msg)
 
+        self.last_left = self.rpm_left
+        self.last_right = self.rpm_right
 
 if __name__ == "__main__":
     log_handler = LogHandler()

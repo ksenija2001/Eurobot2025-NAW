@@ -1,19 +1,28 @@
 import subprocess
 import argparse
 import time
+import os, glob
+import datetime
+from robot_pkg.paths import LOG_PATH
 
 def echo_log():
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename', type=str, help='the name of the target')
-    parser.add_argument('log', type=str)
+    LOG_TODAY = os.path.join(LOG_PATH, str(datetime.date.today()))
+    latest_log = max(glob.glob(LOG_TODAY + "/*"), key=os.path.getctime)
 
-    args = parser.parse_args()
+    #parser.add_argument('filename', type=str, help='the name of the target')
 
-    if args.filename == '' or args.log == '':
-        print("Specify file and log name")
-        exit()
+    # parser.add_argument('log', type=str)
 
-    f = subprocess.Popen(['tail','-F',args.filename, '|' , 'grep', args.log],\
+    # args = parser.parse_args()
+
+    # if args.log == '':
+    #     print("Specify file and log name")
+    #     exit()
+
+    # print(args.log)
+    path = os.path.join(LOG_TODAY, latest_log)
+    f = subprocess.Popen(['tail','-F', path],
             stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 
     try:
