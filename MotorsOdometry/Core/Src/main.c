@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "synthesis.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -141,6 +141,11 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   uint8_t some_status = 0;
+  synthesis_init();
+  synthesis_set_current_state(0, 0, 0);
+  synthesis_set_target_state(1000, 0, 0);
+  synthesis_calc_coef(1);
+  int a = 123;
   while (1)
   {
     if (i2c_status == HAL_OK)
