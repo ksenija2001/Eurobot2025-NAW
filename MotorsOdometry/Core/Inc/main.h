@@ -33,6 +33,7 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "odom.h"
 #include "motor_control.h"
+#include "synthesis.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

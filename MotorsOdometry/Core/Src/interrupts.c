@@ -40,6 +40,23 @@ void TIM6_IT(void){
 		FDCAN_Send_Data(0x4DF, FDCAN_DLC_BYTES_4, 4, tx_buffer);
 	}
 
+	if(counter % SYNTHESIS_REGEN_TIME == 0){
+
+	}
+
+	if(counter % SYNTHESIS_TIME == 0){
+		if(synthesis_translation_state){
+			synthesis_calc_next_state(HAL_GetTick() - synthesis_start_time);
+			Set_Speed(&left_motor, (int16_t)NEXT_STATE.pData[1]);
+			Set_Speed(&right_motor,(int16_t)NEXT_STATE.pData[1]);
+		}
+		if(HAL_GetTick() - synthesis_start_time >= total_T){
+			synthesis_translation_state = 0;
+			Set_Speed(&left_motor, 0);
+			Set_Speed(&right_motor,0);
+		}
+	}
+
 }
 
 

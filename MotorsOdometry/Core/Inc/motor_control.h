@@ -20,8 +20,8 @@
 
 /* Motor characteristics */
 #define RPM_MAX 9380
-#define REDUCTION 14
-#define WHEEL_DIAMETER 70 // mm
+#define REDUCTION 26
+#define WHEEL_DIAMETER 25.4*2.5 // mm
 
 /* RPM ADC settings */
 #define V_MIN 0

@@ -1,4 +1,5 @@
 #include "synthesis.h"
+#include <math.h>
 
 
 float coef_3[3]; 				//[a5, a4, a3]
@@ -18,6 +19,12 @@ float ai_3[9] = {0};
 arm_matrix_instance_f32 AI_3;
 float a_6[18];
 arm_matrix_instance_f32 A_6;
+
+float x_0, x_1, y_0, y_1;
+float total_distance;
+float total_T;
+uint32_t synthesis_start_time = 0;
+uint8_t  synthesis_translation_state = 0;
 
 
 void synthesis_init(){
@@ -98,5 +105,41 @@ void synthesis_set_current_state(float p, float v, float a){
 	CURRENT_STATE.pData[0] = p;
 	CURRENT_STATE.pData[1] = v;
 	CURRENT_STATE.pData[2] = a;
+}
+
+float synthesis_calc_Vmax(float Pmax, float Amax){
+	return sqrtf((5000*Pmax*Amax)/(2880));
+}
+float synthesis_calc_Amax(float Pmax, float Vmax){
+	return (2880*Vmax*Vmax)/(5000*Pmax);
+}
+float synthesis_calc_T_a(float Pmax, float Amax){
+	return sqrtf((45*Pmax)/(8*Amax));
+}
+float synthesis_calc_T_v(float Pmax, float Vmax){
+	return (15*Pmax)/(8*Vmax);
+}
+
+//void synthesis_start_rotation(float Vmax, float Amax, float start_theta, float theta);
+
+void synthesis_start_distance(float Vmax, float Amax, float start_x, float start_y, float start_theta, float distance){
+	x_0 = start_x;
+	y_0 = start_y;
+	x_1 = start_x + distance * cos(start_theta);
+	y_1 = start_y + distance * sin(start_theta);
+	total_distance = sqrtf((y_1-y_0)*(y_1-y_0) + (x_1-x_0)*(x_1-x_0));
+	synthesis_set_target_state(total_distance, 0, 0);
+	synthesis_set_current_state(0, 0, 0);
+	float T_Vmax = synthesis_calc_T_v(total_distance, Vmax);
+	float T_Amax = synthesis_calc_T_a(total_distance, Amax);
+	if(T_Vmax > T_Amax){
+		total_T = T_Vmax;
+	}
+	else{
+		total_T = T_Amax;
+	}
+	synthesis_calc_coef(total_T);
+	synthesis_start_time = HAL_GetTick();
+	synthesis_translation_state = 1;
 }
 
