@@ -17,8 +17,8 @@
 
 #define ODOM_TIME 1 // ms
 #define RPM_TIME  1 // ms
-#define SYNTHESIS_REGEN_TIME 100 //ms
-#define SYNTHESIS_TIME 10 //ms
+#define SYNTHESIS_REGEN_TIME 50 //ms
+#define SYNTHESIS_TIME 5 //ms
 
 void TIM6_IT(void);
 void Float2Bytes(uint8_t* buffer, uint8_t start, float data);

@@ -127,7 +127,7 @@ int main(void)
   Init_Motor(&left_motor, &htim2, &hadc1);
   Init_Motor(&right_motor, &htim2, &hadc2);
 
-  HAL_Delay(1000);
+  //HAL_Delay(1000);
 
   HAL_TIM_Base_Start_IT(&htim6);
 
@@ -142,7 +142,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   uint8_t some_status = 0;
   synthesis_init();
-  synthesis_start_distance(600, 600, odom.x, odom.y, odom.theta, 500);
+  synthesis_start_distance(1200, 3000, odom.x, odom.y, odom.theta, 1000);
 
   while (1)
   {

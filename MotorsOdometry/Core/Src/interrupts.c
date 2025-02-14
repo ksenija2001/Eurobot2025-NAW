@@ -40,17 +40,23 @@ void TIM6_IT(void){
 		FDCAN_Send_Data(0x4DF, FDCAN_DLC_BYTES_4, 4, tx_buffer);
 	}
 
-	if(counter % SYNTHESIS_REGEN_TIME == 0){
-
-	}
+//	if(counter % SYNTHESIS_REGEN_TIME == 0){
+//		if(synthesis_translation_state){
+//			synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
+////			synthesis_set_target_state(1000 - NEXT_STATE.pData[0], 0, 0);
+//			trajectory_start_time = (float)HAL_GetTick()/1000;
+//			float new_time = synthesis_start_time + total_T - (float)HAL_GetTick()/1000;
+//			synthesis_calc_coef(new_time);
+//		}
+//	}
 
 	if(counter % SYNTHESIS_TIME == 0){
 		if(synthesis_translation_state){
-			synthesis_calc_next_state(HAL_GetTick() - synthesis_start_time);
+			synthesis_calc_next_state((float)HAL_GetTick()/1000 - trajectory_start_time);
 			Set_Speed(&left_motor, (int16_t)NEXT_STATE.pData[1]);
 			Set_Speed(&right_motor,(int16_t)NEXT_STATE.pData[1]);
 		}
-		if(HAL_GetTick() - synthesis_start_time >= total_T){
+		if((float)HAL_GetTick()/1000 - synthesis_start_time >= total_T){
 			synthesis_translation_state = 0;
 			Set_Speed(&left_motor, 0);
 			Set_Speed(&right_motor,0);

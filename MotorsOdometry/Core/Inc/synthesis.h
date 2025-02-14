@@ -2,7 +2,8 @@
 #include "stm32g4xx_hal.h"
 
 extern uint8_t synthesis_translation_state;
-extern uint32_t synthesis_start_time;
+extern float synthesis_start_time;
+extern float trajectory_start_time;
 extern arm_matrix_instance_f32 NEXT_STATE;
 extern float total_T;
 
