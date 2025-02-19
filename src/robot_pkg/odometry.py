@@ -58,9 +58,9 @@ class OdometryHandler:
                 self.odom.angular_speed = ang
                 self.odom.gyr_angular_speed = gyr_ang
 
-                self.log.info(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}")
+                self.log.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}")
             
-            time.sleep(0.001)  # 1ms
+            time.sleep(0.1)  # 100ms
 
     def reset_odom(self, odom:Odometry):
         reset_msg = struct.pack('3f', odom.x, odom.y, odom.theta)

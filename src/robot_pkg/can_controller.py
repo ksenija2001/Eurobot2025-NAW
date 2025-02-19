@@ -109,6 +109,7 @@ class CanNetwork:
     
     def start_threads(self):
         self.init_queues(self.max_queue_size)
+        
 
         self.running = True
         self._recv_thread.start()
