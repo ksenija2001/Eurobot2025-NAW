@@ -15,12 +15,17 @@ class IDs(Enum):
 
     SET_MOTOR_SPEED = 0x4D0
     SET_MOTOR_RPM   = 0x4D1
+    SET_DISTANCE    = 0x4D2
 
     GET_MOTOR_SPEED = 0x4DF
 
     SET_SERVO_POSITIONS = 0x530
 
     GET_IMU = 0x49F
+
+    @classmethod
+    def has_key(cls, name):
+        return name in cls.__members__
 
 
 # class CanGateway:
