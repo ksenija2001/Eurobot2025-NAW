@@ -1,3 +1,4 @@
+from robot_pkg.main import log_handler
 import can
 from enum import Enum
 from threading import Thread, Event
@@ -24,8 +25,6 @@ class IDs(Enum):
     GET_MOVE_DONE   = 0x4DE
 
     SET_SERVO_POSITIONS = 0x530
-
-    GET_PAUSE  = 0x50F
 
 
 # class CanGateway:
@@ -68,14 +67,14 @@ class CanNetwork:
         Handles all traffic on CAN network - sending and receiving of packets
     '''
 
-    def __init__(self, channel, interface, max_queue_size, log: logging.Logger):
+    def __init__(self, channel, interface, max_queue_size):
         can.rc['interface'] = interface
         can.rc['channel'] = channel
         can.rc['fd'] = True
 
         self.bus = can.Bus()
 
-        self.logger = log
+        self.logger = log_handler.get_logger("can")
 
         self.msg_receive_queues = {}
         self.msg_send_queues = {}
@@ -109,7 +108,6 @@ class CanNetwork:
     
     def start_threads(self):
         self.init_queues(self.max_queue_size)
-        
 
         self.running = True
         self._recv_thread.start()

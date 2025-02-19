@@ -70,12 +70,12 @@ class Move:
         return cls.start_wait()
 
     @classmethod
-    def Distance(cls, distance:float, attempt=3, max_vel:float=1200, max_acc:float=2000) -> tuple[Event, Event]:
+    def Distance(cls, p:float, v:float, a:float, attempt=3, max_vel:float=1200, max_acc:float=2000) -> tuple[Event, Event]:
         '''
             Starts relative movement of distance[mm] from current robot position 
             with respect to velocity and acceleration limits.
         '''
-        cls.data = struct.pack('3f', distance, max_vel, max_acc)
+        cls.data = struct.pack('5f', p, v, a, max_vel, max_acc)
         cls.send_queue = can_handler.msg_send_queues[IDs.SET_DISTANCE.value]
         cls.send_queue.append(cls.data)
 
@@ -126,6 +126,7 @@ if __name__ == "__main__":
         pass
     else:
         # Movement successful
+        pass
 
 
 

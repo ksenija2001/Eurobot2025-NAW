@@ -1,3 +1,5 @@
+from robot_pkg.main import log_handler, can_handler
+from robot_pkg.can_controller import IDs
 from threading import Thread
 import struct
 import math
@@ -20,10 +22,11 @@ class Odometry:
 
 class OdometryHandler:
 
-    def __init__(self, rec_queue, send_queue, odom_log, initial_odom:Odometry):
-        self.log = odom_log
-        self.queue = rec_queue
-        self.send_queue = send_queue
+    def __init__(self, initial_odom:Odometry):
+        self.log = log_handler.get_logger("odom")
+        self.queue = can_handler.msg_receive_queues[IDs.GET_ODOM.value],
+        self.send_queue = can_handler.msg_send_queues[IDs.RESET_ODOM.value],
+
         self.odom:Odometry = initial_odom
         self.reset_odom(initial_odom)
 
