@@ -15,10 +15,17 @@ class IDs(Enum):
 
     SET_MOTOR_SPEED = 0x4D0
     SET_MOTOR_RPM   = 0x4D1
+    SET_DISTANCE    = 0x4D2
+    SET_XY          = 0x4D3
+    SET_ROTATION_FOR = 0x4D4
+    SET_ROTATION_TO  = 0x4D5
 
     GET_MOTOR_SPEED = 0x4DF
+    GET_MOVE_DONE   = 0x4DE
 
     SET_SERVO_POSITIONS = 0x530
+
+    GET_PAUSE  = 0x50F
 
 
 # class CanGateway:

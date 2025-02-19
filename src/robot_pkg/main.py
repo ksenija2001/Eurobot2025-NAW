@@ -2,10 +2,15 @@
 from robot_pkg.logger import LogHandler
 from robot_pkg.can_controller import CanNetwork, IDs
 from robot_pkg.odometry import OdometryHandler, Odometry
+from threading import Event
 import time
 import can
 import struct
 import math
+
+# Global access to can_handler for steps
+can_handler:CanNetwork
+paused:Event
 
 def main_func():
     log_handler = LogHandler()
@@ -21,12 +26,20 @@ def main_func():
                            can_handler.msg_send_queues[IDs.RESET_ODOM.value],
                            odom_log,
                            Odometry(0.0, 0.0, 90*math.pi/180))
+    
+    pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
 
     odom.start()
 
     time.sleep(1)
     try:
         while 1:
+            if len(pause_queue) > 0:
+                data = pause_queue.pop()
+                if data[0]:
+                    paused.set()
+                else:
+                    paused.clear()
             # if len(can_handler.msg_receive_queues[IDs.GET_ODOM.value]) > 0:
             #     odom_msg = can_handler.msg_receive_queues[IDs.GET_ODOM.value].pop()
             #     #print(odom_msg)
