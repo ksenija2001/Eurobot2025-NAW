@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 STMicroelectronics.
+  * Copyright (c) 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -32,8 +32,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define IMU_ADDRESS 0xd6
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,10 +45,11 @@ DMA_HandleTypeDef hdma_i2c1_rx;
 DMA_HandleTypeDef hdma_i2c1_tx;
 
 /* USER CODE BEGIN PV */
+ISM330DHCX ism = {0};
+uint8_t buff = 249;
+float dt = 0.005;
 
-IMU imu;
-uint8_t dt = 25;
-
+float roll, pitch, yaw;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,14 +64,6 @@ static void MX_I2C1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c){
-	IMU_I2C_DMA_Callback(&imu, hi2c);
-}
-
-void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c){
-	return;
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -83,7 +74,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	ISM330DHCX_Status status = ISM_NONE;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,35 +90,42 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
-  __IMU_RESET_CLOCK_LINE();
-
+  __reset_I2C1_LINE();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C1_Init();
-
   /* USER CODE BEGIN 2 */
+  status = init_ISM330DHCX(&ism, ISM_ADDRESS, &hi2c1);
+  if(status != ISM_OK) Error_Handler();
 
+  status = set_OutputDataRate_Accelerometer(&ism, ISM_ODR_416HZ);
+  if(status != ISM_OK) Error_Handler();
+
+  status = set_OutputDataRate_Gyroscope(&ism, ISM_ODR_416HZ);
+  if(status != ISM_OK) Error_Handler();
+
+  status = set_Fullscale_Accelerometer(&ism, ISM_FS_ACC_2G);
+  if(status != ISM_OK) Error_Handler();
+
+  status = set_Fullscale_Gyroscope(&ism, ISM_FS_GYRO_250);
+  if(status != ISM_OK) Error_Handler();
+
+  roll = pitch = yaw = 0;
+  HAL_Delay(100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  HAL_Delay(50);
-  IMU_INIT_DMA(&imu, IMU_ADDRESS, &hi2c1);
-  HAL_Delay(50);
-
   while (1)
   {
-	  IMU_DATA_EXTRACT_AND_CONVERT(dt);
-	  HAL_Delay(dt);
-
+	  status = get_Axies_All(&ism, dt);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  HAL_Delay(dt * 1000.0);
   }
   /* USER CODE END 3 */
 }
@@ -243,20 +241,19 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  /*Configure GPIO pin : PA5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
