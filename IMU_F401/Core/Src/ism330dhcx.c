@@ -45,12 +45,12 @@ ISM330DHCX_Status init_ISM330DHCX(ISM330DHCX *ism, uint8_t address, I2C_HandleTy
 	HAL_Delay(20);
 
 	// Device configuration bit
-	if(setReg(ism, ISM_REG_CTRL9_XL, 0x02, 0x00, ISM_ERROR_CONFIG_BIT) != ISM_OK){
+	if(setReg(ism, ISM_REG_CTRL9_XL, 0x02, ISM_REG_MASK_DEVICE_CONF, ISM_ERROR_CONFIG_BIT) != ISM_OK){
 		return ism->lastStatus;
 	}
 
 	// Block data update (BDU) config
-	if(setReg(ism, ISM_REG_CTRL3_C, 0x40, 0x00, ISM_ERROR_BDU) != ISM_OK){
+	if(setReg(ism, ISM_REG_CTRL3_C, 0x40, ISM_REG_MASK_BDU, ISM_ERROR_BDU) != ISM_OK){
 		return ism->lastStatus;
 	}
 
@@ -59,23 +59,23 @@ ISM330DHCX_Status init_ISM330DHCX(ISM330DHCX *ism, uint8_t address, I2C_HandleTy
 }
 
 ISM330DHCX_Status set_Fullscale_Gyroscope(ISM330DHCX *ism, ISM330DHCX_FS_GYROSCOPE fs){
-	setReg(ism, ISM_REG_CTRL2_G,  fs, 0x00, ISM_ERROR_FS_GYRO);
+	setReg(ism, ISM_REG_CTRL2_G,  fs, ISM_REG_MASK_FS_GYRO, ISM_ERROR_FS_GYRO);
 
 	return ism->lastStatus;
 }
 ISM330DHCX_Status set_Fullscale_Accelerometer(ISM330DHCX *ism, ISM330DHCX_FS_ACCELEROMETER fs){
-	setReg(ism, ISM_REG_CTRL1_XL, fs << 2, 0x00, ISM_ERROR_FS_ACC);
+	setReg(ism, ISM_REG_CTRL1_XL, fs << 2, ISM_REG_MASK_FS_ACC, ISM_ERROR_FS_ACC);
 
 	return ism->lastStatus ;
 }
 
 ISM330DHCX_Status set_OutputDataRate_Gyroscope(ISM330DHCX *ism, ISM330DHCX_ODR odr){
-	setReg(ism, ISM_REG_CTRL2_G,  odr << 4, 0xF0, ISM_ERROR_ODR_GYRO);
+	setReg(ism, ISM_REG_CTRL2_G,  odr << 4, ISM_REG_MASK_ODR, ISM_ERROR_ODR_GYRO);
 
 	return ism->lastStatus;
 }
 ISM330DHCX_Status set_OutputDataRate_Accelerometer(ISM330DHCX *ism, ISM330DHCX_ODR odr){
-	setReg(ism, ISM_REG_CTRL1_XL, odr << 4, 0xF0, ISM_ERROR_ODR_ACC);
+	setReg(ism, ISM_REG_CTRL1_XL, odr << 4, ISM_REG_MASK_ODR, ISM_ERROR_ODR_ACC);
 
 	return ism->lastStatus;
 }
