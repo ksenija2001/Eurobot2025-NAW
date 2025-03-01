@@ -7,6 +7,8 @@
 
 #include "ism330dhcx.h"
 
+uint8_t buffer[ISM_REG_OUT_SIZE] = {0};
+
 Angle (*user_convert_Raw_Gyroscope)(ISM330DHCX* ism, float ms) = NULL;
 Acceleration (*user_convert_Raw_Accelerometer)(ISM330DHCX* ism, float ms) = NULL;
 
@@ -18,6 +20,8 @@ ISM330DHCX_Status init_ISM330DHCX(ISM330DHCX *ism, uint8_t address, I2C_HandleTy
 
 	ism->address = address;
 	ism->i2c = i2c;
+
+	ism->timer_time = 0;
 
 	// Read whoami
 	if(readReg(ism, ISM_REG_WHOAMI, &(ism->whoami)) != ISM_OK){
@@ -80,26 +84,28 @@ ISM330DHCX_Status set_OutputDataRate_Accelerometer(ISM330DHCX *ism, ISM330DHCX_O
 	return ism->lastStatus;
 }
 
+ISM330DHCX_Status __get_Raw_All(ISM330DHCX *ism, uint8_t *buff){
+	ism->data.gyroscope.raw.x = ((uint16_t) buff[0x1]) << 8 | buff[0x0];
+	ism->data.gyroscope.raw.y = ((uint16_t) buff[0x3]) << 8 | buff[0x2];
+	ism->data.gyroscope.raw.z = ((uint16_t) buff[0x5]) << 8 | buff[0x4];
+
+	ism->data.accelerometer.raw.x = ((uint16_t) buff[0x7]) << 8 | buff[0x6];
+	ism->data.accelerometer.raw.y = ((uint16_t) buff[0x9]) << 8 | buff[0x8];
+	ism->data.accelerometer.raw.z = ((uint16_t) buff[0xB]) << 8 | buff[0xA];
+
+	return ISM_OK;
+}
+
 ISM330DHCX_Status get_Axies_Raw_All(ISM330DHCX *ism){
-	uint8_t buffer[12];
 	//readReg
 	if(readRegs(ism, ISM_REG_OUT, buffer, 12) != ISM_OK){
 		return ism->lastStatus;
 	}
-
-	ism->data.gyroscope.raw.x = ((uint16_t) buffer[0x1]) << 8 | buffer[0x0];
-	ism->data.gyroscope.raw.y = ((uint16_t) buffer[0x3]) << 8 | buffer[0x2];
-	ism->data.gyroscope.raw.z = ((uint16_t) buffer[0x5]) << 8 | buffer[0x4];
-
-	ism->data.accelerometer.raw.x = ((uint16_t) buffer[0x7]) << 8 | buffer[0x6];
-	ism->data.accelerometer.raw.y = ((uint16_t) buffer[0x9]) << 8 | buffer[0x8];
-	ism->data.accelerometer.raw.z = ((uint16_t) buffer[0xB]) << 8 | buffer[0xA];
+	__get_Raw_All(ism, buffer);
 
 	return ism->lastStatus;
 }
 ISM330DHCX_Status get_Axies_Raw_Gyroscope(ISM330DHCX *ism){
-	uint8_t buffer[6];
-
 	// readReg
 	if(readRegs(ism, ISM_REG_OUT_GYRO, buffer, 6) != ISM_OK){
 		return ism->lastStatus;
@@ -112,8 +118,6 @@ ISM330DHCX_Status get_Axies_Raw_Gyroscope(ISM330DHCX *ism){
 	return ism->lastStatus;
 }
 ISM330DHCX_Status get_Axies_Raw_Accelerometer(ISM330DHCX *ism){
-	uint8_t buffer[6];
-
 	// readReg
 	if(readRegs(ism, ISM_REG_OUT_ACC, buffer, 6) != ISM_OK){
 		return ism->lastStatus;
@@ -197,4 +201,19 @@ Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms){
 	return (Angle) {x_angle, y_angle, z_angle};
 }
 
+__weak ISM330DHCX_Status ISM_INTERRUPT_TIMER(ISM330DHCX* ism, float dt){
+	// Start DMA transmission
+	ism->timer_time = dt;
+	HAL_I2C_Mem_Read_DMA(ism->i2c, ism->address, ISM_REG_OUT, ISM_REG_SIZE, buffer, ISM_REG_OUT_SIZE);
 
+	return ISM_OK;
+}
+
+__weak ISM330DHCX_Status ISM_INTERRUPT_DMA(ISM330DHCX* ism){
+	// Calculate angles
+
+	__get_Raw_All(ism, buffer);
+	convert_Raw(ism, ism->timer_time);
+
+	return ISM_OK;
+}

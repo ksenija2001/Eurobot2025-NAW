@@ -11,7 +11,8 @@
 /*
  * List of ISM330DHCX registers
  */
-
+#define ISM_REG_SIZE 0x1
+#define ISM_REG_OUT_SIZE 0xC
 #define ISM_REG_WHOAMI 0x0f
 #define ISM_REG_DATA_WHOAMI 0x6b
 #define ISM_REG_STATUS 0x1e

@@ -1,0 +1,10 @@
+22:42:50 **** Incremental Build of configuration Debug for project IMU_F401 ****
+make -j16 all 
+arm-none-eabi-size  IMU_F401.elf 
+   text	   data	    bss	    dec	    hex	filename
+  28128	     16	   2016	  30160	   75d0	IMU_F401.elf
+Finished building: default.size.stdout
+ 
+
+22:42:50 Build Finished. 0 errors, 0 warnings. (took 180ms)
+

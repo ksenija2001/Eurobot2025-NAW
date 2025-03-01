@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;IMU_F401/Core/Src/kalman.c&apos; to &apos;kalman2d.c&apos;" description="Rename resource &apos;kalman.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Src/kalman.c" name="kalman2d.c" stamp="1739733976476" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;IMU_F401/Core/Inc/kalman.h&apos; to &apos;kalman2d.h&apos;" description="Rename resource &apos;kalman.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Inc/kalman.h" name="kalman2d.h" stamp="1739733986842" updateReferences="true"/>
+</session>

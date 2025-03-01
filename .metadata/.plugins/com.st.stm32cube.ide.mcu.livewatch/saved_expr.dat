@@ -1,0 +1,6 @@
+yaw
+roll
+pitch
+ism.data.gyroscope.angle.x
+ism.data.gyroscope.angle.y
+ism.data.gyroscope.angle.z

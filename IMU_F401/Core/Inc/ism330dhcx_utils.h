@@ -69,6 +69,8 @@ typedef struct {
 
 	ISM330DHCX_Status lastStatus;
 	ISM330DHCX_Data data;
+
+	float timer_time;
 } ISM330DHCX;
 
 ISM330DHCX_Status writeReg(ISM330DHCX *ism, uint8_t reg, uint8_t *data);
