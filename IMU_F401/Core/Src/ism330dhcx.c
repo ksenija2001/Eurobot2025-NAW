@@ -9,14 +9,19 @@
 
 uint8_t buffer[ISM_REG_OUT_SIZE] = {0};
 
-Angle (*user_convert_Raw_Gyroscope)(ISM330DHCX* ism, float ms) = NULL;
-Acceleration (*user_convert_Raw_Accelerometer)(ISM330DHCX* ism, float ms) = NULL;
-
+/*
+ * @brief Main function for initializing ISM330DHCX sensor
+ *
+ * @param ism		Pointer to ISM330DHCX object
+ * @param address	Address of the sensor on I2C bus
+ * @param i2c		Pointer to HAL I2C object (if board have more then 1 I2C line)
+ *
+ * @retval 			ISM status
+ */
 ISM330DHCX_Status init_ISM330DHCX(ISM330DHCX *ism, uint8_t address, I2C_HandleTypeDef *i2c){
 	uint8_t reg_data;
 
 	ism->initialized = 0;
-	ism->user_convert = 0;
 
 	ism->address = address;
 	ism->i2c = i2c;
@@ -62,28 +67,70 @@ ISM330DHCX_Status init_ISM330DHCX(ISM330DHCX *ism, uint8_t address, I2C_HandleTy
 	return ism->lastStatus;
 }
 
+/*
+ * @brief		Setting fullscale for gyroscope
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param fs	Fullscale option
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status set_Fullscale_Gyroscope(ISM330DHCX *ism, ISM330DHCX_FS_GYROSCOPE fs){
 	setReg(ism, ISM_REG_CTRL2_G,  fs, ISM_REG_MASK_FS_GYRO, ISM_ERROR_FS_GYRO);
 
 	return ism->lastStatus;
 }
+
+/*
+ * @brief		Setting fullscale for accelerometer
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param fs	Fullscale option
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status set_Fullscale_Accelerometer(ISM330DHCX *ism, ISM330DHCX_FS_ACCELEROMETER fs){
 	setReg(ism, ISM_REG_CTRL1_XL, fs << 2, ISM_REG_MASK_FS_ACC, ISM_ERROR_FS_ACC);
 
 	return ism->lastStatus ;
 }
 
+/*
+ * @brief		Setting output data rate for gyroscope
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param odr	Output data rate option
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status set_OutputDataRate_Gyroscope(ISM330DHCX *ism, ISM330DHCX_ODR odr){
 	setReg(ism, ISM_REG_CTRL2_G,  odr << 4, ISM_REG_MASK_ODR, ISM_ERROR_ODR_GYRO);
 
 	return ism->lastStatus;
 }
+
+/*
+ * @brief		Setting output data rate for accelerometer
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param odr	Output data rate option
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status set_OutputDataRate_Accelerometer(ISM330DHCX *ism, ISM330DHCX_ODR odr){
 	setReg(ism, ISM_REG_CTRL1_XL, odr << 4, ISM_REG_MASK_ODR, ISM_ERROR_ODR_ACC);
 
 	return ism->lastStatus;
 }
 
+/*
+ * @brief 		Extracting data from given buffer (first gyroscope data, second accelerometer data)
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param buff	Pointer to buffer
+ *
+ * @retval 		ISM status
+ */
 ISM330DHCX_Status __get_Raw_All(ISM330DHCX *ism, uint8_t *buff){
 	ism->data.gyroscope.raw.x = ((uint16_t) buff[0x1]) << 8 | buff[0x0];
 	ism->data.gyroscope.raw.y = ((uint16_t) buff[0x3]) << 8 | buff[0x2];
@@ -96,6 +143,13 @@ ISM330DHCX_Status __get_Raw_All(ISM330DHCX *ism, uint8_t *buff){
 	return ISM_OK;
 }
 
+/*
+ * @brief		Reading ISM out registers (gyroscope and accelerometer)
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status get_Axies_Raw_All(ISM330DHCX *ism){
 	//readReg
 	if(readRegs(ism, ISM_REG_OUT, buffer, 12) != ISM_OK){
@@ -105,6 +159,14 @@ ISM330DHCX_Status get_Axies_Raw_All(ISM330DHCX *ism){
 
 	return ism->lastStatus;
 }
+
+/*
+ * @brief 		Reading ISM out gyroscope registers
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ *
+ * #retval		ISM status
+ */
 ISM330DHCX_Status get_Axies_Raw_Gyroscope(ISM330DHCX *ism){
 	// readReg
 	if(readRegs(ism, ISM_REG_OUT_GYRO, buffer, 6) != ISM_OK){
@@ -117,6 +179,14 @@ ISM330DHCX_Status get_Axies_Raw_Gyroscope(ISM330DHCX *ism){
 
 	return ism->lastStatus;
 }
+
+/*
+ * @brief		Reading ISM out accelerometer registers
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status get_Axies_Raw_Accelerometer(ISM330DHCX *ism){
 	// readReg
 	if(readRegs(ism, ISM_REG_OUT_ACC, buffer, 6) != ISM_OK){
@@ -130,8 +200,16 @@ ISM330DHCX_Status get_Axies_Raw_Accelerometer(ISM330DHCX *ism){
 	return ism->lastStatus;
 }
 
+/*
+ * @brief		Reading and converting ISM data at desired moment
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param ms	Time in milliseconds between readings
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status get_Axies_All(ISM330DHCX *ism, float ms){
-
+	ism->timer_time = ms;
 	get_Axies_Raw_All(ism);
 
 	if(ism->lastStatus == ISM_OK){
@@ -141,26 +219,54 @@ ISM330DHCX_Status get_Axies_All(ISM330DHCX *ism, float ms){
 	return ISM_OK;
 }
 
+/*
+ * @brief 		Reading and converting ISM gyroscope data
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param ms	Time in milliseconds between readings
+ *
+ * @retval 		ISM status
+ */
 ISM330DHCX_Status get_Axies_Gyroscope(ISM330DHCX *ism, float ms){
-	// readReg
-	return ISM_OK;
-}
-ISM330DHCX_Status get_Axies_Accelerometer(ISM330DHCX *ism, float ms){
-	// readReg
+	ism->timer_time = ms;
+
+	/* FINISH THIS !!! */
+
 	return ISM_OK;
 }
 
+/*
+ * @brief		Reading and converting ISM accelerometer data
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param ms	Time in milliseconds between readings
+ *
+ * @retval		ISM status
+ */
+ISM330DHCX_Status get_Axies_Accelerometer(ISM330DHCX *ism, float ms){
+	ism->timer_time = ms;
+
+	/* FINISH THIS ALSOOO !!! */
+
+	return ISM_OK;
+}
+
+/*
+ * @brief		Converting raw data to usable data. Angle to absolute position from starting position. Accelerometer to current acceleration.
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param ms	Time in milliseconds between readings
+ *
+ * @retval		ISM status
+ */
 ISM330DHCX_Status convert_Raw(ISM330DHCX* ism, float ms){
 	Angle angle;
 	Acceleration acceleration;
 
-	if(ism->user_convert && user_convert_Raw_Gyroscope != NULL && user_convert_Raw_Accelerometer != NULL){
-		angle = user_convert_Raw_Gyroscope(ism, ms);
-		acceleration = user_convert_Raw_Accelerometer(ism, ms);
-	}else{
-		angle = convert_Raw_Gyroscope(ism, ms);
-		acceleration= convert_Raw_Accelerometer(ism, ms);
-	}
+	ism->timer_time = ms;
+
+	angle = convert_Raw_Gyroscope(ism, ms);
+	acceleration= convert_Raw_Accelerometer(ism, ms);
 
 	ism->data.gyroscope.angle.x += angle.x;
 	ism->data.gyroscope.angle.y += angle.y;
@@ -173,7 +279,17 @@ ISM330DHCX_Status convert_Raw(ISM330DHCX* ism, float ms){
 	return ISM_OK;
 }
 
-Acceleration convert_Raw_Accelerometer(ISM330DHCX* ism, float ms){
+/*
+ * @brief 		Converting accelerometer raw data to current acceleration. User can make custom function with same name.
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param ms	Time in milliseconds between readings
+ *
+ * @retval		ISM status
+ */
+__weak Acceleration convert_Raw_Accelerometer(ISM330DHCX* ism, float ms){
+	ism->timer_time = ms;
+
 	float x = (float) ism->data.accelerometer.raw.x * ISM_FS_ACC_2G_SENSITIVITY;
 	float y = (float) ism->data.accelerometer.raw.y * ISM_FS_ACC_2G_SENSITIVITY;
 	float z = (float) ism->data.accelerometer.raw.z * ISM_FS_ACC_2G_SENSITIVITY;
@@ -181,13 +297,30 @@ Acceleration convert_Raw_Accelerometer(ISM330DHCX* ism, float ms){
 	return (Acceleration) {x, y, z};
 }
 
+/*
+ * @brief 		This function returns absolute value from given number
+ *
+ * @param val	Float number
+ *
+ * @retval		Absolute value of val
+ */
 float getFABS(float val){
 	if(val > 0) return val;
 
 	return val * (-1);
 }
 
-Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms){
+/*
+ * @brief		Converting gyroscope raw data to absolute angle from starting position. User can make custom function with same name.
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param ms	Time in milliseconds between readings
+ *
+ * @retval		Angle structure of absolute angles {x,y,z}
+ */
+__weak Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms){
+	ism->timer_time = ms;
+
 	float x_angle = ((float) ism->data.gyroscope.raw.x) * ISM_FS_GYRO_250_SENSITIVITY * ms / 1000.0;
 	float y_angle = ((float) ism->data.gyroscope.raw.y) * ISM_FS_GYRO_250_SENSITIVITY * ms / 1000.0;
 	float z_angle = ((float) ism->data.gyroscope.raw.z) * ISM_FS_GYRO_250_SENSITIVITY * ms / 1000.0;
@@ -201,17 +334,29 @@ Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms){
 	return (Angle) {x_angle, y_angle, z_angle};
 }
 
-__weak ISM330DHCX_Status ISM_INTERRUPT_TIMER(ISM330DHCX* ism, float dt){
-	// Start DMA transmission
-	ism->timer_time = dt;
+/*
+ * @brief 		Function called on timer interrupt. User can make custom function with same name.
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ * @param ms	Time in milliseconds that timer was set
+ *
+ * @retval		ISM status
+ */
+__weak ISM330DHCX_Status ISM_INTERRUPT_TIMER(ISM330DHCX* ism, float ms){
+	ism->timer_time = ms;
 	HAL_I2C_Mem_Read_DMA(ism->i2c, ism->address, ISM_REG_OUT, ISM_REG_SIZE, buffer, ISM_REG_OUT_SIZE);
 
 	return ISM_OK;
 }
 
+/*
+ * @brief		Function called on end of DMA transmission. User can make custom function with same name.
+ *
+ * @param ism	Pointer to ISM330DHCX object
+ *
+ * @retval		ISM status
+ */
 __weak ISM330DHCX_Status ISM_INTERRUPT_DMA(ISM330DHCX* ism){
-	// Calculate angles
-
 	__get_Raw_All(ism, buffer);
 	convert_Raw(ism, ism->timer_time);
 

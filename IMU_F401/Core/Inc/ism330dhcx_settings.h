@@ -8,12 +8,15 @@
 #ifndef INC_ISM330DHCX_SETTINGS_H_
 #define INC_ISM330DHCX_SETTINGS_H_
 
-#if defined(STM32F407xx) || defined(STM32F401xE)
+/*
+ * If needed user can include custom board or library
+ */
+#if defined(STM32F407xx) || defined(STM32F401xE) // || defined(CUSTOM_BOARD_F_SERIES)
 	#include "stm32f4xx_hal.h"
-#elif defined(STM32G431xx) || defined(STM32G441xx)
+#elif defined(STM32G431xx) || defined(STM32G441xx) // || defined(CUSTOM_BOARD_G_SERIES)
 	#include "stm32g4xx_hal.h"
 #else
-
+	// #include "custom_hal_library.h"
 #endif
 
 extern I2C_HandleTypeDef hi2c1;

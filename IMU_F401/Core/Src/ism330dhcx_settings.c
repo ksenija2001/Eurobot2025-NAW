@@ -7,6 +7,10 @@
 
 #include "ism330dhcx_settings.h"
 
+/*
+ * @brief 		Reseting I2C line using HAL in order for proper ISM330DHCX initialization
+ */
+
 ISM330DHCX_Status __reset_I2C1_LINE(){
 	__init_GPIO();
 
@@ -22,6 +26,12 @@ ISM330DHCX_Status __reset_I2C1_LINE(){
 	return ISM_OK;
 }
 
+/*
+ * @brief		THIS FUNCTION SHOULD BE TESTED !!!
+ *
+ * @comment		Doesn't work in the middle of the code
+ */
+
 ISM330DHCX_Status __init_DMA(){
 	/* DMA controller clock enable */
 	__HAL_RCC_DMA1_CLK_ENABLE();
@@ -36,6 +46,12 @@ ISM330DHCX_Status __init_DMA(){
 
 	return ISM_OK;
 }
+
+/*
+ * @brief		THIS FUNCTION SHOULD BE TESTED !!!
+ *
+ * @comment		Doesn't work in the middle of the code
+ */
 
 ISM330DHCX_Status __init_I2C(){
 	hi2c1.Instance = I2C1;
@@ -54,6 +70,12 @@ ISM330DHCX_Status __init_I2C(){
 
 	return ISM_OK;
 }
+
+/*
+ * @brief		THIS FUNCTION SHOULD BE TESTED !!!
+ *
+ * @comment		Doesn't work in the middle of the code
+ */
 
 ISM330DHCX_Status __init_GPIO(){
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
