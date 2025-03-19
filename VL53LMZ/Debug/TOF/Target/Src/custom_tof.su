@@ -1,0 +1,6 @@
+../TOF/Target/Src/custom_tof.c:10:6:VL53LMZ_Reset	16	static
+../TOF/Target/Src/custom_tof.c:25:9:VL53LMZ_Init	24	static
+../TOF/Target/Src/custom_tof.c:70:9:VL53LMZ_Config	32	static
+../TOF/Target/Src/custom_tof.c:135:9:VL53LMZ_Start_Ranging	24	static
+../TOF/Target/Src/custom_tof.c:142:9:VL53LMZ_Get_Distance	416	static
+../TOF/Target/Src/custom_tof.c:185:6:VL53LMZ_Get_Result	16	static

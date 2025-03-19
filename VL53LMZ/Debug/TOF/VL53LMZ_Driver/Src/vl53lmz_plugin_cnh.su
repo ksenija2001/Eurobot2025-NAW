@@ -1,0 +1,10 @@
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:119:9:vl53lmz_cnh_init_config	32	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:150:9:vl53lmz_cnh_create_agg_map	40	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:204:9:vl53lmz_cnh_calc_required_memory	24	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:228:9:vl53lmz_cnh_calc_min_max_distance	32	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:254:9:vl53lmz_cnh_send_config	24	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:263:9:vl53lmz_cnh_get_block_addresses	72	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:292:10:vl53lmz_cnh_get_ref_residual	16	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:297:10:_cnh_get_pingpong_size_in_word	32	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:323:10:_cnh_calculate_required_memory	32	static
+../TOF/VL53LMZ_Driver/Src/vl53lmz_plugin_cnh.c:338:6:_cnh_get_mem_block_addresses	56	static

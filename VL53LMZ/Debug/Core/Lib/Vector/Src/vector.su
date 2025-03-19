@@ -1,0 +1,3 @@
+../Core/Lib/Vector/Src/vector.c:10:6:Vector_Sum	48	static
+../Core/Lib/Vector/Src/vector.c:16:6:Vector_Sub	48	static
+../Core/Lib/Vector/Src/vector.c:22:6:Vector_Scale	40	static
