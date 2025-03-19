@@ -49,6 +49,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -57,28 +59,66 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define UART_Protocol2_Pin GPIO_PIN_2
-#define UART_Protocol2_GPIO_Port GPIOA
-#define UART_Protocol1_Pin GPIO_PIN_4
-#define UART_Protocol1_GPIO_Port GPIOC
-#define IN1_Pin GPIO_PIN_0
-#define IN1_GPIO_Port GPIOB
-#define IN2_Pin GPIO_PIN_1
-#define IN2_GPIO_Port GPIOB
+#define PWM_1_Pin GPIO_PIN_0
+#define PWM_1_GPIO_Port GPIOC
+#define PWM_2_Pin GPIO_PIN_1
+#define PWM_2_GPIO_Port GPIOC
+#define PWM_3_Pin GPIO_PIN_2
+#define PWM_3_GPIO_Port GPIOC
+#define PWM_4_Pin GPIO_PIN_3
+#define PWM_4_GPIO_Port GPIOC
+#define Current_FB_Pin GPIO_PIN_0
+#define Current_FB_GPIO_Port GPIOA
+#define In_1_Pin GPIO_PIN_1
+#define In_1_GPIO_Port GPIOA
+#define In_2_Pin GPIO_PIN_2
+#define In_2_GPIO_Port GPIOA
+#define In_3_Pin GPIO_PIN_3
+#define In_3_GPIO_Port GPIOA
+#define In_4_Pin GPIO_PIN_4
+#define In_4_GPIO_Port GPIOA
+#define In_5_Pin GPIO_PIN_5
+#define In_5_GPIO_Port GPIOA
+#define In_6_Pin GPIO_PIN_6
+#define In_6_GPIO_Port GPIOA
+#define In_7_Pin GPIO_PIN_7
+#define In_7_GPIO_Port GPIOA
+#define In_8_Pin GPIO_PIN_4
+#define In_8_GPIO_Port GPIOC
+#define Out_1_Pin GPIO_PIN_5
+#define Out_1_GPIO_Port GPIOC
+#define Out_2_Pin GPIO_PIN_0
+#define Out_2_GPIO_Port GPIOB
+#define Out_3_Pin GPIO_PIN_1
+#define Out_3_GPIO_Port GPIOB
+#define Out_4_Pin GPIO_PIN_2
+#define Out_4_GPIO_Port GPIOB
 #define LED_R_Pin GPIO_PIN_11
 #define LED_R_GPIO_Port GPIOB
 #define LED_G_Pin GPIO_PIN_12
 #define LED_G_GPIO_Port GPIOB
 #define LED_B_Pin GPIO_PIN_13
 #define LED_B_GPIO_Port GPIOB
-#define ERROR_In_Pin GPIO_PIN_6
-#define ERROR_In_GPIO_Port GPIOC
-#define ERROR_Out_Pin GPIO_PIN_7
-#define ERROR_Out_GPIO_Port GPIOC
+#define PWM_5_Pin GPIO_PIN_6
+#define PWM_5_GPIO_Port GPIOC
+#define PWM_6_Pin GPIO_PIN_7
+#define PWM_6_GPIO_Port GPIOC
+#define PWM_7_Pin GPIO_PIN_8
+#define PWM_7_GPIO_Port GPIOC
+#define PWM_8_Pin GPIO_PIN_9
+#define PWM_8_GPIO_Port GPIOC
 #define LED_CAN_RX_Pin GPIO_PIN_9
 #define LED_CAN_RX_GPIO_Port GPIOA
 #define LED_CAN_TX_Pin GPIO_PIN_10
 #define LED_CAN_TX_GPIO_Port GPIOA
+#define S0_Pin GPIO_PIN_10
+#define S0_GPIO_Port GPIOC
+#define S1_Pin GPIO_PIN_11
+#define S1_GPIO_Port GPIOC
+#define S2_Pin GPIO_PIN_12
+#define S2_GPIO_Port GPIOC
+#define Protocol_1_Pin GPIO_PIN_6
+#define Protocol_1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
