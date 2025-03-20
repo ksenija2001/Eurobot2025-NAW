@@ -13,7 +13,7 @@ uint8_t last_command = 0;
 uint8_t error, id;
 uint8_t crc;
 uint8_t moving_status;
-uint8_t moving_servos[SERVO_NUM];
+volatile uint8_t moving_servos[SERVO_NUM];
 uint8_t moving_counter[SERVO_NUM];
 uint16_t position, angle, speed, speed_perc;
 
@@ -26,10 +26,12 @@ void AX_Transmit(UART_HandleTypeDef* huart, uint8_t *tx_buffer, uint8_t tx_lengt
 	HAL_HalfDuplex_EnableTransmitter(huart);
 	HAL_UART_Transmit(huart, tx_buffer, tx_length, 1000);
 
-	if ( rx_length ){
+	if (rx_length > 0){
 		HAL_HalfDuplex_EnableReceiver(huart);
 		HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buffer, rx_length);
 	}
+
+
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
@@ -103,9 +105,14 @@ void TIM6_Moving_IT(TIM_HandleTypeDef* tim, UART_HandleTypeDef* huart){
 				// TODO FDCAN warning that servo can't get into position
 				moving_status = 0;
 				FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_1, 1, &moving_status);
-			} else
-				Get_Moving_Status(huart, i);
+			}
+
+			Get_Moving_Status(huart, i);
+//				HAL_Delay(10);
+//			}
 		}
+
+
 
 	}
 }
@@ -198,7 +205,7 @@ void Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t ID, uint16_t angle){
 
 	last_command = GOAL_POSITION;
 	AX_Transmit(huart, msg, 9, 6);
-
+//	Get_Moving_Status(huart, ID);
 	moving_servos[ID] = 1;
 }
 
@@ -207,7 +214,7 @@ void Set_Moving_Speed(UART_HandleTypeDef* huart, uint8_t ID, uint8_t speed_perce
 
 	if ( speed_percentage > 100 ) speed_percentage = 100;
 	speed = 1023/100.0 * speed_percentage;
-	uint8_t msg[] = {HEADER, HEADER, ID, 3 + 2, WRITE, MOVING_SPEED, (uint8_t)((speed & 0xFF00) >> 8), (uint8_t)(speed & 0x00FF), 0x00};
+	uint8_t msg[] = {HEADER, HEADER, ID, 3 + 2, WRITE, MOVING_SPEED, (uint8_t)(speed & 0x00FF), (uint8_t)((speed & 0xFF00) >> 8), 0x00};
 	msg[8] = Checksum(msg, 8);
 
 	last_command = MOVING_SPEED;

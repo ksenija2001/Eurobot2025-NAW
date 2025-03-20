@@ -44,6 +44,7 @@
 
 void TIM6_Moving_IT(TIM_HandleTypeDef* tim, UART_HandleTypeDef* huart);
 
+void Reboot(UART_HandleTypeDef* huart, uint8_t ID);
 void AX_Transmit(UART_HandleTypeDef* huart, uint8_t *tx_buffer, uint8_t tx_length, uint8_t rx_length);
 uint8_t Checksum(uint8_t* buffer, uint8_t len);
 void Enable_Torque(UART_HandleTypeDef* huart, uint8_t ID, uint8_t on_off);

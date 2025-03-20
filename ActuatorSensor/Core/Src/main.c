@@ -118,16 +118,47 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start(&htim6); // Servo moving checking
-  HAL_TIM_Base_Start(&htim7); // Input pin states checking
+//  HAL_NVIC_SetPriority()
 
-  Enable_LED(&huart1, 0x01, 0x01);
-  HAL_Delay(1000);
-  Enable_LED(&huart1, 0x01, 0x00);
-  Get_Present_Position(&huart1, 0x01);
+  HAL_TIM_Base_Start_IT(&htim6); // Servo moving checking
+  HAL_TIM_Base_Start_IT(&htim7); // Input pin states checking
+//  uint8_t id = 0x02;
+//  Enable_LED(&huart1, 0x01, 0x01);
+//  HAL_Delay(1000);
+//  Enable_LED(&huart1, 0x01, 0x00);
+//  Get_Present_Position(&huart1, id);
   Enable_Torque(&huart1, 0x01, 0x01);
-  Set_Goal_Position(&huart1, 0x01, 100);
-  Get_Present_Position(&huart1, 0x01);
+  Enable_Torque(&huart1, 0x02, 0x01);
+  Enable_Torque(&huart1, 0x04, 0x01);
+
+//
+//  uint8_t ids[] = {0x01, 0x02, 0x04};
+//  uint16_t angles[] = {100, 100, 150};
+//  uint8_t speeds[] = {10, 50, 10};
+//  Sync_Set_Goal_Position(&huart1, ids, angles, speeds, 3);
+//  Set_Moving_Speed(&huart1, 0x01, 20);
+//  Set_Moving_Speed(&huart1, 0x02, 20);
+//  HAL_Delay(1000);
+//  Set_Goal_Position(&huart1, 0x01, 100);
+//  Set_Goal_Position(&huart1, 0x02, 100);
+//  HAL_Delay(1000);
+////  Set_Goal_Position(&huart1, 0x02, 100);
+//  Set_Goal_Position(&huart1, 0x01, 100);
+//  Get_Moving_Status(&huart1, 0x01);
+//  Get_Moving_Status(&huart1, 0x02);
+//  Get_Present_Position(&huart1, 0x01);
+//
+//  Get_Present_Position(&huart1, 0x02);
+//  Set_Output(1, 1);
+//  Set_Output(2, 1);
+//  Set_Output(3, 1);
+//  Set_Output(4, 1);
+//  HAL_Delay(10000);
+//  Set_Output(1, 0);
+//  Set_Output(2, 0);
+//  Set_Output(3, 0);
+//  Set_Output(4, 0);
+
 
 
 //  Set_ADC_Channel(0);
@@ -626,7 +657,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
