@@ -1,8 +1,7 @@
 import logging.config
-import datetime
-import os, shutil
+import os, shutil, datetime
 
-from robot_pkg.paths import CONFIG_PATH, LOG_PATH
+from robot_pkg.consts import CONFIG_PATH, LOG_PATH
 
 LOG_TODAY = os.path.join(LOG_PATH, str(datetime.date.today()))
 

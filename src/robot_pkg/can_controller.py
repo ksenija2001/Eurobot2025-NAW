@@ -1,66 +1,9 @@
-from robot_pkg.main import log_handler
-import can
-from enum import Enum
 from threading import Thread, Event
-from queue import Queue, Empty
 from collections import deque
-import struct
-import logging
-import time
+import can, time
 
-class IDs(Enum):
-    RESET_ODOM  = 0x4F0
-    ODOM_CONFIG = 0x4F1
-
-    GET_ODOM = 0x4FF
-
-    SET_MOTOR_SPEED = 0x4D0
-    SET_MOTOR_RPM   = 0x4D1
-    SET_DISTANCE    = 0x4D2
-    SET_XY          = 0x4D3
-    SET_ROTATION_FOR = 0x4D4
-    SET_ROTATION_TO  = 0x4D5
-
-    GET_MOTOR_SPEED = 0x4DF
-    GET_MOVE_DONE   = 0x4DE
-
-    SET_SERVO_POSITIONS = 0x530
-
-
-# class CanGateway:
-#     '''
-#         Handles packet parsing and message priorities
-#     '''
-
-#     def init(self, msg_types:dict[IDs, deque]):
-#         self.running = False
-#         pass
-
-    
-
-#     def start_checking(self):
-#         self.running = True
-
-#     def check_queue(self, queue:deque):
-#         while self.running:
-#             msg = queue.get()
-#             self.parse(msg.arbitration_id)
-            
-#     def parse(self, msg_id):
-#         if msg_id == IDs.GET_POSITION:
-#             pass
-#         elif msg_id == IDs.GET_SERVO_DONE:
-#             pass
-#         elif msg_id == IDs.GET_SERVO_POSITION:
-#             pass
-
-#     def wait_for(self, msg_ids:list) -> bool:
-#         pass
-
-                
-
-
-
+from robot_pkg.main import log_handler
+from robot_pkg.consts import IDs
 
 class CanNetwork:
     '''
@@ -91,21 +34,6 @@ class CanNetwork:
             self.msg_receive_queues[msg_type.value] = deque(maxlen=max_queue_size)
             self.msg_send_queues[msg_type.value] = deque(maxlen=max_queue_size)
 
-    def request_msg(self, msg_id:IDs, size):
-        '''
-            msg_id: ID of requested data,
-            size  : expected size of the received data
-        '''
-
-        msg = can.Message(arbitration_id=msg_id.value, dlc=size, data=[], is_extended_id=False, is_fd=True, is_remote_frame=True)
-
-        try:
-            # with can.Bus() as bus:
-            #     bus.send(msg)
-            print(f"Message sent") # on {bus.channel_info}")
-        except can.CanError:
-            print("[ERROR] Message NOT sent")
-    
     def start_threads(self):
         self.init_queues(self.max_queue_size)
 
@@ -149,13 +77,28 @@ class CanNetwork:
 
                         self.bus.send(msg)
                         self.logger.debug(f"Message {IDs(key).name} sent")
-                
-                except Empty:
-                    pass
+    
                 except can.CanError as e:
                         self.logger.warning(f"Message {IDs(key).name} NOT sent: {e}")
 
             time.sleep(0.001) # 1ms
+        
+    
+    # def request_msg(self, msg_id:IDs, size):
+    #     '''
+    #         msg_id: ID of requested data,
+    #         size  : expected size of the received data
+    #     '''
+
+    #     msg = can.Message(arbitration_id=msg_id.value, dlc=size, data=[], is_extended_id=False, is_fd=True, is_remote_frame=True)
+
+    #     try:
+    #         # with can.Bus() as bus:
+    #         #     bus.send(msg)
+    #         print(f"Message sent") # on {bus.channel_info}")
+    #     except can.CanError:
+    #         print("[ERROR] Message NOT sent")
+    
     
     def __del__(self):
         self.bus.shutdown()

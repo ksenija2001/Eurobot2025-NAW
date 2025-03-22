@@ -1,9 +1,9 @@
-from collections import deque
-from robot_pkg.main import can_handler, paused
-from robot_pkg.can_controller import IDs
-import struct
-import time
+import struct, time
 from threading import Thread, Event
+from collections import deque
+
+from robot_pkg.main import can_handler, paused
+from robot_pkg.consts import IDs
 
 
 class Move:

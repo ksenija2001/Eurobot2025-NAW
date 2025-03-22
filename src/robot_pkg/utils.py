@@ -1,9 +1,7 @@
-import subprocess
-import argparse
-import time
-import os, glob
-import datetime
-from robot_pkg.paths import LOG_PATH
+import time, datetime
+import os, glob, subprocess, argparse
+
+from robot_pkg.consts import LOG_PATH
 
 def echo_log():
     parser = argparse.ArgumentParser()

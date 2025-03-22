@@ -1,9 +1,8 @@
+import math, struct, time
+from threading import Thread
+
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
-from threading import Thread
-import struct
-import math
-import time
 
 class Odometry:
     x:float

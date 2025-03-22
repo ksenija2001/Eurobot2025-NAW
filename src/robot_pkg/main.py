@@ -1,8 +1,10 @@
 
 from robot_pkg.logger import LogHandler
-from robot_pkg.can_controller import CanNetwork, IDs
+from robot_pkg.can_controller import CanNetwork
+from robot_pkg.consts import IDs
 from robot_pkg.odometry import OdometryHandler, Odometry
 from robot_pkg.step import Move
+from robot_pkg.servo import ServoHandler
 from threading import Event, Thread
 import time
 import struct
@@ -65,7 +67,32 @@ def user_cmd(running:Event):
                     theta = float(input("New theta: "))
                     data = struct.pack('3f', x, y, theta)
                     can_handler.msg_send_queues[IDs[cmd].value].append(data)
-                
+
+                elif msg_type == IDs.SET_SERVO_POSITIONS.name:
+                    ids = []
+                    positions = []
+                    speeds = []
+
+                    print("Press ")
+                    
+                    while True:
+                        Id = input("ID: ")
+                        if Id == "":
+                            break
+                        ids.append(Id) 
+                    
+                        position = input("Position[degree]: ")
+                        if position == "":
+                            break
+                        positions.append(position)
+                        
+                        speed = input("Speed[%]: ")
+                        if speed == "":
+                            break
+                        speeds.append(speed)
+
+                    ServoHandler.set_angles(ids, position, speeds)
+                        
                 else:
                     print("Message ID is not of sending type")
                     continue                    

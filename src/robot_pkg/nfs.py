@@ -1,14 +1,13 @@
 import pigpio
+import math, struct, time
+import logging
 from enum import Enum
-import can
-import struct
-import math
-import time
-from robot_pkg.can_controller import CanNetwork, IDs
+from collections import deque
+
+from robot_pkg.consts import IDs
+from robot_pkg.can_controller import CanNetwork
 from robot_pkg.logger import LogHandler
 from robot_pkg.odometry import OdometryHandler, Odometry
-import logging
-from collections import deque
 
 LOW = 300 #us  = 0.3 ms
 HIGH = 2000 #us  = 2 ms

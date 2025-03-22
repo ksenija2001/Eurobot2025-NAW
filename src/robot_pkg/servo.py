@@ -1,50 +1,80 @@
-from dataclasses import dataclass
-from enum import Enum
-import can
-from queue import Queue
+from enum import EnumDict
+import struct, time
+from threading import Thread
 
-@dataclass
-class ServoPositions():
-    TOP : int
-    MIDDLE : int
-    BOTTOM : int
-    
-    def __init__(self, top=None, middle=None, bottom=None):
+from robot_pkg.main import log_handler, can_handler
+from robot_pkg.can_controller import IDs
+
+class Servo:
+    def __init__(self, id:int, top, middle, bottom):
+        self.id = id
+
         self.TOP = top
         self.MIDDLE = middle
         self.BOTTOM = bottom
+  
+        self.in_position = False
 
-class Servo(Enum):
-    def __init__(self, id:int, positions:ServoPositions):
-        self.id = id
-        self.positions = positions
+class Servos(EnumDict):
+    RIGHT_VACUUM_LIFT = Servo(id=1,  top=0,   middle=0,   bottom=300),
+    RIGHT_VACUUM      = Servo(id=2,  top=240, middle=150, bottom=60),
+    LEFT_VACUUM_LIFT  = Servo(id=3,  top=300, middle=0,   bottom=0),
+    LEFT_VACUUM       = Servo(id=4,  top=60,  middle=150, bottom=240),
+    RIGHT_GRIP_LIFT   = Servo(id=5,  top=0,   middle=0,   bottom=300),
+    LEFT_GRIP_LIFT    = Servo(id=6,  top=300, middle=0,   bottom=0),
+    CENTER_SWING      = Servo(id=7,  top=240, middle=0,   bottom=150),
+    CENTER_LIFT       = Servo(id=8,  top=0,   middle=0,   bottom=242),
+    BACK_RIGHT_LIFT   = Servo(id=9,  top=240, middle=0,   bottom=150),
+    BACK_LEFT_LIFT    = Servo(id=10, top=0,   middle=0,   bottom=242)
 
-    RIGHT_VACUUM_LIFT = 1, ServoPositions(top=  0,             bottom=300) 
-    RIGHT_VACUUM      = 2, ServoPositions(top=240, middle=150, bottom= 60)
+class ServoHandler:
+    def __init__(self):
+        self.log = log_handler.get_logger("servo")
+        self.queue = can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value],
+        self.send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value],
 
-    LEFT_VACUUM_LIFT  = 3, ServoPositions(top=300,             bottom=  0) 
-    LEFT_VACUUM       = 4, ServoPositions(top= 60, middle=150, bottom=240)
+        self.running = False
+        self._servo_thread = Thread(target=self.receive)
 
-    RIGHT_GRIP_LIFT   = 5, ServoPositions(top=  0,             bottom=300)
-    LEFT_GRIP_LIFT    = 6, ServoPositions(top=300,             bottom=  0)
+    def start(self):
+        self.running = True
+        self._servo_thread.start()
 
-    CENTER_SWING      = 7, ServoPositions(top=240,             bottom=150)
-    CENTER_LIFT       = 8, ServoPositions(top=  0,             bottom=242)
+        self.log.info(f"Started ServoHandler")
 
-    BACK_RIGHT_LIFT   = 9, ServoPositions(top=240,             bottom=150)
-    BACK_LEFT_LIFT    =10, ServoPositions(top=  0,             bottom=242)
+    def stop(self):
+        self.running = False
+        self._servo_thread.join()
 
+        self.log.info(f"Stopped ServoHandler")
 
-class ServoMoving:
+    def set_angles(self, ids:list[int], angles:list[int], speeds:list[int]):
+        size = len(ids)
 
-    def __init__(self, can_queue: Queue):
-        self.can_queue = can_queue
-    
-    def send(self, ids:list, positions:list):
-        pass
+        if size != len(angles) or size != len(speeds):
+            print("Wrong number of parameters!")
+            raise Exception
+
+        servo_msg = struct.pack(size*3 + 'I', ids, angles, speeds)
+        self.send_queue.appends(servo_msg)
+
+    def receive(self):
+        while self.running:
+            if len(self.queue) > 0:
+                servo_msg = self.queue.pop()
+
+                [id, success] = struct.unpack('2I', servo_msg.data)
+
+                servo = [servo for servo in Servos.values() if servo.id == id][0]
+
+                if success:
+                    servo.in_position = True
+
+                self.log.debug(f"{id}: {success}")
+            
+            time.sleep(0.01)  # 10ms
 
 
 if __name__ == "__main__":
-    print(Servo.RIGHT_VACUUM_LIFT.positions.BOTTOM)
-    print(Servo.LEFT_VACUUM_LIFT.positions.BOTTOM)
+    pass
 
