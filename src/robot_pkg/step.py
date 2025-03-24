@@ -5,9 +5,9 @@ from collections import deque
 from robot_pkg.main import can_handler, paused
 from robot_pkg.consts import IDs
 
-class Servo:
-    @classmethod
-    def RightVacuumLift(cls, position:int, speed:int):
+# class Servo:
+#     @classmethod
+#     def RightVacuumLift(cls, position:int, speed:int):
         
 
 

@@ -1,4 +1,4 @@
-from enum import EnumDict
+from enum import Enum
 import struct, time
 from threading import Thread
 
@@ -15,18 +15,30 @@ class Servo:
   
         self.in_position = False
 
-class AXServos(EnumDict):
-    RIGHT_VACUUM_LIFT = Servo(id=1,  top=0,   middle=0,   bottom=300),
-    RIGHT_VACUUM      = Servo(id=2,  top=240, middle=150, bottom=60),
-    LEFT_VACUUM_LIFT  = Servo(id=3,  top=300, middle=0,   bottom=0),
-    LEFT_VACUUM       = Servo(id=4,  top=60,  middle=150, bottom=240),
-    RIGHT_GRIP_LIFT   = Servo(id=5,  top=0,   middle=0,   bottom=300),
-    LEFT_GRIP_LIFT    = Servo(id=6,  top=300, middle=0,   bottom=0),
-    CENTER_SWING      = Servo(id=7,  top=240, middle=0,   bottom=150),
-    CENTER_LIFT       = Servo(id=8,  top=0,   middle=0,   bottom=242),
-    BACK_RIGHT_LIFT   = Servo(id=9,  top=240, middle=0,   bottom=150),
-    BACK_LEFT_LIFT    = Servo(id=10, top=0,   middle=0,   bottom=242)
+class ServoNames(Enum):
+    RIGHT_VACUUM_LIFT = 1
+    RIGHT_VACUUM = 2
+    LEFT_VACUUM_LIFT = 3 
+    LEFT_VACUUM = 4    
+    RIGHT_GRIP_LIFT = 5  
+    LEFT_GRIP_LIFT = 6  
+    CENTER_SWING = 7   
+    CENTER_LIFT = 8    
+    BACK_RIGHT_LIFT = 9  
+    BACK_LEFT_LIFT = 10   
 
+AXServos = {
+    ServoNames.RIGHT_VACUUM_LIFT : Servo(id=1,  top=0,   middle=0,   bottom=300),
+    ServoNames.RIGHT_VACUUM      : Servo(id=2,  top=240, middle=150, bottom=60),
+    ServoNames.LEFT_VACUUM_LIFT  : Servo(id=3,  top=300, middle=0,   bottom=0),
+    ServoNames.LEFT_VACUUM       : Servo(id=4,  top=60,  middle=150, bottom=240),
+    ServoNames.RIGHT_GRIP_LIFT   : Servo(id=5,  top=0,   middle=0,   bottom=300),
+    ServoNames.LEFT_GRIP_LIFT    : Servo(id=6,  top=300, middle=0,   bottom=0),
+    ServoNames.CENTER_SWING      : Servo(id=7,  top=240, middle=0,   bottom=150),
+    ServoNames.CENTER_LIFT       : Servo(id=8,  top=0,   middle=0,   bottom=242),
+    ServoNames.BACK_RIGHT_LIFT   : Servo(id=9,  top=240, middle=0,   bottom=150),
+    ServoNames.BACK_LEFT_LIFT    : Servo(id=10, top=0,   middle=0,   bottom=242)
+}
 class ServoHandler:
     def __init__(self):
         self.log = log_handler.get_logger("servo")
@@ -51,26 +63,37 @@ class ServoHandler:
 
     def set_angles(self, ids:list[int], angles:list[int], speeds:list[int]):
         size = len(ids)
-
+        print(size)
+        print(ids)
+        print(angles)
+        print(speeds)
         if size != len(angles) or size != len(speeds):
             print("Wrong number of parameters!")
             raise Exception
+        fmt = ">" + "BHB"*size 
+        print(f"format: {fmt}")
+        packed = []
+        for Id, angle, speed in zip(ids, angles,speeds):
+            packed.append(Id)
+            packed.append(angle)
+            packed.append(speed)
+        servo_msg = struct.pack(fmt, *packed)
+        print(servo_msg)
+        self.send_queue.append(servo_msg)
 
-        servo_msg = struct.pack(size*3 + 'I', ids, angles, speeds)
-        self.send_queue.appends(servo_msg)
-
-        for servo in AXServos:
-            if servo.value.id in ids:
-                servo.value.in_position = False
+        for key, servo in AXServos.items():
+            if servo.id in ids:
+                servo.in_position = False
 
     def receive(self):
         while self.running:
             if len(self.queue) > 0:
                 servo_msg = self.queue.pop()
 
-                [id, success] = struct.unpack('2I', servo_msg.data)
-
-                servo = [servo.value for servo in AXServos if servo.value.id == id][0]
+                [id, success] = struct.unpack('2B', servo_msg.data)
+                
+                print(f"SERVO {id} in position: {success}")
+                servo = [servo for key, servo in AXServos.items() if servo.id == id][0]
 
                 if success:
                     servo.in_position = True

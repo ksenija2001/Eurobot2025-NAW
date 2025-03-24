@@ -1,15 +1,25 @@
 
-from robot_pkg.logger import LogHandler
-from robot_pkg.can_controller import CanNetwork
-from robot_pkg.consts import IDs
-from robot_pkg.odometry import OdometryHandler, Odometry
-from robot_pkg.step import Move
-from robot_pkg.servo import ServoHandler
 from threading import Event, Thread
+# Global access variables
+paused:Event = Event()
 import time
 import struct
 import math
 import readline
+
+from robot_pkg.logger import LogHandler
+log_handler = LogHandler()
+
+from robot_pkg.can_controller import CanNetwork
+can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
+can_handler.init_queues(10)
+
+from robot_pkg.consts import IDs
+from robot_pkg.odometry import OdometryHandler, Odometry
+from robot_pkg.step import Move
+from robot_pkg.servo import ServoHandler
+servo = ServoHandler()
+
 
 complete = [enum_item.name for enum_item in IDs]
 
@@ -23,10 +33,7 @@ def completer(text, state):
 readline.parse_and_bind("tab: complete")
 readline.set_completer(completer)
 
-# Global access variables
-can_handler:CanNetwork
-log_handler:LogHandler
-paused:Event
+
 
 def user_cmd(running:Event):
     while running.is_set():
@@ -66,6 +73,7 @@ def user_cmd(running:Event):
                     y = float(input("New y: "))
                     theta = float(input("New theta: "))
                     data = struct.pack('3f', x, y, theta)
+                    can_handler.msg_send_queues[IDs[cmd].value].append(data)
 
                 elif msg_type == IDs.SET_SERVO_POSITIONS.name:
                     ids = []
@@ -78,19 +86,19 @@ def user_cmd(running:Event):
                         Id = input("ID: ")
                         if Id == "":
                             break
-                        ids.append(Id) 
+                        ids.append((int)(Id)) 
                     
                         position = input("Position[degree]: ")
                         if position == "":
                             break
-                        positions.append(position)
+                        positions.append((int)(position))
                         
                         speed = input("Speed[%]: ")
                         if speed == "":
                             break
-                        speeds.append(speed)
+                        speeds.append((int)(speed))
 
-                    ServoHandler.set_angles(ids, position, speeds)
+                    servo.set_angles(ids, positions, speeds)
                 elif msg_type == IDs.GET_SERVO_POSITIONS:
                     Id = input("ID: ")
                     data = struct.pack('I', Id)
@@ -107,17 +115,17 @@ def user_cmd(running:Event):
 
 
 def main_func():
-    log_handler = LogHandler()
     main_log = log_handler.get_logger("main")
     main_log.info("Started code")
 
     # Open can socket and start sending and receiving threads
-    can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
     can_handler.start_threads()
 
     # Start odometry listening thread and initial odometry
     odom = OdometryHandler(Odometry(0.0, 0.0, 90*math.pi/180))
-    odom.start()
+    # odom.start()
+
+    servo.start()
 
     # Allow user commands
     cmd_debug = Event()
@@ -126,15 +134,15 @@ def main_func():
     cmd_thread.start()
 
     try:
-        pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
+        # pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
         while 1:
-            # Listen for pause flag on can
-            if len(pause_queue) > 0:
-                data = pause_queue.pop()
-                if data[0]:
-                    paused.set()
-                else:
-                    paused.clear()
+        #     # Listen for pause flag on can
+        #     if len(pause_queue) > 0:
+        #         data = pause_queue.pop()
+        #         if data[0]:
+        #             paused.set()
+        #         else:
+        #             paused.clear()
 
             time.sleep(0.01)
     except KeyboardInterrupt:

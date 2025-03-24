@@ -6,7 +6,9 @@ ROOT_PATH = Path(__file__).parent
 LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 CONFIG_PATH = os.path.join(ROOT_PATH, 'config')
 
+
 class IDs(Enum):
+
     RESET_ODOM  = 0x4F0
     ODOM_CONFIG = 0x4F1
 
@@ -26,3 +28,9 @@ class IDs(Enum):
     GET_SERVO_POSITIONS = 0x531
 
     GET_SERVO_IN_POSITION = 0x53F
+
+    GET_IO = 0x69F
+
+    @classmethod
+    def has_key(cls, name):
+        return name in cls.__members__

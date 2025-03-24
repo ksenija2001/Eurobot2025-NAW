@@ -33,9 +33,10 @@ class CanNetwork:
         for msg_type in IDs:
             self.msg_receive_queues[msg_type.value] = deque(maxlen=max_queue_size)
             self.msg_send_queues[msg_type.value] = deque(maxlen=max_queue_size)
+            
 
     def start_threads(self):
-        self.init_queues(self.max_queue_size)
+        # self.init_queues(self.max_queue_size)
 
         self.running = True
         self._recv_thread.start()
@@ -70,7 +71,6 @@ class CanNetwork:
         while self.running:
             for key, queue in self.msg_send_queues.items():   #   priorities are determined by the order they were listed in IDs
                 try:
-                    
                     if len(queue) > 0:
                         data = queue.pop()
                         msg = can.Message(arbitration_id=key, data=data, is_extended_id=False, is_fd=True)

@@ -23,8 +23,8 @@ class OdometryHandler:
 
     def __init__(self, initial_odom:Odometry):
         self.log = log_handler.get_logger("odom")
-        self.queue = can_handler.msg_receive_queues[IDs.GET_ODOM.value],
-        self.send_queue = can_handler.msg_send_queues[IDs.RESET_ODOM.value],
+        self.queue = can_handler.msg_receive_queues[IDs.GET_ODOM.value]
+        self.send_queue = can_handler.msg_send_queues[IDs.RESET_ODOM.value]
 
         self.odom:Odometry = initial_odom
         self.reset_odom(initial_odom)
@@ -66,5 +66,6 @@ class OdometryHandler:
 
     def reset_odom(self, odom:Odometry):
         reset_msg = struct.pack('3f', odom.x, odom.y, odom.theta)
+        
         self.send_queue.append(reset_msg)
 
