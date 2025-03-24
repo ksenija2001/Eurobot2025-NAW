@@ -5,6 +5,11 @@ from collections import deque
 from robot_pkg.main import can_handler, paused
 from robot_pkg.consts import IDs
 
+class Servo:
+    @classmethod
+    def RightVacuumLift(cls, position:int, speed:int):
+        
+
 
 class Move:
     ack_queue = can_handler.msg_receive_queues[IDs.GET_MOVE_DONE.value]

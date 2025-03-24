@@ -15,7 +15,7 @@ class Servo:
   
         self.in_position = False
 
-class Servos(EnumDict):
+class AXServos(EnumDict):
     RIGHT_VACUUM_LIFT = Servo(id=1,  top=0,   middle=0,   bottom=300),
     RIGHT_VACUUM      = Servo(id=2,  top=240, middle=150, bottom=60),
     LEFT_VACUUM_LIFT  = Servo(id=3,  top=300, middle=0,   bottom=0),
@@ -30,8 +30,9 @@ class Servos(EnumDict):
 class ServoHandler:
     def __init__(self):
         self.log = log_handler.get_logger("servo")
-        self.queue = can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value],
-        self.send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value],
+        self.queue = can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value]
+        self.position_queue = can_handler.msg_receive_queues[IDs.GET_SERVO_POSITIONS.value]
+        self.send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value]
 
         self.running = False
         self._servo_thread = Thread(target=self.receive)
@@ -58,6 +59,10 @@ class ServoHandler:
         servo_msg = struct.pack(size*3 + 'I', ids, angles, speeds)
         self.send_queue.appends(servo_msg)
 
+        for servo in AXServos:
+            if servo.value.id in ids:
+                servo.value.in_position = False
+
     def receive(self):
         while self.running:
             if len(self.queue) > 0:
@@ -65,13 +70,23 @@ class ServoHandler:
 
                 [id, success] = struct.unpack('2I', servo_msg.data)
 
-                servo = [servo for servo in Servos.values() if servo.id == id][0]
+                servo = [servo.value for servo in AXServos if servo.value.id == id][0]
 
                 if success:
                     servo.in_position = True
+                else:
+                    # Servo did not reach position
+                    pass
 
                 self.log.debug(f"{id}: {success}")
             
+            if len(self.position_queue) > 0:
+                servo_msg = self.position_queue.pop()
+
+                [id, angle_high, angle_low] = struct.unpack('3I', servo_msg.data)
+
+                self.log.debug(f"{id}: {(int)(angle_high << 8) & angle_low}")
+
             time.sleep(0.01)  # 10ms
 
 

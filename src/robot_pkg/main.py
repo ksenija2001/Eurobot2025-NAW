@@ -66,7 +66,6 @@ def user_cmd(running:Event):
                     y = float(input("New y: "))
                     theta = float(input("New theta: "))
                     data = struct.pack('3f', x, y, theta)
-                    can_handler.msg_send_queues[IDs[cmd].value].append(data)
 
                 elif msg_type == IDs.SET_SERVO_POSITIONS.name:
                     ids = []
@@ -92,6 +91,11 @@ def user_cmd(running:Event):
                         speeds.append(speed)
 
                     ServoHandler.set_angles(ids, position, speeds)
+                elif msg_type == IDs.GET_SERVO_POSITIONS:
+                    Id = input("ID: ")
+                    data = struct.pack('I', Id)
+                    can_handler.msg_send_queues[IDs[cmd].value].append(data)
+
                         
                 else:
                     print("Message ID is not of sending type")
