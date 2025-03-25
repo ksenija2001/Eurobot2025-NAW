@@ -63,22 +63,22 @@ class ServoHandler:
 
     def set_angles(self, ids:list[int], angles:list[int], speeds:list[int]):
         size = len(ids)
-        print(size)
-        print(ids)
-        print(angles)
-        print(speeds)
+        # print(size)
+        # print(ids)
+        # print(angles)
+        # print(speeds)
         if size != len(angles) or size != len(speeds):
             print("Wrong number of parameters!")
             raise Exception
-        fmt = ">" + "BHB"*size 
-        print(f"format: {fmt}")
-        packed = []
+        fmt = ">B" + "BHB"*size 
+        # print(f"format: {fmt}")
+        packed = [size]
         for Id, angle, speed in zip(ids, angles,speeds):
             packed.append(Id)
             packed.append(angle)
             packed.append(speed)
         servo_msg = struct.pack(fmt, *packed)
-        print(servo_msg)
+        # print(len(servo_msg))
         self.send_queue.append(servo_msg)
 
         for key, servo in AXServos.items():
