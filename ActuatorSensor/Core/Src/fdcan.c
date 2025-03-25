@@ -12,7 +12,7 @@ extern UART_HandleTypeDef huart1;
 
 FDCAN_FilterTypeDef sFilterConfig;
 FDCAN_RxHeaderTypeDef RxHeader;
-uint8_t RxData[9];
+uint8_t RxData[64];
 
 FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t TxData[64];
@@ -61,17 +61,19 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 			switch (RxHeader.Identifier)
 			{
 			case 0x530: // Set servo position and speed
-				uint8_t servo_num = RxHeader.DataLength/4;
+				uint8_t servo_num = RxData[0];
 				for (uint8_t i=0; i<servo_num; ++i){
-					ids[i] = RxData[i*4];
-					angles[i] = ((uint16_t)RxData[i*4 + 1] << 8) | RxData[i*4 + 2];
-					speeds[i] = RxData[i*4 + 3];
+					ids[i] = RxData[i*4 +1];
+					angles[i] = ((uint16_t)RxData[i*4 + 1 + 1] << 8) | RxData[i*4 + 2 + 1];
+					speeds[i] = RxData[i*4 + 3 + 1];
 				}
 
 				Sync_Set_Goal_Position(&huart1, ids, angles, speeds, servo_num);
 
 				break;
 			case 0x531: // Get servo position
+				uint8_t id = RxData[0];
+				Get_Present_Position(&huart1, id);
 //				float left_diameter = Bytes2Float(RxData, 0);
 //				float right_diameter = Bytes2Float(RxData, 4);
 //				float track = Bytes2Float(RxData, 8);

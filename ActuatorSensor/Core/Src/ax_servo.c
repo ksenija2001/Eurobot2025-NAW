@@ -16,6 +16,7 @@ uint8_t moving_status;
 volatile uint8_t moving_servos[SERVO_NUM];
 uint8_t moving_counter[SERVO_NUM];
 uint16_t position, angle, speed, speed_perc;
+uint8_t ind = 0;
 
 
 void Init_AX_Servo(){
@@ -27,6 +28,7 @@ void AX_Transmit(UART_HandleTypeDef* huart, uint8_t *tx_buffer, uint8_t tx_lengt
 	HAL_UART_Transmit(huart, tx_buffer, tx_length, 1000);
 
 	if (rx_length > 0){
+//		memset(rx_buffer, 0, sizeof(rx_buffer));
 		HAL_HalfDuplex_EnableReceiver(huart);
 		HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buffer, rx_length);
 	}
@@ -39,6 +41,24 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	if (HAL_UARTEx_GetRxEventType(huart) == HAL_UART_RXEVENT_TC) {
 //		HAL_GPIO_WritePin(LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
 //		rx_set = 1;
+
+//		ind=0;
+//		uint8_t ff_counter = 0;
+//		while (ff_counter <= 2){
+//			if (ff_counter == 2 && rx_buffer[ind] != 0xFF){
+//				break;
+//			}
+//			if (rx_buffer[ind] == 0xFF){
+//				++ff_counter;
+//			}
+//			++ind;
+//		}
+
+//		for (uint8_t i=0; i<256; ++i){
+//			if (rx_buffer[i] == 0xFF){
+//				ind++;
+//			} else break;
+//		}
 
 		id = rx_buffer[2];
 		error = rx_buffer[4];
@@ -74,6 +94,8 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		case PRESENT_POSITION:
 			position =  ((uint16_t)rx_buffer[6] << 8) | rx_buffer[5];
 			angle = 300/1023.0 * position;
+			uint8_t msg[] = {id, (uint8_t)((angle & 0xFF00) >> 8), (angle & 0x00FF)};
+			FDCAN_Send_Data(0x531, FDCAN_DLC_BYTES_3, 3, msg);
 			break;
 		case PRESENT_SPEED:
 			speed =  ((uint16_t)rx_buffer[6] << 8) | rx_buffer[5];
@@ -82,30 +104,34 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		case PRESENT_LOAD:
 			break;
 		case MOVING:
+			// TODO NOT READING MOVING STATUS CORRECTLY
 			moving_status = rx_buffer[5];
 
 			if ( !moving_status ){
 				moving_servos[id] = 0;
 				moving_counter[id] = 0;
 
-				moving_status = 1;
-				FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_1, 1, &moving_status);
+				uint8_t msg[] = {id, 1};
+				FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_2, 2, msg);
 			}
 		}
-	} else
+	} else {
+//		memset(rx_buffer, 0, sizeof(rx_buffer));
 		HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buffer, Size);
+	}
+
 }
 
 // 50ms timer for checking if servos are moving after setting goal position
 void TIM6_Moving_IT(TIM_HandleTypeDef* tim, UART_HandleTypeDef* huart){
 	for( uint8_t i=1; i<=SERVO_NUM; ++i){
 		if (moving_servos[i]) {
-			if (++moving_counter[i] > 20){
-				// Servo has been moving for more than 1s
-				// TODO FDCAN warning that servo can't get into position
-				moving_status = 0;
-				FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_1, 1, &moving_status);
-			}
+//			if (++moving_counter[i] > 30){
+//				// Servo has been moving for more than 1s
+//				// TODO FDCAN warning that servo can't get into position
+//				uint8_t msg[] = {i, 0};
+//				FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_2, 2, msg);
+//			}
 
 			Get_Moving_Status(huart, i);
 //				HAL_Delay(10);
@@ -153,7 +179,11 @@ void Enable_Torque(UART_HandleTypeDef* huart, uint8_t ID, uint8_t on_off){
 	msg[7] = Checksum(msg, 7);
 
 	last_command = TORQUE;
-	AX_Transmit(huart, msg, 8, 6);
+
+	if (ID != 0xFE)
+		AX_Transmit(huart, msg, 8, 6);
+	else
+		AX_Transmit(huart, msg, 8, 0);
 }
 
 void Enable_LED(UART_HandleTypeDef* huart, uint8_t ID, uint8_t on_off){
