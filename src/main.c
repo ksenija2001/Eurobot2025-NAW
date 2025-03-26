@@ -1,5 +1,7 @@
 #include "server.h"
 
+char* msg = "Sima 1";
+
 int main(){
 
     printf("APP: starting...\n");
@@ -9,7 +11,7 @@ int main(){
      while(running){
         server_accept();
 
-        char* msg = "Test, radi li ?";
+        //char* msg = "Test, radi li ?";
         uint32_t len = strlen(msg);
         server_write(msg, len);
 
