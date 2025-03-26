@@ -21,8 +21,9 @@ void server_init(){
     address.sin_port = htons(SERVER_PORT);
 
     printf("SERVER: Binding server socket with port %d... ", SERVER_PORT);
-    if(bind(server_socket_fd, (struct sockaddr*)&address, sizeof(address)) < 0){
-        printf("\nERROR: binding server port");
+    int err = bind(server_socket_fd, (struct sockaddr*)&address, sizeof(address));
+    if(err < 0){
+        printf("\nERROR: binding server port %d", err);
         exit(1);
     }
     printf("OK\n");
