@@ -13,7 +13,25 @@
 
 #include "credentials.h"
 
-void init_socket();
-void socket_connect(char* host_ip, int port);
+#define SOCKET_BUFFER_MAX 128
+#define SOCKET_TAG_MAX 32
+
+typedef struct {
+    int created;
+    int desc;
+
+    char tag[SOCKET_TAG_MAX];
+
+    char rx_buff[SOCKET_BUFFER_MAX];
+    char tx_buff[SOCKET_BUFFER_MAX];
+} Socket;
+
+void init_socket(Socket* sock);
+void socket_close(Socket* sock);
+
+void socket_connect(Socket* sock, char* host_ip, int port);
+
+void socket_recv(Socket* sock);
+void socket_tran(Socket* sock);
 
 #endif //SOCKET_H
