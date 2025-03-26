@@ -2,10 +2,13 @@
 from threading import Event, Thread
 # Global access variables
 paused:Event = Event()
-import time
+import time, os, sys
 import struct
 import math
 import readline
+from importlib import import_module
+
+from robot_pkg.old_strategy import Strategy
 
 from robot_pkg.logger import LogHandler
 log_handler = LogHandler()
@@ -14,15 +17,13 @@ from robot_pkg.can_controller import CanNetwork
 can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
 can_handler.init_queues(10)
 
-from robot_pkg.consts import IDs
+from robot_pkg.consts import IDs, STRATEGIES_PATH
 from robot_pkg.odometry import OdometryHandler, Odometry
 from robot_pkg.step import Move
 from robot_pkg.servo import ServoHandler
 servo = ServoHandler()
 
-
 complete = [enum_item.name for enum_item in IDs]
-
 def completer(text, state):
     options = [cmd for cmd in complete if cmd.startswith(text)]
     if state < len(options):
@@ -32,8 +33,6 @@ def completer(text, state):
 
 readline.parse_and_bind("tab: complete")
 readline.set_completer(completer)
-
-
 
 def user_cmd(running:Event):
     while running.is_set():
@@ -76,29 +75,23 @@ def user_cmd(running:Event):
                     can_handler.msg_send_queues[IDs[cmd].value].append(data)
 
                 elif msg_type == IDs.SET_SERVO_POSITIONS.name:
-                    ids = []
-                    positions = []
-                    speeds = []
-
-                    print("Press ")
-                    
+    
+                    print("Leave a field blank for exit")
                     while True:
                         Id = input("ID: ")
                         if Id == "":
                             break
-                        ids.append((int)(Id)) 
                     
                         position = input("Position[degree]: ")
                         if position == "":
                             break
-                        positions.append((int)(position))
                         
                         speed = input("Speed[%]: ")
                         if speed == "":
                             break
-                        speeds.append((int)(speed))
+                        servo.add_angle(Id, position, speed)
 
-                    servo.set_angles(ids, positions, speeds)
+                    servo.sync_write()
                 elif msg_type == IDs.GET_SERVO_POSITIONS:
                     Id = input("ID: ")
                     data = struct.pack('I', Id)
@@ -113,10 +106,29 @@ def user_cmd(running:Event):
         except KeyboardInterrupt:
             pass
 
+def choose_strategy(color, square, mood):
+    temp_strategy = Strategy(color, square, mood)
+
+    for file in os.listdir(STRATEGIES_PATH):
+        if file.endswith(".py"):
+            strategy = os.path.splitext(file)[0]
+            mod = import_module("strategies." + strategy)
+            strategy = getattr(mod, strategy)
+
+            if strategy == temp_strategy:
+                return strategy
+    
+    print("STRATEGY NOT FOUND!!!!")
+    return None
+
 
 def main_func():
     main_log = log_handler.get_logger("main")
     main_log.info("Started code")
+
+    args = sys.argv
+    strategy =  choose_strategy(args[1], args[2], args[3])
+    main_log.info(f"------ Strategy -------\n{strategy}")
 
     # Open can socket and start sending and receiving threads
     can_handler.start_threads()
@@ -155,7 +167,9 @@ def main_func():
         cmd_thread.join()
 
     odom.stop()
+    servo.stop()
     can_handler.stop_threads()
+
 
 if __name__ == "__main__":
     main_func()

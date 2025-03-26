@@ -74,9 +74,8 @@ class CanNetwork:
                     if len(queue) > 0:
                         data = queue.pop()
                         msg = can.Message(arbitration_id=key, data=data, is_extended_id=False, is_fd=True)
-                        print(f"msg dlc: {msg.dlc}")
                         self.bus.send(msg)
-                        self.logger.debug(f"Message {IDs(key).name} sent")
+                        self.logger.info(f"Message {IDs(key).name} sent")
     
                 except can.CanError as e:
                         self.logger.warning(f"Message {IDs(key).name} NOT sent: {e}")
