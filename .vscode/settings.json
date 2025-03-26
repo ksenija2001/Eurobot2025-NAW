@@ -1,0 +1,11 @@
+{
+    "idf.espIdfPath": "/home/filip/.espressif/esp/v5.3/esp-idf",
+    "idf.toolsPath": "/home/filip/.espressif/tool",
+    "idf.pythonInstallPath": "/usr/bin/python",
+    "idf.customExtraVars": {
+        "IDF_TARGET": "esp32s3"
+    },
+    "idf.openOcdConfigs": [
+        "board/esp32s3-builtin.cfg"
+    ]
+}
