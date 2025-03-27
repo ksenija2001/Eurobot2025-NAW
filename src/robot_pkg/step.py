@@ -3,7 +3,7 @@ from threading import Thread, Event
 from collections import deque
 from enum import Enum
 
-from robot_pkg.main import can_handler, paused
+from robot_pkg.main import can_handler, log_handler
 from robot_pkg.consts import IDs
 
 class ServoType(Enum):
@@ -18,38 +18,13 @@ class ServoType(Enum):
     BACK_RIGHT_LIFT = 9  
     BACK_LEFT_LIFT = 10 
 
-def receive(running:Event):
-    while running.is_set():
-        if len(can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value]) > 0:
-            servo_msg = can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value].pop()
-
-            [id, success] = struct.unpack('2B', servo_msg.data)
-
-            if success:
-                Servo.servo_in_position[id] = True
-            else:
-                # Servo did not reach position
-                pass
-
-            print(f"Servo {id}: {success}")
-            # self.log.debug(f"Servo {id}: {success}")
-        
-        if len(can_handler.msg_receive_queues[IDs.GET_SERVO_POSITIONS.value]) > 0:
-            servo_msg = can_handler.msg_receive_queues[IDs.GET_SERVO_POSITIONS.value].pop()
-
-            [id, angle_high, angle_low] = struct.unpack('3I', servo_msg.data)
-
-            print(f"{id}: {(int)(angle_high << 8) & angle_low}")
-            # self.log.debug(f"{id}: {(int)(angle_high << 8) & angle_low}")
-
-        time.sleep(0.01)  # 10ms
-
-
-
 class Servo:
     servo_list:list[int] = []
-    servo_in_position = {enum_item.value: True for enum_item in ServoType}
+    servo_thread:Thread = None
+    running:Event = Event()
+    servo_in_position:dict = {enum_item.value: True for enum_item in ServoType}
     send_queue:deque = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value]
+    logger = log_handler.get_logger("servo")
 
     def __init__(self):
         self.id = 0
@@ -152,43 +127,97 @@ class Servo:
 
         Servo.servo_list.extend([self.id, self.position, self.speed])
         Servo.servo_in_position[self.id] = False
+    
+    @classmethod
+    def check_position(cls, id:int):
+        queue = can_handler.msg_send_queues[IDs.GET_SERVO_POSITIONS.value]
+        data = struct.pack('B', id)
+        queue.append(data)
 
     @classmethod
     def send_positions(cls):
-        print(f"list: {Servo.servo_list}")
-        size = len(Servo.servo_list)//3
-        Servo.servo_list.insert(0, size)
-        fmt = ">B" + "BHB"*size 
-        servo_msg = struct.pack(fmt, *Servo.servo_list)
-        Servo.send_queue.append(servo_msg)
-        Servo.servo_list.clear()
+        if len(Servo.servo_list) > 0:
+            Servo.logger.debug(f"Sending: {Servo.servo_list}")
+            size = len(Servo.servo_list)//3
+            Servo.servo_list.insert(0, size)
 
-    def _check_position(self):
-        queue = can_handler.msg_send_queues[IDs.GET_SERVO_POSITIONS.value]
-        data = struct.pack('B', self.id)
-        queue.append(data)
+            fmt = ">B" + "BHB"*size 
+            servo_msg = struct.pack(fmt, *Servo.servo_list)
+            Servo.send_queue.append(servo_msg)
+
+            Servo.servo_list.clear()
+
+    @classmethod
+    def _receive(cls, running:Event):
+        in_position_queue = can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value]
+        positions_queue = can_handler.msg_receive_queues[IDs.GET_SERVO_POSITIONS.value]
+        while running.is_set():
+            if len(in_position_queue) > 0:
+                servo_msg = in_position_queue.pop()
+
+                [id, success] = struct.unpack('2B', servo_msg.data)
+
+                if success:
+                    Servo.servo_in_position[id] = True
+                    Servo.logger.info(f"Servo {id} in position")
+                else:
+                    # Servo did not reach position
+                    pass
+            
+            if len(positions_queue) > 0:
+                servo_msg = positions_queue.pop()
+
+                [id, angle_high, angle_low] = struct.unpack('3B', servo_msg.data)
+                angle = int.from_bytes([angle_high, angle_low])
+        
+                Servo.logger.info(f"Servo {id} position: {angle}")
+
+            time.sleep(0.01)  # 10ms
     
+    @classmethod
+    def start_threads(cls):
+        Servo.running.set()
+        if Servo.servo_thread is None:
+            Servo.servo_thread = Thread(target=Servo._receive, args=(Servo.running, ))
+            Servo.servo_thread.start()
+        Servo.logger.info("Servo receiving thread started.")
+
+    @classmethod
+    def stop_threads(cls):
+        Servo.running.clear()
+        if Servo.servo_thread is not None and Servo.servo_thread.is_alive():
+            Servo.servo_thread.join()
+        Servo.servo_thread = None
+        Servo.logger.info("Servo receiving thread stopped.")
 
 class Move:
     ack_queue = can_handler.msg_receive_queues[IDs.GET_MOVE_DONE.value]
-    send_queue:deque
-    data:bytes
+
+    def __init__(self):
+        self.send_queue:deque = None
+        self.data:bytes 
 
     @classmethod
     def RPM(cls, left_rpm:int, right_rpm:int):
         '''
             Sets target speed[RPM] for both motors.
         '''
-        cls.data = struct.pack('2i', left_rpm, right_rpm)
-        cls.send_queue = can_handler.msg_send_queues[IDs.SET_MOTOR_RPM.value]
+        move = cls()
+        move.data = struct.pack('2i', left_rpm, right_rpm)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_MOTOR_RPM.value]
+
+        return move
 
     @classmethod
     def Speed(cls, left_speed:int, right_speed:int):
         '''
             Sets target speed[mm/s] for both motors.
         '''
-        cls.data = struct.pack('2i', left_speed, right_speed)
-        cls.send_queue = can_handler.msg_send_queues[IDs.SET_MOTOR_SPEED.value]
+        move = cls()
+        move.data = struct.pack('2i', left_speed, right_speed)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_MOTOR_SPEED.value]
+
+        return move
 
     @classmethod
     def Distance(cls, p:float, v:float, a:float):
@@ -196,8 +225,11 @@ class Move:
             Starts relative movement of distance[mm] from current robot position 
             with respect to velocity and acceleration limits.
         '''
-        cls.data = struct.pack('5f', p, v, a)
-        cls.send_queue = can_handler.msg_send_queues[IDs.SET_DISTANCE.value]
+        move = cls()
+        move.data = struct.pack('3f', p, v, a)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_DISTANCE.value]
+
+        return move
 
     @classmethod
     def To(cls, x_coor:float, y_coor:float, direction:bool, v:float, a:float, w:float, alpha:float):
@@ -205,8 +237,11 @@ class Move:
             Starts absolute movement to (x,y) coordinate of table with respect to 
             velocity and acceleration limits.
         '''
-        cls.data = struct.pack('ffiffff', x_coor, y_coor, direction, v, a, w, alpha)
-        cls.send_queue = can_handler.msg_send_queues[IDs.SET_XY.value]
+        move = cls()
+        move.data = struct.pack('ffiffff', x_coor, y_coor, direction, v, a, w, alpha)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_XY.value]
+
+        return move
 
     @classmethod
     def Rotate(cls, theta:float, w:float, alpha:float):
@@ -214,8 +249,11 @@ class Move:
             Starts relative rotation of theta[rad] from current orientation of robot 
             with respect to angular velocity and acceleration limits.
         '''
-        cls.data = struct.pack('3f', theta, w, alpha)
-        cls.send_queue = can_handler.msg_send_queues[IDs.SET_ROTATION_FOR.value]
+        move = cls()
+        move.data = struct.pack('3f', theta, w, alpha)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_ROTATION_FOR.value]
+
+        return move
 
     @classmethod
     def RotateTo(cls, theta:float, w:float, alpha:float):
@@ -223,20 +261,18 @@ class Move:
             Starts absolute rotation to theta[rad] with respect to 
             angular velocity and acceleration limits.
         '''
-        cls.data = struct.pack('3f', theta, w, alpha)
-        cls.send_queue = can_handler.msg_send_queues[IDs.SET_ROTATION_TO.value]
+        move = cls()
+        move.data = struct.pack('3f', theta, w, alpha)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_ROTATION_TO.value]
+
+        return move
     
     def _execute(self):
         self.send_queue.append(self.data)
 
 
 if __name__ == "__main__":
-    running = Event()
-    running.set()
-    thread = Thread(target=receive, args=(running,))
-    thread.start()
-
-    can_handler.start_threads()
+    Servo.start_threads()
 
     servo1 = Servo.RightVacuumLift(100, 10)
     servo2 = Servo.RightVacuum(150, 10)
@@ -261,10 +297,7 @@ if __name__ == "__main__":
     time.sleep(5)
 
 
-    running.clear()
-    thread.join()
-
-    can_handler.stop_threads()
+    Servo.stop_threads()
 
 
 

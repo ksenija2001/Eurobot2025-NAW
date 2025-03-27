@@ -18,9 +18,9 @@ class IDs(Enum):
     SET_MOTOR_SPEED = 0x4D0
     SET_MOTOR_RPM   = 0x4D1
     SET_DISTANCE    = 0x4D2
-    SET_XY          = 0x4D3
-    SET_ROTATION_FOR = 0x4D4
-    SET_ROTATION_TO  = 0x4D5
+    SET_XY          = 0x4D5
+    SET_ROTATION_FOR = 0x4D3
+    SET_ROTATION_TO  = 0x4D4
 
     GET_MOTOR_SPEED = 0x4DF
     GET_MOVE_DONE   = 0x4DE

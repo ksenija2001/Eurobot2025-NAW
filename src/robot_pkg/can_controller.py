@@ -60,7 +60,6 @@ class CanNetwork:
                     self.msg_receive_queues[msg_id].append(msg)  # stores received message in appropriate queue
             
                     self.logger.debug(f"Message {IDs(msg_id).name} put into queue.")
-                    # self.logger.debug(f"Queue length: {len(self.msg_receive_queues[msg_id])}")
             except can.CanError as e:
                 self.logger.warning(f"Message NOT received correctly: {e}")
             
