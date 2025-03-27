@@ -75,53 +75,40 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 				break;
 			case 0x4D0: // Set reference for motor speed
-				int16_t left_speed = Bytes2Int32(RxData, 0);
-				int16_t right_speed = Bytes2Int32(RxData, 4);
-
-				Set_Speed(&left_motor, left_speed);
-				Set_Speed(&right_motor, -right_speed);
+				Set_Speed(&left_motor, Bytes2Float(RxData, 0));
+				Set_Speed(&right_motor, Bytes2Float(RxData, 4));
 
 				break;
 			case 0x4D1: // Set reference for motor RPM
-				int16_t left_RPM = (int16_t)Bytes2Int32(RxData, 0);
-				int16_t right_RPM = (int16_t)Bytes2Int32(RxData, 4);
-				//    			uint8_t left_dir = (uint8_t)Bytes2Int32(RxData, 4);
-				//    			uint8_t right_dir = (uint8_t)Bytes2Int32(RxData, 12);
 
-				Set_RPM(&left_motor, left_RPM);
-				//    			Set_Direction(&left_motor, left_dir);
-				Set_RPM(&right_motor, -right_RPM);
-				//    			Set_Direction(&right_motor, right_dir);
+				Set_RPM(&left_motor, Bytes2Float(RxData, 0));
+				Set_RPM(&right_motor, Bytes2Float(RxData, 4));
 
 				break;
 			case 0x4D2:
-				float p = Bytes2Float(RxData, 0);
-				float v = Bytes2Float(RxData, 4);
-				float a = Bytes2Float(RxData, 8);
-
-				synthesis_start_distance(p, v, a);
-//			case 0x123:
-//				float theta = Bytes2Float(RxData, 0);
-//				float w = Bytes2Float(RxData, 4);
-//				float alpha = Bytes2Float(RxData, 8);
-//
-//				synthesis_start_rotateFor(theta, w, alpha);
-//			case 0x123:
-//				float theta = Bytes2Float(RxData, 0);
-//				float w = Bytes2Float(RxData, 4);
-//				float alpha = Bytes2Float(RxData, 8);
-//
-//				synthesis_start_rotateTo(theta, w, alpha);
-//			case 0x123:
-//				float x = Bytes2Float(RxData, 0);
-//				float y = Bytes2Float(RxData, 4);
-//				uint8_t direction = RxData[8];
-//				float v = Bytes2Float(RxData, 9);
-//				float a = Bytes2Float(RxData, 9);
-//				float w = Bytes2Float(RxData, 9);
-//				float alpha = Bytes2Float(RxData, 9);
-//
-//				synthesis_start_XY(x, y, direction, v, a, w, alpha);
+				synthesis_start_distance(
+						Bytes2Float(RxData, 0), //p
+						Bytes2Float(RxData, 4), //v
+						Bytes2Float(RxData, 8));//a
+			case 0x4D3:
+				synthesis_start_rotateFor(
+						Bytes2Float(RxData, 0), //theta
+						Bytes2Float(RxData, 4), //w
+						Bytes2Float(RxData, 8));//alpha
+			case 0x4D4:
+				synthesis_start_rotateTo(
+						Bytes2Float(RxData, 0), //theta
+						Bytes2Float(RxData, 4), //w
+						Bytes2Float(RxData, 8));//alpha
+			case 0x4D5:
+				synthesis_start_XY(
+						Bytes2Float(RxData, 0), //x
+						Bytes2Float(RxData, 4), //y
+						RxData[8],				//direction
+						Bytes2Float(RxData, 9), //v
+						Bytes2Float(RxData, 9), //a
+						Bytes2Float(RxData, 9), //w
+						Bytes2Float(RxData, 9));//alpha
 			default:
 				receive_status = HAL_ERROR;
 			}
