@@ -14,8 +14,8 @@
 #include "struct_types.h"
 
 #define PPR         8192      // 4*2048 inc
-#define FILTER      0.5       // determines how much of the old value will be kept
-
+#define FILTER      0.1       // determines how much of the new value will affect the new state
+#define WHEEL_HALF_DISTANCE	101.08
 //#define WHEEL_DIAMETER 70
 //#define WHEEL_DISTANCE 166.42
 //#define INC_MM         0.10069207 // (WHEEL_DIAMETER*PI)/PPR
@@ -26,13 +26,12 @@ typedef struct {
 	float x;
 	float y;
 	float theta;
-	float wheel_left_speed;
-	float wheel_right_speed;
 
-	float wheel_trans;
-	float wheel_angular;
+	float trans_vel;
+	float ang_vel;
 
-	float gyr_angular;
+	float trans_acc;
+	float ang_acc;
 } sOdom_t;
 
 typedef struct {
@@ -48,13 +47,18 @@ typedef struct {
 	uint16_t curr_inc;
 	uint16_t last_inc;
 
+	float curr_vel;
+	float last_vel;
+
+	float curr_acc;
+	float last_acc;
+
 	sEncoderIO_t IO;
 	sTIM_t TIM;
 } sEncoderWheel_t;
 
 
-sOdom_t* Odometry_New(void);
-sOdom_t* Odometry_Old(void);
+sOdom_t* Odometry(void);
 void Reset_Odometry(sOdom_t* new_odom);
 void Config_Encoder_Wheel(sEncoderWheel_t* wheel, float diameter, float track);
 void Init_Encoder(sEncoderWheel_t* wheel, TIM_HandleTypeDef* htim);

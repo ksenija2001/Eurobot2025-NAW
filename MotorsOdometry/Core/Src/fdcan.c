@@ -79,7 +79,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				int16_t right_speed = Bytes2Int32(RxData, 4);
 
 				Set_Speed(&left_motor, left_speed);
-				Set_Speed(&right_motor, right_speed);
+				Set_Speed(&right_motor, -right_speed);
 
 				break;
 			case 0x4D1: // Set reference for motor RPM
@@ -94,6 +94,34 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				//    			Set_Direction(&right_motor, right_dir);
 
 				break;
+			case 0x4D2:
+				float p = Bytes2Float(RxData, 0);
+				float v = Bytes2Float(RxData, 4);
+				float a = Bytes2Float(RxData, 8);
+
+				synthesis_start_distance(p, v, a);
+//			case 0x123:
+//				float theta = Bytes2Float(RxData, 0);
+//				float w = Bytes2Float(RxData, 4);
+//				float alpha = Bytes2Float(RxData, 8);
+//
+//				synthesis_start_rotateFor(theta, w, alpha);
+//			case 0x123:
+//				float theta = Bytes2Float(RxData, 0);
+//				float w = Bytes2Float(RxData, 4);
+//				float alpha = Bytes2Float(RxData, 8);
+//
+//				synthesis_start_rotateTo(theta, w, alpha);
+//			case 0x123:
+//				float x = Bytes2Float(RxData, 0);
+//				float y = Bytes2Float(RxData, 4);
+//				uint8_t direction = RxData[8];
+//				float v = Bytes2Float(RxData, 9);
+//				float a = Bytes2Float(RxData, 9);
+//				float w = Bytes2Float(RxData, 9);
+//				float alpha = Bytes2Float(RxData, 9);
+//
+//				synthesis_start_XY(x, y, direction, v, a, w, alpha);
 			default:
 				receive_status = HAL_ERROR;
 			}

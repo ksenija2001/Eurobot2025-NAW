@@ -127,9 +127,10 @@ int main(void)
   Init_Motor(&left_motor, &htim2, &hadc1);
   Init_Motor(&right_motor, &htim2, &hadc2);
 
-  //HAL_Delay(1000);
-
   HAL_TIM_Base_Start_IT(&htim6);
+
+//  Enable_Motor(&left_motor, 0);
+//  Enable_Motor(&right_motor, 0);
 
   uint8_t i2c_status = HAL_I2C_IsDeviceReady(&hi2c1, 0x6A << 1, 100, 100);
 
@@ -141,8 +142,23 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   uint8_t some_status = 0;
+  HAL_Delay(2000);
   synthesis_init();
-  synthesis_start_distance(1200, 3000, odom.x, odom.y, odom.theta, 1000);
+  synthesis_start_distance(50, 500, 500);
+  HAL_Delay(5000);
+  synthesis_start_distance(1500, 100, 2000);
+//  HAL_Delay(5000);
+//  synthesis_start_distance(500, 1000, 2000);
+  HAL_Delay(10000);
+  //Set_Speed(&left_motor, 20);
+  //Set_Speed(&right_motor, 20);
+  Enable_Motor(&left_motor, 0);
+  Enable_Motor(&right_motor, 0);
+//  synthesis_start_rotateFor(4*M_PI, M_PI, M_PI);
+//  synthesis_start_rotateFor(1*3.14, 2*3.14, 6*3.14);
+//  Set_RPM(&left_motor, 2000);
+//  Set_RPM(&right_motor, 2000);
+
 
   while (1)
   {
@@ -182,7 +198,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   }
+
+  Stop_Motor(&left_motor);
+  Stop_Motor(&right_motor);
   /* USER CODE END 3 */
 }
 

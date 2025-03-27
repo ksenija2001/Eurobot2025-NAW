@@ -1,7 +1,4 @@
 #include "synthesis.h"
-#include <math.h>
-
-
 
 float coef[6]; 				//[a5, a4, a3, a2, a1, a0]
 arm_matrix_instance_f32 COEF;
@@ -20,13 +17,32 @@ arm_matrix_instance_f32 AI;
 float a[18];
 arm_matrix_instance_f32 A;
 
-float x_0, x_1, y_0, y_1;
 float total_distance;
+float total_theta;
 float total_T;
 float synthesis_start_time = 0;
-float trajectory_start_time = 0;
-uint8_t synthesis_translation_state = 0;
+int8_t synthesis_phase = -1;
+uint8_t synthesis_target_len = 0;
+float start_x, start_y, start_theta;
+float end_x, end_y, end_theta;
+float last_theta;
 
+float _a, _b, _c;
+float distance_error;
+
+float distance_from_start = 0, theta_from_start = 0;
+
+sTarget_t synthesis_target[6];
+
+void calc_traj_coef(){
+	_a = -(end_y - start_y)/(end_x - start_x);
+	_b = 1;
+	_c = (end_y - start_y)/(end_x - start_x) - start_y;
+}
+
+void calc_distance_from_traj(){
+	distance_error = (_a*odom.x + _b*odom.y + _c)/sqrtf(_a*_a + _b*_b);
+}
 
 void synthesis_init(){
 	arm_mat_init_f32(&CURRENT_STATE, 3, 1, current_state);
@@ -135,6 +151,10 @@ void synthesis_calc_next_state(float t){
 	A.pData[2*6 + 5] = 20* poow(t, 3);
 
 	arm_mat_mult_f32(&A, &COEF, &NEXT_STATE);
+//	if(NEXT_STATE.pData[2] >=  2000) NEXT_STATE.pData[2] =  2000;
+//	if(NEXT_STATE.pData[2] <= -2000) NEXT_STATE.pData[2] = -2000;
+//	if(NEXT_STATE.pData[1] >=  1000) NEXT_STATE.pData[1] =  1000;
+//	if(NEXT_STATE.pData[1] <= -1000) NEXT_STATE.pData[1] = -1000;
 }
 
 void synthesis_set_target_state(float p, float v, float a){
@@ -149,41 +169,229 @@ void synthesis_set_current_state(float p, float v, float a){
 	CURRENT_STATE.pData[2] = a;
 }
 
-float synthesis_calc_Vmax(float Pmax, float Amax){
-	return sqrtf((5*Pmax*Amax)/8);
+void synthesis_set_next_state(float p, float v, float a){
+	NEXT_STATE.pData[0] = p;
+	NEXT_STATE.pData[1] = v;
+	NEXT_STATE.pData[2] = a;
 }
-float synthesis_calc_Amax(float Pmax, float Vmax){
-	return (8*Vmax*Vmax)/(5*Pmax);
+
+void synthesis_set_init_target_state(){
+	synthesis_set_target_state(synthesis_target[0].P,synthesis_target[0].V,synthesis_target[0].A);
 }
-float synthesis_calc_T_a(float Pmax, float Amax){
-	return sqrtf((45*Pmax)/(8*Amax));
+
+float synthesis_calc_V(float Pmax, float Amax){
+	return sqrtf((5*fabs(Pmax)*Amax)/8);
 }
-float synthesis_calc_T_v(float Pmax, float Vmax){
-	return (15*Pmax)/(8*Vmax);
+float synthesis_calc_T(float Pmax, float Amax){
+	return sqrtf((45*fabs(Pmax))/(8*Amax));
 }
-float synthesis_calc_T(float P, float V, float A){
-	if(synthesis_calc_Vmax(P, A) > V){
-		return synthesis_calc_T_v(P, V);
+
+float synthesis_calc_P(float T, float Amax){
+	return (8.0*Amax*T*T)/45;
+}
+
+void synthesis_calc_target_points(float P, float Vmax, float Amax, char type){ //decide is it synthesis 2.0 or 1.0
+	if(synthesis_calc_V(P, Amax) > Vmax){
+		//synthesis 2.0
+		float T1, T2, T3;
+		float P1, P2, P3;
+		float V1, V2, V3;
+
+		T1 = (3.0*Vmax)/(2.0*Amax);
+		T3 = T1;
+		P1 = synthesis_calc_P(T1, Amax) * 2;
+		P2 = P - P1;
+		P3 = P;
+		T2 = (P2 - P1)/Vmax;
+		V1 = V2 = Vmax;
+		V3 = 0;
+
+		synthesis_target[synthesis_target_len].T = T1;
+		synthesis_target[synthesis_target_len].P = P1;
+		synthesis_target[synthesis_target_len].V = V1;
+		synthesis_target[synthesis_target_len].A = 0;		 //accel = 0
+		synthesis_target[synthesis_target_len].type = type;
+		synthesis_target[synthesis_target_len].version = 2;
+		synthesis_target_len++;
+		synthesis_target[synthesis_target_len].T = T2;
+		synthesis_target[synthesis_target_len].P = P2;
+		synthesis_target[synthesis_target_len].V = V2;
+		synthesis_target[synthesis_target_len].A = 0;		 //accel = 0
+		synthesis_target[synthesis_target_len].type = type;
+		synthesis_target[synthesis_target_len].version = 2;
+		synthesis_target_len++;
+		synthesis_target[synthesis_target_len].T = T3;
+		synthesis_target[synthesis_target_len].P = P3;
+		synthesis_target[synthesis_target_len].V = V3;
+		synthesis_target[synthesis_target_len].A = 0;		 //accel = 0
+		synthesis_target[synthesis_target_len].type = type;
+		synthesis_target[synthesis_target_len].version = 2;
+		synthesis_target_len++;
+
+		total_T = T1+T2+T3;
+
 	}
 	else{
-		return synthesis_calc_T_a(P, A);
+		total_T = synthesis_calc_T(P, Amax);
+
+		synthesis_target[synthesis_target_len].T = total_T;
+		synthesis_target[synthesis_target_len].P = P;
+		synthesis_target[synthesis_target_len].V = 0;
+		synthesis_target[synthesis_target_len].A = 0;		 //accel = 0
+		synthesis_target[synthesis_target_len].type = type;
+		synthesis_target[synthesis_target_len].version = 1;
+		synthesis_target_len++;
 	}
 }
 
-//void synthesis_start_rotation(float Vmax, float Amax, float start_theta, float theta);
+void synthesis_start_XY(float x, float y, char direction, float Vmax, float Amax, float Wmax, float amax){
+	synthesis_target_len = 0;
+	start_x = odom.x;
+	start_y = odom.y;
+	start_theta = odom.theta;
+	end_x = x;
+	end_y = y;
+	end_theta = atan2f(end_y - start_y, end_x - start_x);
+	total_distance = sqrtf((end_x - start_x) * (end_x - start_x) + (end_y - start_y) * (end_y - start_y));
+	if(direction == 'r'){
+		end_theta += M_PI;
+		if(end_theta > M_PI) end_theta -= 2*M_PI;
+		if(end_theta < M_PI) end_theta += 2*M_PI;
+		total_distance = -total_distance;
+	}
+	total_theta = end_theta - start_theta;
+	if(total_theta >  M_PI) total_theta -= 2*M_PI;
+	if(total_theta < -M_PI) total_theta += 2*M_PI;
 
-void synthesis_start_distance(float Vmax, float Amax, float start_x, float start_y, float start_theta, float distance){
-	x_0 = start_x;
-	y_0 = start_y;
-	x_1 = start_x + distance * cos(start_theta);
-	y_1 = start_y + distance * sin(start_theta);
-	total_distance = sqrtf((y_1-y_0)*(y_1-y_0) + (x_1-x_0)*(x_1-x_0));
-	synthesis_set_target_state(total_distance, 0, 0);
+	synthesis_calc_target_points(total_theta, Wmax, amax, 'r');
+	synthesis_calc_target_points(total_distance, Vmax, Amax, 't');
+
 	synthesis_set_current_state(0, 0, 0);
-	total_T = synthesis_calc_T(total_distance, Vmax, Amax);
-	synthesis_calc_coef(total_T);
 	synthesis_start_time = (float)HAL_GetTick() / 1000; //s
-	trajectory_start_time = synthesis_start_time;
-	synthesis_translation_state = 1;
+	distance_from_start = 0;
+	theta_from_start = 0;
+	synthesis_set_init_target_state();
+	last_theta = odom.theta;
+	synthesis_phase = 0;
+}
+void synthesis_start_rotateFor(float theta, float Wmax, float amax){
+	synthesis_target_len = 0;
+	start_theta = odom.theta;
+	total_theta = theta;
+
+	synthesis_calc_target_points(total_theta, Wmax, amax, 'r');
+
+	synthesis_set_current_state(0, 0, 0);
+	synthesis_start_time = (float)HAL_GetTick() / 1000; //s
+	theta_from_start = 0;
+	synthesis_set_init_target_state();
+	last_theta = odom.theta;
+	synthesis_phase = 0;
+}
+
+void synthesis_start_rotateTo(float theta, float Wmax, float amax){
+	synthesis_target_len = 0;
+	start_theta = odom.theta;
+	total_theta = theta - odom.theta;
+	if(total_theta >  M_PI) total_theta -= 2*M_PI;
+	if(total_theta < -M_PI) total_theta += 2*M_PI;
+	end_theta = theta;
+
+	synthesis_calc_target_points(total_theta, Wmax, amax, 'r');
+
+	synthesis_set_current_state(0, 0, 0);
+	synthesis_start_time = (float)HAL_GetTick() / 1000; //s
+	theta_from_start = 0;
+	synthesis_set_init_target_state();
+	last_theta = odom.theta;
+	synthesis_phase = 0;
+}
+
+
+void synthesis_start_distance(float distance,float Vmax, float Amax){
+	synthesis_target_len = 0;
+	start_x = odom.x;
+	start_y = odom.y;
+	start_theta = odom.theta;
+	total_distance = distance;
+	end_x = start_x + distance*cos(odom.theta);
+	end_y = start_y + distance*sin(odom.theta);
+
+	calc_traj_coef();
+	synthesis_calc_target_points(distance, Vmax, Amax, 't');
+
+	synthesis_set_current_state(0, 0, 0);
+	synthesis_set_next_state(0, 0, 0);
+	synthesis_start_time = (float)HAL_GetTick() / 1000; //s
+	distance_from_start = 0;
+	synthesis_set_init_target_state();
+	last_theta = odom.theta;
+	synthesis_phase = 0;
+}
+
+void synthesis_compute(){
+	if(synthesis_phase >= 0){ //If synthesis is activated
+		float tolerance;
+		if(synthesis_target[synthesis_phase].type == 'r' && synthesis_target[synthesis_phase].V != 0) tolerance = 0.1;
+		if(synthesis_target[synthesis_phase].type == 'r' && synthesis_target[synthesis_phase].V == 0) tolerance = 0.01;
+		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V != 0) tolerance = 1;
+		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V == 0) tolerance = 1;
+
+		if(CURRENT_STATE.pData[0] > TARGET_STATE.pData[0] - tolerance){ // if robot passed target position
+			synthesis_phase++;								//increment phase
+			synthesis_set_current_state(synthesis_target[synthesis_phase-1].P, synthesis_target[synthesis_phase-1].V, synthesis_target[synthesis_phase-1].A);
+			synthesis_set_next_state(synthesis_target[synthesis_phase-1].P, synthesis_target[synthesis_phase-1].V, synthesis_target[synthesis_phase-1].A);
+
+			if(synthesis_phase < synthesis_target_len){ // if there is more target in synthesis
+				synthesis_set_target_state(synthesis_target[synthesis_phase].P, synthesis_target[synthesis_phase].V, synthesis_target[synthesis_phase].A);
+				synthesis_start_time = (float)HAL_GetTick()/1000;
+				if(synthesis_target[synthesis_phase - 1].type == 'r' && synthesis_target[synthesis_phase].type == 't'){ //switched from rotation to translation
+					start_x = odom.x;
+					start_y = odom.y;
+					total_distance = sqrtf((end_x - start_x) * (end_x - start_x) + (end_y - start_y) * (end_y - start_y));
+					synthesis_target[synthesis_target_len - 1].P = total_distance - synthesis_target[synthesis_target_len - 2].P;
+				}
+			}
+			else{ 										//robot is in end postition
+				synthesis_phase = -1;
+			}
+		}
+		else{ //compute synthesis
+			float left_time = synthesis_start_time + synthesis_target[synthesis_phase].T - (float)HAL_GetTick()/1000;
+
+			distance_from_start = sqrtf((odom.x - start_x) * (odom.x - start_x) + (odom.y - start_y) * (odom.y - start_y));
+			float dTheta = odom.theta - last_theta;
+			if(dTheta > M_PI){
+				dTheta -= 2*M_PI;
+			}
+			if(dTheta < -M_PI){
+				dTheta += 2*M_PI;
+			}
+			theta_from_start += dTheta;
+			last_theta = odom.theta;
+
+			synthesis_calc_coef(left_time);
+			synthesis_calc_next_state(SYNTHESIS_TIME/1000.0);
+		}
+		if(synthesis_target[synthesis_phase].type == 't'){
+			calc_distance_from_traj();
+//			if(distance_from_start < total_distance - 100)
+//				synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
+//			else
+			synthesis_set_current_state(distance_from_start, NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
+			Set_Speed(&left_motor, NEXT_STATE.pData[1] - (2*distance_error));
+			Set_Speed(&right_motor, NEXT_STATE.pData[1] + (2*distance_error));
+		}
+		if(synthesis_target[synthesis_phase ].type == 'r'){
+			synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
+			Set_Speed(&left_motor, -NEXT_STATE.pData[1] * WHEEL_HALF_DISTANCE);
+			Set_Speed(&right_motor, NEXT_STATE.pData[1] * WHEEL_HALF_DISTANCE);
+		}
+
+	}
+	else{
+		Set_RPM(&left_motor, 0);
+		Set_RPM(&right_motor, 0);
+	}
 }
 
