@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from typing import Any
 from robot_pkg.data import Color, Square, Mood
-# from robot_pkg.old_step import Step
+from robot_pkg.step import Step
 from robot_pkg.conditions import (
     ConditionType,
     Condition
@@ -18,7 +18,7 @@ class Strategy:
     def __eq__(self, other):
         return self.color == other.color and self.square == other.square and self.mood == other.mood
 
-    def __call__(self, ID=None, m=None, a=None, s:list=[], c:list[Condition]=[], p=0) -> Any:
+    def __call__(self, ID=None, m=None, a:list=[], s:list=[], c:list[Condition]=[], p=0) -> Any:
         # Proverava da li ne postoji cinch u uslovima
         if ConditionType.CINCH not in [cond_type for cond_type, id in c]:
             if m != None:
@@ -27,10 +27,10 @@ class Strategy:
             if len(s) > 0:
                 c.append((ConditionType.SERVO,))
 
-        # step = Step(ID, m, a, s, c, p)
-        # self.steps.append(step)
+        step = Step(ID, m, a, s, c, p)
+        self.steps.append(step)
 
-        # Brise uslove jer bi u suprotnom ostali usledecem stepu
+        # Brise uslove jer bi u suprotnom ostali u sledecem stepu
         c.clear()
     
     def __repr__(self):

@@ -30,6 +30,7 @@ class IDs(Enum):
 
     GET_SERVO_IN_POSITION = 0x53F
 
+    SET_IO = 0x690
     GET_IO = 0x69F
 
     @classmethod

@@ -1,5 +1,5 @@
 import time, datetime
-import os, glob, subprocess, argparse
+import os, glob, subprocess, argparse, sys
 from threading import Event
 
 from robot_pkg.step import Servo, ServoType, Move
@@ -34,88 +34,83 @@ servo_dict = {
 
 def user_cmd(running:Event):
     while running.is_set():
-        try:
-            time.sleep(0.01)
-            cmd = input("Message ID: ")
-        except KeyboardInterrupt:
-            break
+        time.sleep(0.01)
+        cmd = input("Message ID: ")
+            
+        if IDs.has_key(cmd):
+            msg_type = IDs[cmd].name
 
-        try:
-            if IDs.has_key(cmd):
-                msg_type = IDs[cmd].name
+            if msg_type == IDs.SET_DISTANCE.name:
+                p = float(input("Target position: "))
+                v = float(input("Target velocity: "))
+                a = float(input("Target acceleratioon: "))
+                move = Move.Distance(p, v, a)
+                move._execute()
 
-                if msg_type == IDs.SET_DISTANCE.name:
-                    p = float(input("Target position: "))
-                    v = float(input("Target velocity: "))
-                    a = float(input("Target acceleratioon: "))
-                    move = Move.Distance(p, v, a)
-                    move._execute()
+            elif msg_type == IDs.SET_MOTOR_SPEED.name:
+                left = (int)(input("Left motor velocity: "))
+                right = (int)(input("Right motor velocity: "))
+                move = Move.Speed(left, right)
+                move._execute()
 
-                elif msg_type == IDs.SET_MOTOR_SPEED.name:
-                    left = (int)(input("Left motor velocity: "))
-                    right = (int)(input("Right motor velocity: "))
-                    move = Move.Speed(left, right)
-                    move._execute()
-
-                elif msg_type == IDs.SET_MOTOR_RPM.name:
-                    left = (int)(input("Left motor RPM: "))
-                    right = (int)(input("Right motor RPM: "))
-                    move = Move.RPM(left, right)
-                    move._execute()
-                
-                elif msg_type == IDs.SET_ROTATION_TO.name:
-                    theta = float(input("Target angle[rad]: "))
-                    w = float(input("Target angular velocity[rad/s]: "))
-                    alpha = float(input("Target angular acceleration[rad/s^2]: "))
-                    move = Move.RotateTo(theta, w, alpha)
-                    move._execute()
-                
-                elif msg_type == IDs.SET_ROTATION_FOR.name:
-                    theta = float(input("Target angle[rad]: "))
-                    w = float(input("Target angular velocity[rad/s]: "))
-                    alpha = float(input("Target angular acceleration[rad/s^2]: "))
-                    move = Move.Rotate(theta, w, alpha)
-                    move._execute()
-                        
-                # elif msg_type == IDs.RESET_ODOM.name:
-                #     x = float(input("New x: "))
-                #     y = float(input("New y: "))
-                #     theta = float(input("New theta: "))
-                #     data = struct.pack('3f', x, y, theta)
-                #     can_handler.msg_send_queues[IDs[cmd].value].append(data)
-
-                elif msg_type == IDs.SET_SERVO_POSITIONS.name:
-    
-                    print("Leave a field blank for exit")
-                    while True:
-                        id = input("ID: ")
-                        if id == "":
-                            break
+            elif msg_type == IDs.SET_MOTOR_RPM.name:
+                left = (int)(input("Left motor RPM: "))
+                right = (int)(input("Right motor RPM: "))
+                move = Move.RPM(left, right)
+                move._execute()
+            
+            elif msg_type == IDs.SET_ROTATION_TO.name:
+                theta = float(input("Target angle[rad]: "))
+                w = float(input("Target angular velocity[rad/s]: "))
+                alpha = float(input("Target angular acceleration[rad/s^2]: "))
+                move = Move.RotateTo(theta, w, alpha)
+                move._execute()
+            
+            elif msg_type == IDs.SET_ROTATION_FOR.name:
+                theta = float(input("Target angle[rad]: "))
+                w = float(input("Target angular velocity[rad/s]: "))
+                alpha = float(input("Target angular acceleration[rad/s^2]: "))
+                move = Move.Rotate(theta, w, alpha)
+                move._execute()
                     
-                        position = input("Position[degree]: ")
-                        if position == "":
-                            break
-                        
-                        speed = input("Speed[%]: ")
-                        if speed == "":
-                            break
+            # elif msg_type == IDs.RESET_ODOM.name:
+            #     x = float(input("New x: "))
+            #     y = float(input("New y: "))
+            #     theta = float(input("New theta: "))
+            #     data = struct.pack('3f', x, y, theta)
+            #     can_handler.msg_send_queues[IDs[cmd].value].append(data)
 
-                        servo = servo_dict[(int)(id)]((int)(position), (int)(speed))
-                        servo._execute()
-                    
-                    Servo.send_positions()
+            elif msg_type == IDs.SET_SERVO_POSITIONS.name:
 
-                elif msg_type == IDs.GET_SERVO_POSITIONS.name:
+                print("Leave a field blank for exit")
+                while True:
                     id = input("ID: ")
-                    Servo.check_position((int)(id))
+                    if id == "":
+                        break
+                
+                    position = input("Position[degree]: ")
+                    if position == "":
+                        break
+                    
+                    speed = input("Speed[%]: ")
+                    if speed == "":
+                        break
 
-                else:
-                    print("Message ID is not of sending type")
-                    continue                    
+                    servo = servo_dict[(int)(id)]((int)(position), (int)(speed))
+                    servo._execute()
+                
+                Servo.send_positions()
+
+            elif msg_type == IDs.GET_SERVO_POSITIONS.name:
+                id = input("ID: ")
+                Servo.check_position((int)(id))
+
             else:
-                print("Message ID doesn't exists")
-        except KeyboardInterrupt:
-            pass
+                print("Message ID is not of sending type")
+                continue                    
+        else:
+            print("Message ID doesn't exists")
+
 
 def echo_log():
     # parser = argparse.ArgumentParser()
@@ -144,19 +139,19 @@ def echo_log():
     except KeyboardInterrupt:
         pass
 
-# from robot_pkg.old_strategy import Strategy
-# from importlib import import_module
-# def choose_strategy(color, square, mood):
-#     temp_strategy = Strategy(color, square, mood)
+from robot_pkg.strategy import Strategy
+from importlib import import_module
+def choose_strategy(color, square, mood):
+    temp_strategy = Strategy(color, square, mood)
 
-#     for file in os.listdir(STRATEGIES_PATH):
-#         if file.endswith(".py"):
-#             strategy = os.path.splitext(file)[0]
-#             mod = import_module("strategies." + strategy)
-#             strategy = getattr(mod, strategy)
+    for file in os.listdir(STRATEGIES_PATH):
+        if file.endswith(".py"):
+            strategy = os.path.splitext(file)[0]
+            mod = import_module("robot_pkg.strategies." + strategy)
+            strategy = getattr(mod, strategy)
 
-#             if strategy == temp_strategy:
-#                 return strategy
+            if strategy == temp_strategy:
+                return strategy
     
-#     print("STRATEGY NOT FOUND!!!!")
-#     return None
+    print("STRATEGY NOT FOUND!!!!")
+    return None

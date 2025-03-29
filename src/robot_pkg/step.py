@@ -5,6 +5,7 @@ from enum import Enum
 
 from robot_pkg.main import can_handler, log_handler
 from robot_pkg.consts import IDs
+from robot_pkg.conditions import Condition
 
 class ServoType(Enum):
     RIGHT_VACUUM_LIFT = 1
@@ -18,6 +19,19 @@ class ServoType(Enum):
     BACK_RIGHT_LIFT = 9  
     BACK_LEFT_LIFT = 10 
 
+class MoveType(Enum):
+    RPM = 1
+    SPEED = 2
+    DISTANCE = 3
+    TO_XY = 4
+    ROTATE_TO = 5
+    ROTATE_FOR = 6
+    SPLINE = 7
+
+class ActuatorType(Enum):
+    PUMP = 1
+    VALVE = 2
+
 class Servo:
     servo_list:list[int] = []
     servo_thread:Thread = None
@@ -30,6 +44,7 @@ class Servo:
         self.id = 0
         self.position = 0
         self.speed = 0
+        self._type = None
 
     @classmethod
     def RightVacuumLift(cls, position:int, speed:int):
@@ -37,6 +52,7 @@ class Servo:
         servo.id = ServoType.RIGHT_VACUUM_LIFT.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.RIGHT_VACUUM_LIFT.name
 
         return servo
 
@@ -46,6 +62,7 @@ class Servo:
         servo.id = ServoType.RIGHT_VACUUM.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.RIGHT_VACUUM.name
 
         return servo
 
@@ -55,6 +72,7 @@ class Servo:
         servo.id = ServoType.LEFT_VACUUM_LIFT.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.LEFT_VACUUM_LIFT.name
 
         return servo
 
@@ -64,6 +82,7 @@ class Servo:
         servo.id = ServoType.LEFT_VACUUM.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.LEFT_VACUUM.name
 
         return servo
 
@@ -73,6 +92,7 @@ class Servo:
         servo.id = ServoType.RIGHT_GRIP_LIFT.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.RIGHT_GRIP_LIFT.name
 
         return servo
 
@@ -81,7 +101,8 @@ class Servo:
         servo = cls()
         servo.id = ServoType.LEFT_GRIP_LIFT.value
         servo.position = position
-        servo.speed = speed
+        servo.speed = speed        
+        servo._type = ServoType.LEFT_GRIP_LIFT.name
 
         return servo
 
@@ -91,6 +112,7 @@ class Servo:
         servo.id = ServoType.CENTER_SWING.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.CENTER_SWING.name
 
         return servo
 
@@ -100,6 +122,7 @@ class Servo:
         servo.id = ServoType.CENTER_LIFT.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.CENTER_LIFT.name
 
         return servo
 
@@ -109,6 +132,7 @@ class Servo:
         servo.id = ServoType.BACK_RIGHT_LIFT.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.BACK_RIGHT_LIFT.name
 
         return servo
 
@@ -118,6 +142,7 @@ class Servo:
         servo.id = ServoType.BACK_LEFT_LIFT.value
         servo.position = position
         servo.speed = speed
+        servo._type = ServoType.BACK_LEFT_LIFT.name
 
         return servo
 
@@ -127,6 +152,10 @@ class Servo:
 
         Servo.servo_list.extend([self.id, self.position, self.speed])
         Servo.servo_in_position[self.id] = False
+
+    @classmethod
+    def check_in_positions(cls):
+        return all([in_position for servo, in_position in Servo.servo_in_position.items()])
     
     @classmethod
     def check_position(cls, id:int):
@@ -137,7 +166,7 @@ class Servo:
     @classmethod
     def send_positions(cls):
         if len(Servo.servo_list) > 0:
-            Servo.logger.debug(f"Sending: {Servo.servo_list}")
+            # Servo.logger.debug(f"Sending: {Servo.servo_list}")
             size = len(Servo.servo_list)//3
             Servo.servo_list.insert(0, size)
 
@@ -270,34 +299,72 @@ class Move:
     def _execute(self):
         self.send_queue.append(self.data)
 
+class Actuator:
+    send_queue:deque = can_handler.msg_send_queues[IDs.SET_IO.value]
+    logger = log_handler.get_logger("servo")
+
+    def __init__(self):
+        self.pin = 0
+        self.on = False
+        self._type = None
+    
+    @classmethod
+    def Pump(cls, state:bool):
+        pump = cls()
+        pump.pin = 4
+        pump.state = state
+        pump._type = ActuatorType.PUMP.name
+
+        return pump
+
+    @classmethod
+    def Valve(cls, state:bool):
+        valve = cls()
+        valve.pin = 3
+        valve.state = state
+        valve._type = ActuatorType.VALVE.name
+
+        return valve
+    
+    def _execute(self):
+        data = struct.pack('2B', self.pin, self.state)
+        Actuator.send_queue.append(data)
+
+class Step:
+    def __init__(self, ID, movement:Move, actuation:list[Actuator], servos:list[Servo], conditions:list[tuple], points):
+        self.ID = ID
+        self.movement = movement
+        self.actuation = actuation
+        self.servos = servos
+        self.conditions = [Condition(cond) for cond in conditions]
+        self.points = points
+
+    def step(self):
+        if self.movement is not None:
+            print(f"Executing movement") #{self.movement.type}")
+            self.movement._execute()
+
+        for actuator in self.actuation:
+            print(f"Executing actuator {actuator._type}")
+            actuator._execute()
+
+        for servo in self.servos:
+            print(f"Executing servo {servo._type}")
+            servo._execute()
+
+        Servo.send_positions()
+
 
 if __name__ == "__main__":
-    Servo.start_threads()
 
-    servo1 = Servo.RightVacuumLift(100, 10)
-    servo2 = Servo.RightVacuum(150, 10)
+    can_handler.start_threads()
 
-    servo1._execute()
-    servo2._execute()
+    valve = Actuator.Valve(0)
+    valve._execute()
 
-    Servo.send_positions()
+    time.sleep(1)
 
-    time.sleep(5)
-
-    servo1 = Servo.RightVacuumLift(150, 10)
-    servo2 = Servo.RightVacuum(100, 10)
-
-    servo1._execute()
-    servo2._execute()
-
-    Servo.send_positions()
-
-    # servo1._check_position()
-    
-    time.sleep(5)
-
-
-    Servo.stop_threads()
+    can_handler.stop_threads()
 
 
 

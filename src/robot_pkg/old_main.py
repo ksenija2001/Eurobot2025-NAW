@@ -4,7 +4,7 @@ from importlib import import_module
 from robot_pkg.data import Variables
 from robot_pkg.consts import STRATEGIES_PATH
 from robot_pkg.execute import Execute
-from robot_pkg.old_strategy import Strategy
+from strategy import Strategy
 
 
 class Main:

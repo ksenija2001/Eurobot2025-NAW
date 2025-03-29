@@ -1,18 +1,11 @@
 from threading import Thread
 import time
-from strategy import Strategy 
-from nucleo import (
-    Nucleo,
-    MoveType
-)
-from sensors import Sensors
-from actuators import Actuators
-from servo import ServoMoving
-from display import Display
-from data import Variables
-from lidar import Lidar
+from robot_pkg.strategy import Strategy 
+from robot_pkg.step import Servo
+from robot_pkg.data import Variables
+# from lidar import Lidar
 from multiprocessing import Event
-from conditions import ConditionType 
+from robot_pkg.conditions import ConditionType 
 
 class Execute:
 
@@ -20,18 +13,18 @@ class Execute:
         self.steps = strategy.steps
         self.thread = Thread(target=self.loop, args=())
 
-        self.nucleo = Nucleo(debug=False)
-        self.nucleo.start()
-        self.actuators = Actuators()
-        self.sensors = Sensors()
-        self.sensors.start()
-        self.servo_moving = ServoMoving()
-        self.servo_moving.start()
-        self.display = Display()
-        self.front_detection = Event()
-        self.back_detection = Event()
-        self.lidar = Lidar(self.nucleo, self.front_detection, self.back_detection)
-        self.lidar.start()
+        # self.nucleo = Nucleo(debug=False)
+        # self.nucleo.start()
+        # self.actuators = Actuators()
+        # self.sensors = Sensors()
+        # self.sensors.start()
+        # self.servo_moving = ServoMoving()
+        # self.servo_moving.start()
+        # self.display = Display()
+        # self.front_detection = Event()
+        # self.back_detection = Event()
+        # self.lidar = Lidar(self.nucleo, self.front_detection, self.back_detection)
+        # self.lidar.start()
 
         self.is_active = False
         
@@ -54,32 +47,33 @@ class Execute:
             print(step.conditions)
 
             start_time = time.time()
-            step.step(self.nucleo, self.actuators, self.servo_moving)
+            step.step()
 
-            time.sleep(0.7)
+            # time.sleep(0.7)
             # Waiting for end of step
             while self.is_active:
-                cinch = self.sensors.get_cinch()
-                type_of_movement = self.nucleo.get_status()[4]
-                servo_in_pos = self.servo_moving.compare_moving()
+                # cinch = self.sensors.get_cinch()
+                # type_of_movement = self.nucleo.get_status()[4]
+                servo_in_pos = Servo.check_in_positions()
+                # print(f"Servo: {servo_in_pos}")
 
-                if (self.front_detection.is_set() or self.back_detection.is_set()) and \
-                    step.movement is not None and step.movement.type == MoveType.TO_XY and \
-                    not cinch:
+                # if (self.front_detection.is_set() or self.back_detection.is_set()) and \
+                #     step.movement is not None and step.movement.type == MoveType.TO_XY and \
+                #     not cinch:
 
-                    print("DETECTION")
-                    self.nucleo.set_motor_speed(0, 0, 2000)
-                    time.sleep(1)
-                    if self.front_detection.is_set():
-                        dist = -200
-                    else: # back detection
-                        dist = 200
-                    self.nucleo.move_distance(dist)
-                    time.sleep(2)
-                    self.steps.insert(step, 0)
-                    break
+                #     print("DETECTION")
+                #     self.nucleo.set_motor_speed(0, 0, 2000)
+                #     time.sleep(1)
+                #     if self.front_detection.is_set():
+                #         dist = -200
+                #     else: # back detection
+                #         dist = 200
+                #     self.nucleo.move_distance(dist)
+                #     time.sleep(2)
+                #     self.steps.insert(step, 0)
+                #     break
 
-                args = [start_time, time.time(), type_of_movement, cinch, servo_in_pos]
+                args = [start_time, time.time(), 0, 0, servo_in_pos] #type_of_movement, cinch, 
 
                 checked = {cond.type : cond.check(args) for cond in step.conditions}
               
@@ -105,24 +99,30 @@ class Execute:
                 elif ConditionType.SERVO in checked and checked[ConditionType.SERVO] != False:
                     print(f"Condition met TYPE: {ConditionType.SERVO}")
                     next_step_id = checked[ConditionType.SERVO]
+                elif len(step.conditions) == 0:
+                    pass
                 else:
                     continue
                 
                 Variables.points += step.points
                 #self.display.setNumber(Variables.points)
-                self.nucleo.set_motor_speed(0, 0, 2000)
+                # self.nucleo.set_motor_speed(0, 0, 2000)
                 time.sleep(0.1)
                 print("-------------------------------")
+
+                if len(self.steps) == 0:
+                    self.is_active = False
+                    
                 break
             
     def stop(self):
-        self.nucleo.set_motor_speed(0,0,5000)
-        time.sleep(0.1)
-        self.nucleo.stop()
-        self.actuators.stop()
-        self.lidar.stop()
-        self.sensors.stop()
-        self.servo_moving.stop()
+        # self.nucleo.set_motor_speed(0,0,5000)
+        # time.sleep(0.1)
+        # self.nucleo.stop()
+        # self.actuators.stop()
+        # self.lidar.stop()
+        # self.sensors.stop()
+        # self.servo_moving.stop()
         
         self.is_active = False
         self.thread.join()
