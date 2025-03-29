@@ -35,15 +35,17 @@ void TIM6_IT(void){
 //		Float2Bytes(tx_buffer, 28, odom.gyr_angular);
 
 
-		//FDCAN_Send_Data(0x4FF, FDCAN_DLC_BYTES_32, 32, tx_buffer);
+		if(counter%100 == 0){
+			FDCAN_Send_Data(0x4FF, FDCAN_DLC_BYTES_32, 32, tx_buffer);
+		}
 	}
 
-	if(counter % RPM_TIME == 0){
-		Int162Bytes(tx_buffer, 0, left_motor.currRPM);
-		Int162Bytes(tx_buffer, 2, right_motor.currRPM);
-
-		//FDCAN_Send_Data(0x4DF, FDCAN_DLC_BYTES_4, 4, tx_buffer);
-	}
+//	if(counter % RPM_TIME == 0){
+//		Int162Bytes(tx_buffer, 0, left_motor.currRPM);
+//		Int162Bytes(tx_buffer, 2, right_motor.currRPM);
+//
+//		FDCAN_Send_Data(0x4DF, FDCAN_DLC_BYTES_4, 4, tx_buffer);
+//	}
 
 	if(counter % SYNTHESIS_TIME == 0){
 		synthesis_compute();

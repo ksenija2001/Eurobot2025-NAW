@@ -25,6 +25,7 @@ typedef struct {
 } sTarget_t;
 
 extern float start_x, start_y, start_theta, end_x, end_y, end_theta;
+extern int8_t synthesis_phase;
 
 void synthesis_calc_coef(float T);
 void synthesis_calc_next_state(float t);

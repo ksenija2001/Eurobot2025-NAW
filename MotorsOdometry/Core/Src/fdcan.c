@@ -11,7 +11,7 @@ extern FDCAN_HandleTypeDef hfdcan1;
 
 FDCAN_FilterTypeDef sFilterConfig;
 FDCAN_RxHeaderTypeDef RxHeader;
-uint8_t RxData[9];
+uint8_t RxData[64];
 
 FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t TxData[64];
@@ -90,16 +90,19 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 						Bytes2Float(RxData, 0), //p
 						Bytes2Float(RxData, 4), //v
 						Bytes2Float(RxData, 8));//a
+				break;
 			case 0x4D3:
 				synthesis_start_rotateFor(
 						Bytes2Float(RxData, 0), //theta
 						Bytes2Float(RxData, 4), //w
 						Bytes2Float(RxData, 8));//alpha
+				break;
 			case 0x4D4:
 				synthesis_start_rotateTo(
 						Bytes2Float(RxData, 0), //theta
 						Bytes2Float(RxData, 4), //w
 						Bytes2Float(RxData, 8));//alpha
+				break;
 			case 0x4D5:
 				synthesis_start_XY(
 						Bytes2Float(RxData, 0), //x
@@ -109,6 +112,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 						Bytes2Float(RxData, 9), //a
 						Bytes2Float(RxData, 9), //w
 						Bytes2Float(RxData, 9));//alpha
+				break;
 			default:
 				receive_status = HAL_ERROR;
 			}

@@ -29,6 +29,7 @@ float last_theta;
 
 float _a, _b, _c;
 float distance_error;
+float theta_error;
 
 float distance_from_start = 0, theta_from_start = 0;
 
@@ -112,19 +113,6 @@ void synthesis_calc_coef(float T){
 	STATE.pData[4] = TARGET_STATE.pData[1];
 	STATE.pData[5] = TARGET_STATE.pData[2];
 
-//	A_3.pData[0*3 + 0] = poow(T, 5);
-//	A_3.pData[0*3 + 1] = poow(T, 4);
-//	A_3.pData[0*3 + 2] = poow(T, 3);
-//
-//	A_3.pData[1*3 + 0] = 5*poow(T, 4);
-//	A_3.pData[1*3 + 1] = 4*poow(T, 3);
-//	A_3.pData[1*3 + 2] = 3*poow(T, 2);
-//
-//	A_3.pData[2*3 + 0] = 20*poow(T, 3);
-//	A_3.pData[2*3 + 1] = 12*poow(T, 2);
-//	A_3.pData[2*3 + 2] = 6* poow(T, 1);
-//
-//	arm_mat_inverse_f32(&A_3, &AI_3);
 	arm_mat_mult_f32(&AI, &STATE, &COEF);
 }
 
@@ -151,10 +139,6 @@ void synthesis_calc_next_state(float t){
 	A.pData[2*6 + 5] = 20* poow(t, 3);
 
 	arm_mat_mult_f32(&A, &COEF, &NEXT_STATE);
-//	if(NEXT_STATE.pData[2] >=  2000) NEXT_STATE.pData[2] =  2000;
-//	if(NEXT_STATE.pData[2] <= -2000) NEXT_STATE.pData[2] = -2000;
-//	if(NEXT_STATE.pData[1] >=  1000) NEXT_STATE.pData[1] =  1000;
-//	if(NEXT_STATE.pData[1] <= -1000) NEXT_STATE.pData[1] = -1000;
 }
 
 void synthesis_set_target_state(float p, float v, float a){
@@ -197,12 +181,17 @@ void synthesis_calc_target_points(float P, float Vmax, float Amax, char type){ /
 		float P1, P2, P3;
 		float V1, V2, V3;
 
+
 		T1 = (3.0*Vmax)/(2.0*Amax);
 		T3 = T1;
 		P1 = synthesis_calc_P(T1, Amax) * 2;
+		if (P<0)
+			P1 *= -1;
 		P2 = P - P1;
 		P3 = P;
-		T2 = (P2 - P1)/Vmax;
+		T2 = fabs(P2 - P1)/Vmax;
+		if (P<0)
+			Vmax *= -1;
 		V1 = V2 = Vmax;
 		V3 = 0;
 
@@ -282,6 +271,7 @@ void synthesis_start_rotateFor(float theta, float Wmax, float amax){
 	synthesis_calc_target_points(total_theta, Wmax, amax, 'r');
 
 	synthesis_set_current_state(0, 0, 0);
+	synthesis_set_next_state(0, 0, 0);
 	synthesis_start_time = (float)HAL_GetTick() / 1000; //s
 	theta_from_start = 0;
 	synthesis_set_init_target_state();
@@ -300,6 +290,7 @@ void synthesis_start_rotateTo(float theta, float Wmax, float amax){
 	synthesis_calc_target_points(total_theta, Wmax, amax, 'r');
 
 	synthesis_set_current_state(0, 0, 0);
+	synthesis_set_next_state(0, 0, 0);
 	synthesis_start_time = (float)HAL_GetTick() / 1000; //s
 	theta_from_start = 0;
 	synthesis_set_init_target_state();
@@ -332,12 +323,12 @@ void synthesis_start_distance(float distance,float Vmax, float Amax){
 void synthesis_compute(){
 	if(synthesis_phase >= 0){ //If synthesis is activated
 		float tolerance;
-		if(synthesis_target[synthesis_phase].type == 'r' && synthesis_target[synthesis_phase].V != 0) tolerance = 0.1;
+		if(synthesis_target[synthesis_phase].type == 'r' && synthesis_target[synthesis_phase].V != 0) tolerance = 0.02;
 		if(synthesis_target[synthesis_phase].type == 'r' && synthesis_target[synthesis_phase].V == 0) tolerance = 0.01;
-		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V != 0) tolerance = 1;
-		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V == 0) tolerance = 1;
+		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V != 0) tolerance = 0.02;
+		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V == 0) tolerance = 0.01;
 
-		if(CURRENT_STATE.pData[0] > TARGET_STATE.pData[0] - tolerance){ // if robot passed target position
+		if(fabs(CURRENT_STATE.pData[0]) > fabs(TARGET_STATE.pData[0]) - tolerance){ // if robot passed target position
 			synthesis_phase++;								//increment phase
 			synthesis_set_current_state(synthesis_target[synthesis_phase-1].P, synthesis_target[synthesis_phase-1].V, synthesis_target[synthesis_phase-1].A);
 			synthesis_set_next_state(synthesis_target[synthesis_phase-1].P, synthesis_target[synthesis_phase-1].V, synthesis_target[synthesis_phase-1].A);
@@ -346,10 +337,12 @@ void synthesis_compute(){
 				synthesis_set_target_state(synthesis_target[synthesis_phase].P, synthesis_target[synthesis_phase].V, synthesis_target[synthesis_phase].A);
 				synthesis_start_time = (float)HAL_GetTick()/1000;
 				if(synthesis_target[synthesis_phase - 1].type == 'r' && synthesis_target[synthesis_phase].type == 't'){ //switched from rotation to translation
-					start_x = odom.x;
-					start_y = odom.y;
-					total_distance = sqrtf((end_x - start_x) * (end_x - start_x) + (end_y - start_y) * (end_y - start_y));
-					synthesis_target[synthesis_target_len - 1].P = total_distance - synthesis_target[synthesis_target_len - 2].P;
+					synthesis_set_next_state(0,0,0);
+					synthesis_set_current_state(0,0,0);
+//					start_x = odom.x;
+//					start_y = odom.y;
+//					total_distance = sqrtf((end_x - start_x) * (end_x - start_x) + (end_y - start_y) * (end_y - start_y));
+//					synthesis_target[synthesis_target_len - 1].P = total_distance - synthesis_target[synthesis_target_len - 2].P;
 				}
 			}
 			else{ 										//robot is in end postition
@@ -375,12 +368,17 @@ void synthesis_compute(){
 		}
 		if(synthesis_target[synthesis_phase].type == 't'){
 			calc_distance_from_traj();
-//			if(distance_from_start < total_distance - 100)
-//				synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
-//			else
-			synthesis_set_current_state(distance_from_start, NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
-			Set_Speed(&left_motor, NEXT_STATE.pData[1] - (2*distance_error));
-			Set_Speed(&right_motor, NEXT_STATE.pData[1] + (2*distance_error));
+			theta_error = (odom.theta - start_theta) * 50 ;
+			distance_error *= 2;
+			if (synthesis_target[synthesis_phase].P <= 0){
+				theta_error *= -1;
+				distance_error *= -1;
+				distance_from_start *= -1;
+			}
+			//TODO: Add position and speed in calcualtion
+			synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
+			Set_Speed(&left_motor, NEXT_STATE.pData[1] - distance_error + theta_error);
+			Set_Speed(&right_motor, NEXT_STATE.pData[1] + distance_error - theta_error);
 		}
 		if(synthesis_target[synthesis_phase ].type == 'r'){
 			synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
