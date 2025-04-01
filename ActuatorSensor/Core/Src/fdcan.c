@@ -78,7 +78,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 //				float right_diameter = Bytes2Float(RxData, 4);
 //				float track = Bytes2Float(RxData, 8);
 				break;
-			case 0x532:
+			case 0x532: // Set position for RC servos
 				uint8_t servo_states = RxData[0];
 
 				Set_Angle(0, (servo_states & 0x01)*180);

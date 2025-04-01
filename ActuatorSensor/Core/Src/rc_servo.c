@@ -19,7 +19,9 @@ void Init_RC_Servo(uint8_t index, TIM_HandleTypeDef* htim, uint16_t tim_channel)
 
 	HAL_TIM_PWM_Start(htim, tim_channel);
 	Set_Angle(index, 90);
+//	Set_Target_Angle(index, 90);
 	rc_servos[index].curr_angle = 90;
+	rc_servos[index].target_angle = 90;
 }
 
 void Set_Angle(uint8_t index, uint8_t angle){
@@ -29,6 +31,7 @@ void Set_Angle(uint8_t index, uint8_t angle){
 
 void Set_Target_Angle(uint8_t index, uint8_t angle){
 	rc_servos[index].target_angle = angle;
+	rc_servos[index].state = 0;
 }
 
 void Set_ADC_Channel(uint8_t index){
@@ -40,20 +43,48 @@ void Set_ADC_Channel(uint8_t index){
 // 1/(144MHz/4) * (24.5 + 12) = 1.01us conversion rate
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	float I = adc_output * mA_LSB;
-	rc_servos[adc_channel].curr_I = 0.99 * rc_servos[adc_channel].curr_I + 0.01 * I;
+	rc_servos[adc_channel].curr_I = 0.999 * rc_servos[adc_channel].curr_I + 0.001 * I;
+//	rc_servos[adc_channel].curr_I *= (rc_servos[adc_channel].last_target_angle <= rc_servos[adc_channel].target_angle) ? 1 : -1;
 
-	if(rc_servos[adc_channel].curr_I < I_MAX && rc_servos[adc_channel].target_angle != rc_servos[adc_channel].curr_angle){
-		rc_servos[adc_channel].curr_angle += (rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle) ? ANGLE_STEP : -ANGLE_STEP;
-		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
-	} else if (rc_servos[adc_channel].curr_I > I_MAX){
+	switch (rc_servos[adc_channel].state){
+	case 0: // target changed
+		if (rc_servos[adc_channel].curr_I < I_MAX && (uint8_t)rc_servos[adc_channel].target_angle != (uint8_t)rc_servos[adc_channel].curr_angle){
+			rc_servos[adc_channel].curr_angle += (rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle) ? ANGLE_STEP : -ANGLE_STEP;
+			Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
+		} else if (rc_servos[adc_channel].curr_I >= I_MAX){
+			rc_servos[adc_channel].state = 1;
+		} else {
+			rc_servos[adc_channel].state = 2;
+		}
+		break;
+	case 1: // target reached by overcurrent
 		rc_servos[adc_channel].target_angle = rc_servos[adc_channel].curr_angle;
-//		rc_servos[adc_channel].curr_angle -= (rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle) ? ANGLE_STEP : -ANGLE_STEP;
-//		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
+		rc_servos[adc_channel].state = 2;
+		break;
+	case 2: // target reached
+		rc_servos[adc_channel].curr_I = 0.0;
+		break;
 	}
-//	else if(rc_servos[adc_channel].curr_I > I_MAX && rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle){
-//		rc_servos[adc_channel].curr_angle -= 0.01;
+//	// Angle is increasing and current angle hasn't reached the target angle
+//	if((rc_servos[adc_channel].curr_I > 0 && rc_servos[adc_channel].curr_I < I_MAX) &&
+//		rc_servos[adc_channel].target_angle != rc_servos[adc_channel].curr_angle){
+//		rc_servos[adc_channel].curr_angle += ANGLE_STEP;
 //		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
+//	} // Angle is decreasing and current angle hasn't reached the target angle
+//	else if((rc_servos[adc_channel].curr_I > -I_MAX && rc_servos[adc_channel].curr_I < 0) &&
+//			rc_servos[adc_channel].target_angle != rc_servos[adc_channel].curr_angle){
+//			rc_servos[adc_channel].curr_angle -= ANGLE_STEP;
+//			Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
 //	}
+//	else if (rc_servos[adc_channel].curr_I > I_MAX){
+//		rc_servos[adc_channel].target_angle = rc_servos[adc_channel].curr_angle;
+////		rc_servos[adc_channel].curr_angle -= (rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle) ? ANGLE_STEP : -ANGLE_STEP;
+////		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
+//	}
+////	else if(rc_servos[adc_channel].curr_I > I_MAX && rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle){
+////		rc_servos[adc_channel].curr_angle -= 0.01;
+////		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
+////	}
 
 	if (++adc_sample_num >= SAMPLE_NUM) {
 		adc_sample_num = 0;

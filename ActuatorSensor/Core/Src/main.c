@@ -177,9 +177,14 @@ int main(void)
   Init_RC_Servo(6, &htim8, TIM_CHANNEL_3);
   Init_RC_Servo(7, &htim8, TIM_CHANNEL_4);
 
-  HAL_Delay(1000);
+  HAL_Delay(5000);
 
-  Set_Target_Angle(0, 180);
+  Set_Target_Angle(2, 135);
+
+  HAL_Delay(5000);
+
+  Set_Target_Angle(2, 0);
+
 
 
 

@@ -23,7 +23,7 @@
 #define ADC_RES 4095  // 2^12-1
 
 #define CHANNEL_NUM 8
-#define I_MAX 20  // mA
+#define I_MAX 21  // mA
 #define ANGLE_STEP 0.01
 #define SAMPLE_NUM 100 // number of ADC samples taken from a single channel
 
@@ -32,6 +32,7 @@ typedef struct {
 	float curr_I;
 	float curr_angle;
 	float target_angle;
+	uint8_t state; // 0 - target changed and moving, 1 - overcurrent, 2 - target reached
 } sRC_Servo_t;
 
 void Init_RC_Servo(uint8_t index, TIM_HandleTypeDef* htim, uint16_t tim_channel);
