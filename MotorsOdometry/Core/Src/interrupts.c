@@ -35,9 +35,9 @@ void TIM6_IT(void){
 //		Float2Bytes(tx_buffer, 28, odom.gyr_angular);
 
 
-		if(counter%100 == 0){
+		if(counter%100 == 0)
 			FDCAN_Send_Data(0x4FF, FDCAN_DLC_BYTES_32, 32, tx_buffer);
-		}
+		//}
 	}
 
 //	if(counter % RPM_TIME == 0){
@@ -49,6 +49,16 @@ void TIM6_IT(void){
 
 	if(counter % SYNTHESIS_TIME == 0){
 		synthesis_compute();
+	}
+
+	if(counter % SPLINE_TIME == 0){
+		spline_compute();
+	}
+
+	if(spline_state() == -1 && synthesis_phase == -1){
+		Set_RPM(&left_motor, 0);
+		Set_RPM(&right_motor, 0);
+
 	}
 
 }

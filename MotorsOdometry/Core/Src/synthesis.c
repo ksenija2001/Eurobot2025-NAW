@@ -32,6 +32,7 @@ float distance_error;
 float theta_error;
 
 float distance_from_start = 0, theta_from_start = 0;
+float init_angle;
 
 sTarget_t synthesis_target[6];
 
@@ -53,14 +54,6 @@ void synthesis_init(){
 	arm_mat_init_f32(&COEF, 6, 1, coef);
 	arm_mat_init_f32(&AI, 6, 6, ai);
 	arm_mat_init_f32(&A, 3, 6, a);
-}
-
-float poow(float a, int exp){
-	float res = 1;
-	for(int i=0; i<exp; i++){
-		res *= a;
-	}
-	return res;;
 }
 
 void synthesis_calc_coef(float T){
@@ -252,6 +245,9 @@ void synthesis_start_XY(float x, float y, char direction, float Vmax, float Amax
 	if(total_theta >  M_PI) total_theta -= 2*M_PI;
 	if(total_theta < -M_PI) total_theta += 2*M_PI;
 
+	//init_angle = atan2(end_y - start_y, end_x - start_x);
+
+	calc_traj_coef();
 	synthesis_calc_target_points(total_theta, Wmax, amax, 'r');
 	synthesis_calc_target_points(total_distance, Vmax, Amax, 't');
 
@@ -325,8 +321,8 @@ void synthesis_compute(){
 		float tolerance;
 		if(synthesis_target[synthesis_phase].type == 'r' && synthesis_target[synthesis_phase].V != 0) tolerance = 0.02;
 		if(synthesis_target[synthesis_phase].type == 'r' && synthesis_target[synthesis_phase].V == 0) tolerance = 0.01;
-		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V != 0) tolerance = 0.02;
-		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V == 0) tolerance = 0.01;
+		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V != 0) tolerance = 3;
+		if(synthesis_target[synthesis_phase].type == 't' && synthesis_target[synthesis_phase].V == 0) tolerance = 1;
 
 		if(fabs(CURRENT_STATE.pData[0]) > fabs(TARGET_STATE.pData[0]) - tolerance){ // if robot passed target position
 			synthesis_phase++;								//increment phase
@@ -339,57 +335,62 @@ void synthesis_compute(){
 				if(synthesis_target[synthesis_phase - 1].type == 'r' && synthesis_target[synthesis_phase].type == 't'){ //switched from rotation to translation
 					synthesis_set_next_state(0,0,0);
 					synthesis_set_current_state(0,0,0);
-//					start_x = odom.x;
-//					start_y = odom.y;
+					start_theta = end_theta;
+					distance_from_start = 0;
+					start_x = odom.x;
+					start_y = odom.y;
+					calc_traj_coef();
+
 //					total_distance = sqrtf((end_x - start_x) * (end_x - start_x) + (end_y - start_y) * (end_y - start_y));
 //					synthesis_target[synthesis_target_len - 1].P = total_distance - synthesis_target[synthesis_target_len - 2].P;
 				}
 			}
 			else{ 										//robot is in end postition
 				synthesis_phase = -1;
+				uint8_t data[1] = {0x01};
+				FDCAN_Send_Data(0x4D7, FDCAN_DLC_BYTES_1, 1, data);
 			}
 		}
-		else{ //compute synthesis
-			float left_time = synthesis_start_time + synthesis_target[synthesis_phase].T - (float)HAL_GetTick()/1000;
+		 //compute synthesis
+		float left_time = synthesis_start_time + synthesis_target[synthesis_phase].T - (float)HAL_GetTick()/1000;
 
-			distance_from_start = sqrtf((odom.x - start_x) * (odom.x - start_x) + (odom.y - start_y) * (odom.y - start_y));
-			float dTheta = odom.theta - last_theta;
-			if(dTheta > M_PI){
-				dTheta -= 2*M_PI;
-			}
-			if(dTheta < -M_PI){
-				dTheta += 2*M_PI;
-			}
-			theta_from_start += dTheta;
-			last_theta = odom.theta;
-
-			synthesis_calc_coef(left_time);
-			synthesis_calc_next_state(SYNTHESIS_TIME/1000.0);
+		distance_from_start = sqrtf((odom.x - start_x) * (odom.x - start_x) + (odom.y - start_y) * (odom.y - start_y));
+		float dTheta = odom.theta - last_theta;
+		if(dTheta > M_PI){
+			dTheta -= 2*M_PI;
 		}
+		if(dTheta < -M_PI){
+			dTheta += 2*M_PI;
+		}
+		theta_from_start += dTheta;
+		last_theta = odom.theta;
+
+		synthesis_calc_coef(left_time);
+		synthesis_calc_next_state(SYNTHESIS_TIME/1000.0);
+
 		if(synthesis_target[synthesis_phase].type == 't'){
 			calc_distance_from_traj();
-			theta_error = (odom.theta - start_theta) * 50 ;
+			theta_error = (odom.theta - start_theta) * 500 ;
 			distance_error *= 2;
 			if (synthesis_target[synthesis_phase].P <= 0){
 				theta_error *= -1;
 				distance_error *= -1;
 				distance_from_start *= -1;
 			}
+//			if(_c < 0){
+//				distance_error *= -1;
+//			}
 			//TODO: Add position and speed in calcualtion
-			synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
-			Set_Speed(&left_motor, NEXT_STATE.pData[1] - distance_error + theta_error);
-			Set_Speed(&right_motor, NEXT_STATE.pData[1] + distance_error - theta_error);
+			synthesis_set_current_state(distance_from_start, NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
+			Set_Speed(&left_motor, NEXT_STATE.pData[1] - /*distance_error*/ + theta_error);
+			Set_Speed(&right_motor, NEXT_STATE.pData[1] + /*distance_error*/ - theta_error);
 		}
 		if(synthesis_target[synthesis_phase ].type == 'r'){
-			synthesis_set_current_state(NEXT_STATE.pData[0], NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
+			synthesis_set_current_state(theta_from_start, NEXT_STATE.pData[1], NEXT_STATE.pData[2]);
 			Set_Speed(&left_motor, -NEXT_STATE.pData[1] * WHEEL_HALF_DISTANCE);
 			Set_Speed(&right_motor, NEXT_STATE.pData[1] * WHEEL_HALF_DISTANCE);
 		}
 
-	}
-	else{
-		Set_RPM(&left_motor, 0);
-		Set_RPM(&right_motor, 0);
 	}
 }
 

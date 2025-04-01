@@ -34,6 +34,7 @@ extern "C" {
 #include "odom.h"
 #include "motor_control.h"
 #include "synthesis.h"
+#include "spline.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

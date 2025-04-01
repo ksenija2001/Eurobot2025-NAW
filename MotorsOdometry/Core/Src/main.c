@@ -80,11 +80,12 @@ static void MX_I2C1_Init(void);
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -121,12 +122,13 @@ int main(void)
 
   Init_Encoder(&left, &htim1);
   Init_Encoder(&right, &htim3);
-  Config_Encoder_Wheel(&left, 73.0, 348.0);
-  Config_Encoder_Wheel(&right, 73.0, 348.0);
+  Config_Encoder_Wheel(&left, 73.0, 347.0);
+  Config_Encoder_Wheel(&right, 73.0, 347.0);
 
   Init_Motor(&left_motor, &htim2, &hadc1);
   Init_Motor(&right_motor, &htim2, &hadc2);
 
+  spline_init();
   HAL_TIM_Base_Start_IT(&htim6);
 
 //  Enable_Motor(&left_motor, 0);
@@ -144,6 +146,50 @@ int main(void)
   uint8_t some_status = 0;
   HAL_Delay(2000);
   synthesis_init();
+
+  synthesis_start_distance(500, 1000, 2000);
+  while(synthesis_phase != -1);
+  synthesis_start_distance(50, 100, 100);
+  while(synthesis_phase != -1);
+  synthesis_start_distance(-500, 1000, 2000);
+  while(synthesis_phase != -1);
+  synthesis_start_distance(-50, 100, 100);
+  while(synthesis_phase != -1);
+
+//  synthesis_start_XY(0, 500, 'f', 1000, 2000, 50, 15);
+//  while(synthesis_phase != -1);
+//  HAL_Delay(200);
+//  synthesis_start_XY(500, 500, 'f',1000, 2000, 50, 15);
+//  while(synthesis_phase != -1);
+//  HAL_Delay(200);
+//  synthesis_start_XY(500, 250, 'f',1000, 2000, 50, 15);
+//  while(synthesis_phase != -1);
+//  HAL_Delay(200);
+//  synthesis_start_XY(0, 0, 'f',1000, 2000, 50, 15);
+//  while(synthesis_phase != -1);
+//  HAL_Delay(200);
+//  synthesis_start_rotateTo(1.57, 50, 10);
+
+//  synthesis_start_distance(500, 500, 1000);
+//  while(synthesis_phase != -1);
+//  synthesis_start_distance(-500, 500, 1000);
+//  while(synthesis_phase != -1);
+//  synthesis_start_distance(-100, 100, 100);
+//  while(synthesis_phase != -1);
+//  synthesis_start_XY(500, 500, 'f', 100, 500, 5, 5);
+//  while(synthesis_phase != -1);
+//
+//  //uint32_t start = HAL_GetTick();
+//  float x[1] = {500};
+//  float y[1] = {500};
+//  float t[1] = {1.57};
+//  spline_move(x, y, t, 1, 100, 'f');
+//  while(spline_state() != -1);
+//  x[0] = 0;
+//  y[0] = 0;
+//  t[0] = 1.57;
+//  spline_move(x, y, t, 1, 100, 'r');
+//  while(spline_state() != -1);
 //  synthesis_start_XY(50, 50, 'r', 5, 5, 1, 1);
 //  HAL_Delay(5000);
 //  synthesis_start_rotateTo(0.1, 8, 20);
@@ -162,6 +208,7 @@ int main(void)
 //  HAL_Delay(10000);
 //  //Set_Speed(&left_motor, 20);
 //  //Set_Speed(&right_motor, 20);
+  HAL_Delay(1000);
 //  Enable_Motor(&left_motor, 0);
 //  Enable_Motor(&right_motor, 0);
 //  synthesis_start_rotateFor(4*M_PI, M_PI, M_PI);
@@ -217,21 +264,21 @@ int main(void)
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
-   */
+  */
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
+  * in the RCC_OscInitTypeDef structure.
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -248,8 +295,9 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -262,10 +310,10 @@ void SystemClock_Config(void)
 }
 
 /**
- * @brief ADC1 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_ADC1_Init(void)
 {
 
@@ -281,7 +329,7 @@ static void MX_ADC1_Init(void)
   /* USER CODE END ADC1_Init 1 */
 
   /** Common config
-   */
+  */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
@@ -304,7 +352,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure the ADC multi-mode
-   */
+  */
   multimode.Mode = ADC_MODE_INDEPENDENT;
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
   {
@@ -312,7 +360,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure Regular Channel
-   */
+  */
   sConfig.Channel = ADC_CHANNEL_10;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_640CYCLES_5;
@@ -326,13 +374,14 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
- * @brief ADC2 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief ADC2 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_ADC2_Init(void)
 {
 
@@ -347,7 +396,7 @@ static void MX_ADC2_Init(void)
   /* USER CODE END ADC2_Init 1 */
 
   /** Common config
-   */
+  */
   hadc2.Instance = ADC2;
   hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
@@ -370,7 +419,7 @@ static void MX_ADC2_Init(void)
   }
 
   /** Configure Regular Channel
-   */
+  */
   sConfig.Channel = ADC_CHANNEL_4;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_640CYCLES_5;
@@ -384,13 +433,14 @@ static void MX_ADC2_Init(void)
   /* USER CODE BEGIN ADC2_Init 2 */
 
   /* USER CODE END ADC2_Init 2 */
+
 }
 
 /**
- * @brief FDCAN1 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief FDCAN1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_FDCAN1_Init(void)
 {
 
@@ -426,13 +476,14 @@ static void MX_FDCAN1_Init(void)
   /* USER CODE BEGIN FDCAN1_Init 2 */
 
   /* USER CODE END FDCAN1_Init 2 */
+
 }
 
 /**
- * @brief I2C1 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_I2C1_Init(void)
 {
 
@@ -458,14 +509,14 @@ static void MX_I2C1_Init(void)
   }
 
   /** Configure Analogue filter
-   */
+  */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
 
   /** Configure Digital filter
-   */
+  */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
   {
     Error_Handler();
@@ -473,13 +524,14 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
- * @brief TIM1 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_TIM1_Init(void)
 {
 
@@ -523,13 +575,14 @@ static void MX_TIM1_Init(void)
   /* USER CODE BEGIN TIM1_Init 2 */
 
   /* USER CODE END TIM1_Init 2 */
+
 }
 
 /**
- * @brief TIM2 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_TIM2_Init(void)
 {
 
@@ -575,13 +628,14 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 2 */
   HAL_TIM_MspPostInit(&htim2);
+
 }
 
 /**
- * @brief TIM3 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_TIM3_Init(void)
 {
 
@@ -623,13 +677,14 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
 }
 
 /**
- * @brief TIM6 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_TIM6_Init(void)
 {
 
@@ -660,11 +715,12 @@ static void MX_TIM6_Init(void)
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
+
 }
 
 /**
- * Enable DMA controller clock
- */
+  * Enable DMA controller clock
+  */
 static void MX_DMA_Init(void)
 {
 
@@ -679,18 +735,19 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+
 }
 
 /**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-  /* USER CODE END MX_GPIO_Init_1 */
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
@@ -699,36 +756,36 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, Motor1_EN_Pin | Motor1_Dir_Pin | ERROR_Out_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, Motor1_EN_Pin|Motor1_Dir_Pin|ERROR_Out_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, Motor2_EN_Pin | Motor2_Dir_Pin | LED_CAN_RX_Pin | LED_CAN_TX_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, Motor2_EN_Pin|Motor2_Dir_Pin|LED_CAN_RX_Pin|LED_CAN_TX_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_R_Pin | LED_G_Pin | LED_B_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_R_Pin|LED_G_Pin|LED_B_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : Motor1_EN_Pin Motor1_Dir_Pin ERROR_Out_Pin */
-  GPIO_InitStruct.Pin = Motor1_EN_Pin | Motor1_Dir_Pin | ERROR_Out_Pin;
+  GPIO_InitStruct.Pin = Motor1_EN_Pin|Motor1_Dir_Pin|ERROR_Out_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Motor2_EN_Pin Motor2_Dir_Pin LED_CAN_RX_Pin LED_CAN_TX_Pin */
-  GPIO_InitStruct.Pin = Motor2_EN_Pin | Motor2_Dir_Pin | LED_CAN_RX_Pin | LED_CAN_TX_Pin;
+  GPIO_InitStruct.Pin = Motor2_EN_Pin|Motor2_Dir_Pin|LED_CAN_RX_Pin|LED_CAN_TX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : IN1_Pin IN2_Pin IMU_INT2_Pin */
-  GPIO_InitStruct.Pin = IN1_Pin | IN2_Pin | IMU_INT2_Pin;
+  GPIO_InitStruct.Pin = IN1_Pin|IN2_Pin|IMU_INT2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_R_Pin LED_G_Pin LED_B_Pin */
-  GPIO_InitStruct.Pin = LED_R_Pin | LED_G_Pin | LED_B_Pin;
+  GPIO_InitStruct.Pin = LED_R_Pin|LED_G_Pin|LED_B_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -740,8 +797,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(ERROR_In_GPIO_Port, &GPIO_InitStruct);
 
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-  /* USER CODE END MX_GPIO_Init_2 */
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -749,9 +806,9 @@ static void MX_GPIO_Init(void)
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -764,14 +821,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

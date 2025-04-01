@@ -59,3 +59,27 @@ void Int162Bytes(uint8_t *buffer, uint8_t start, int16_t data)
 	buffer[start] = convert_int.u[0];
 	buffer[start + 1] = convert_int.u[1];
 }
+
+uint16_t factorial(uint8_t num){
+	uint16_t res = 1;
+	for (uint8_t i=1; i<=num;++i){
+		res *= i;
+	}
+	return res;
+}
+
+float poow(float a, int exp){
+	float res = 1;
+	for(int i=0; i<exp; i++){
+		res *= a;
+	}
+	return res;;
+}
+
+float distance(float x0, float y0, float x1, float y1){
+	return sqrtf(poow(x1-x0, 2) + poow(y1-y0, 2));
+}
+
+float magnitude(float x, float y){
+	return sqrtf(x*x + y*y);
+}

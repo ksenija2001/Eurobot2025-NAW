@@ -14,11 +14,13 @@
 #include "fdcan.h"
 #include "utils.h"
 #include "synthesis.h"
+#include "spline.h"
 
-#define ODOM_TIME 1 // ms
-#define RPM_TIME  1 // ms
-#define SYNTHESIS_REGEN_TIME 50 //ms
-#define SYNTHESIS_TIME 5 //ms
+#define ODOM_TIME 1 // 1ms
+#define RPM_TIME  1 // 1ms
+#define SYNTHESIS_TIME 5 // 5ms
+#define SPLINE_TIME		10 // 10ms
+
 
 void TIM6_IT(void);
 void Float2Bytes(uint8_t* buffer, uint8_t start, float data);
