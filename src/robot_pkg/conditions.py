@@ -25,8 +25,8 @@ def match_time(_time, args) -> bool:
     return False
 
 def position(tmp, args) -> bool:
-    curr_type_of_movement = args[2]
-    if curr_type_of_movement == 0:
+    move_done = args[2]
+    if move_done:
         return True
     return False
 

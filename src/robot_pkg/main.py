@@ -2,7 +2,7 @@
 from threading import Event, Thread
 
 paused:Event = Event()
-import time, sys, subprocess
+import time, sys
 import math
 
 from robot_pkg.logger import LogHandler
@@ -14,7 +14,9 @@ can_handler.init_queues(10)
 
 from robot_pkg.odometry import OdometryHandler, Odometry
 
-from robot_pkg.step import Servo, Move
+from robot_pkg.servo import Servo
+from robot_pkg.move import Move
+from robot_pkg.io import I_O
 from robot_pkg.utils import user_cmd,choose_strategy
 from robot_pkg.execute import Execute
 
@@ -29,6 +31,8 @@ def main_func():
     odom.start()
 
     Servo.start_threads()
+    Move.start_threads()
+    I_O.start_threads()
 
     if len(sys.argv) > 1:
         strategy =  choose_strategy(sys.argv[1], sys.argv[2], sys.argv[3])

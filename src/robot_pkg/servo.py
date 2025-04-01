@@ -4,19 +4,8 @@ from threading import Thread, Event
 
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
-from robot_pkg.step import Servo
 
-# class Servo:
-#     def __init__(self, id:int, top, middle, bottom):
-#         self.id = id
-
-#         self.TOP = top
-#         self.MIDDLE = middle
-#         self.BOTTOM = bottom
-  
-#         self.in_position = False
-
-class ServoTypes(Enum):
+class ServoType(Enum):
     RIGHT_VACUUM_LIFT = 1
     RIGHT_VACUUM = 2
     LEFT_VACUUM_LIFT = 3 
@@ -28,83 +17,191 @@ class ServoTypes(Enum):
     BACK_RIGHT_LIFT = 9  
     BACK_LEFT_LIFT = 10   
 
-# AXServos = {
-#     ServoNames.RIGHT_VACUUM_LIFT : Servo(id=1,  top=0,   middle=0,   bottom=300),
-#     ServoNames.RIGHT_VACUUM      : Servo(id=2,  top=240, middle=150, bottom=60),
-#     ServoNames.LEFT_VACUUM_LIFT  : Servo(id=3,  top=300, middle=0,   bottom=0),
-#     ServoNames.LEFT_VACUUM       : Servo(id=4,  top=60,  middle=150, bottom=240),
-#     ServoNames.RIGHT_GRIP_LIFT   : Servo(id=5,  top=0,   middle=0,   bottom=300),
-#     ServoNames.LEFT_GRIP_LIFT    : Servo(id=6,  top=300, middle=0,   bottom=0),
-#     ServoNames.CENTER_SWING      : Servo(id=7,  top=240, middle=0,   bottom=150),
-#     ServoNames.CENTER_LIFT       : Servo(id=8,  top=0,   middle=0,   bottom=242),
-#     ServoNames.BACK_RIGHT_LIFT   : Servo(id=9,  top=240, middle=0,   bottom=150),
-#     ServoNames.BACK_LEFT_LIFT    : Servo(id=10, top=0,   middle=0,   bottom=242)
-# }
+class Servo:
+    servo_list:list[int] = []
+    servo_thread:Thread = None
+    running:Event = Event()
+    servo_in_position:dict = {enum_item.value: True for enum_item in ServoType}
+    send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value]
+    logger = log_handler.get_logger("servo")
 
-class ServoHandler:
     def __init__(self):
-        self.log = log_handler.get_logger("servo")
-        self.queue = can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value]
-        self.position_queue = can_handler.msg_receive_queues[IDs.GET_SERVO_POSITIONS.value]
-        self.send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value]
+        self.id = 0
+        self.position = 0
+        self.speed = 0
+        self._type = None
+    
+    def _execute(self):
+        while not Servo.servo_in_position[self.id]:
+            pass
 
-        self.running = False
-        self._servo_thread = Thread(target=self.receive)
-        self._servo_list = []
-        self.servo_in_position = {enum_item.value: True for enum_item in ServoTypes}
+        Servo.servo_list.extend([self.id, self.position, self.speed])
+        Servo.servo_in_position[self.id] = False
 
-    def start(self):
-        self.running = True
-        self._servo_thread.start()
+    @classmethod
+    def check_in_positions(cls):
+        return all([in_position for servo, in_position in Servo.servo_in_position.items()])
+    
+    @classmethod
+    def check_position(cls, id:int):
+        queue = can_handler.msg_send_queues[IDs.GET_SERVO_POSITIONS.value]
+        data = struct.pack('B', id)
+        queue.append(data)
 
-        self.log.info(f"Started ServoHandler")
+    @classmethod
+    def send_positions(cls):
+        if len(Servo.servo_list) > 0:
+            # Servo.logger.debug(f"Sending: {Servo.servo_list}")
+            size = len(Servo.servo_list)//3
+            Servo.servo_list.insert(0, size)
 
-    def stop(self):
-        self.running = False
-        self._servo_thread.join()
+            fmt = ">B" + "BHB"*size 
+            servo_msg = struct.pack(fmt, *Servo.servo_list)
+            Servo.send_queue.append(servo_msg)
 
-        self.log.info(f"Stopped ServoHandler")
+            Servo.servo_list.clear()
 
-    def add_angle(self, id:int, angle:int, speed:int):
-        self._servo_list.append(id)
-        self._servo_list.append(angle)
-        self._servo_list.append(speed)
-
-        self.servo_in_position[id] = False
-
-    def sync_write(self):
-        size = len(self._servo_list)/3
-        self._servo_list.insert(0, size)
-        fmt = ">B" + "BHB"*size 
-        servo_msg = struct.pack(fmt, *self._servo_list)
-        self.send_queue.append(servo_msg)
-        self._servo_list.clear()
-
-    def receive(self):
-        while self.running:
-            if len(self.queue) > 0:
-                servo_msg = self.queue.pop()
+    @classmethod
+    def _receive(cls, running:Event):
+        in_position_queue = can_handler.msg_receive_queues[IDs.GET_SERVO_IN_POSITION.value]
+        positions_queue = can_handler.msg_receive_queues[IDs.GET_SERVO_POSITIONS.value]
+        while running.is_set():
+            if len(in_position_queue) > 0:
+                servo_msg = in_position_queue.pop()
 
                 [id, success] = struct.unpack('2B', servo_msg.data)
 
                 if success:
                     Servo.servo_in_position[id] = True
+                    Servo.logger.info(f"Servo {id} in position")
                 else:
                     # Servo did not reach position
                     pass
-
-                self.log.debug(f"Servo {id}: {success}")
             
-            if len(self.position_queue) > 0:
-                servo_msg = self.position_queue.pop()
+            if len(positions_queue) > 0:
+                servo_msg = positions_queue.pop()
 
-                [id, angle_high, angle_low] = struct.unpack('3I', servo_msg.data)
-
-                self.log.debug(f"{id}: {(int)(angle_high << 8) & angle_low}")
+                [id, angle_high, angle_low] = struct.unpack('3B', servo_msg.data)
+                angle = int.from_bytes([angle_high, angle_low])
+        
+                Servo.logger.info(f"Servo {id} position: {angle}")
 
             time.sleep(0.01)  # 10ms
+    
+    @classmethod
+    def start_threads(cls):
+        Servo.running.set()
+        if Servo.servo_thread is None:
+            Servo.servo_thread = Thread(target=Servo._receive, args=(Servo.running, ))
+            Servo.servo_thread.start()
+        Servo.logger.info("Servo receiving thread started.")
 
+    @classmethod
+    def stop_threads(cls):
+        Servo.running.clear()
+        if Servo.servo_thread is not None and Servo.servo_thread.is_alive():
+            Servo.servo_thread.join()
+        Servo.servo_thread = None
+        Servo.logger.info("Servo receiving thread stopped.")
 
-if __name__ == "__main__":
-    pass
+    @classmethod
+    def RightVacuumLift(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.RIGHT_VACUUM_LIFT.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.RIGHT_VACUUM_LIFT.name
 
+        return servo
+
+    @classmethod
+    def RightVacuum(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.RIGHT_VACUUM.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.RIGHT_VACUUM.name
+
+        return servo
+
+    @classmethod
+    def LeftVacuumLift(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.LEFT_VACUUM_LIFT.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.LEFT_VACUUM_LIFT.name
+
+        return servo
+
+    @classmethod
+    def LeftVacuum(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.LEFT_VACUUM.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.LEFT_VACUUM.name
+
+        return servo
+
+    @classmethod
+    def RightGripLift(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.RIGHT_GRIP_LIFT.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.RIGHT_GRIP_LIFT.name
+
+        return servo
+
+    @classmethod
+    def LeftGripLift(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.LEFT_GRIP_LIFT.value
+        servo.position = position
+        servo.speed = speed        
+        servo._type = ServoType.LEFT_GRIP_LIFT.name
+
+        return servo
+
+    @classmethod
+    def CenterSwing(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.CENTER_SWING.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.CENTER_SWING.name
+
+        return servo
+
+    @classmethod
+    def CenterLift(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.CENTER_LIFT.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.CENTER_LIFT.name
+
+        return servo
+
+    @classmethod
+    def BackRightLift(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.BACK_RIGHT_LIFT.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.BACK_RIGHT_LIFT.name
+
+        return servo
+
+    @classmethod
+    def BackLeftLift(cls, position:int, speed:int=100):
+        servo = cls()
+        servo.id = ServoType.BACK_LEFT_LIFT.value
+        servo.position = position
+        servo.speed = speed
+        servo._type = ServoType.BACK_LEFT_LIFT.name
+
+        return servo
+
+    

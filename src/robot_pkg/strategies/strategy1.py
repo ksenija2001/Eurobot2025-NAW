@@ -1,6 +1,9 @@
 from robot_pkg.strategy import Strategy, Color, Square, Mood
-from robot_pkg.step import Move, Servo, Actuator
+from robot_pkg.move import Move
+from robo_pkg.servo import Servo
+from robot_pkg.io import I_O
 from robot_pkg.conditions import ConditionType
+from robot_pkg.play_elements import Area, MaterialStock
 
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
@@ -19,26 +22,28 @@ strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PA
 
 
 strategy1(s=[Servo.RightVacuumLift(0, 100), 
-            Servo.RightVacuum(60, 100),
-            Servo.LeftVacuumLift(300, 100),
-            Servo.LeftVacuum(240, 100)])
+             Servo.RightVacuum(60, 100),
+             Servo.LeftVacuumLift(300, 100),
+             Servo.LeftVacuum(240, 100)])
 
-strategy1(a=[Actuator.Pump(1), Actuator.Valve(1)])
+strategy1(a=[I_O.Pump(1), 
+             I_O.Valve(1)])
 
 strategy1(s=[Servo.RightVacuumLift(210, 100), 
-            Servo.LeftVacuumLift(90, 100)])
+             Servo.LeftVacuumLift(90, 100)])
 
 strategy1(s=[Servo.RightVacuumLift(0, 100), 
-            Servo.RightVacuum(235, 100),
-            Servo.LeftVacuumLift(300, 100),
-            Servo.LeftVacuum(65, 100)])
+             Servo.RightVacuum(235, 100),
+             Servo.LeftVacuumLift(300, 100),
+             Servo.LeftVacuum(65, 100)])
 
 strategy1(s=[Servo.RightVacuumLift(300, 100), 
-            Servo.LeftVacuumLift(0, 100)])
+             Servo.LeftVacuumLift(0, 100)])
 
-strategy1(a=[Actuator.Pump(0), Actuator.Valve(0)])
+strategy1(a=[I_O.Pump(0), 
+             I_O.Valve(0)])
 
 strategy1(s=[Servo.RightVacuum(150, 100),
-            Servo.LeftVacuum(150, 100)])
+             Servo.LeftVacuum(150, 100)])
 
 # strategy1(m=Move.Distance(-150, 200, 200))

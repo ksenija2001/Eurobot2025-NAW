@@ -73,12 +73,12 @@ def user_cmd(running:Event):
                 move = Move.Rotate(theta, w, alpha)
                 move._execute()
                     
-            # elif msg_type == IDs.RESET_ODOM.name:
-            #     x = float(input("New x: "))
-            #     y = float(input("New y: "))
-            #     theta = float(input("New theta: "))
-            #     data = struct.pack('3f', x, y, theta)
-            #     can_handler.msg_send_queues[IDs[cmd].value].append(data)
+            elif msg_type == IDs.RESET_ODOM.name:
+                x = float(input("New x: "))
+                y = float(input("New y: "))
+                theta = float(input("New theta: "))
+                move = Move.ResetOdom(x, y, theta)
+                move._execute()
 
             elif msg_type == IDs.SET_SERVO_POSITIONS.name:
 

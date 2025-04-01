@@ -1,7 +1,9 @@
 from threading import Thread
 import time
 from robot_pkg.strategy import Strategy 
-from robot_pkg.step import Servo
+from robot_pkg.servo import Servo
+from robot_pkg.move import Move
+from robot_pkg.io import I_O, SensorType
 from robot_pkg.data import Variables
 # from lidar import Lidar
 from multiprocessing import Event
@@ -52,8 +54,8 @@ class Execute:
             # time.sleep(0.7)
             # Waiting for end of step
             while self.is_active:
-                # cinch = self.sensors.get_cinch()
-                # type_of_movement = self.nucleo.get_status()[4]
+                cinch = I_O.sensor_states[SensorType.CINCH.value].is_set()
+                move_done = Move.move_done.is_set()
                 servo_in_pos = Servo.check_in_positions()
                 # print(f"Servo: {servo_in_pos}")
 
@@ -73,7 +75,7 @@ class Execute:
                 #     self.steps.insert(step, 0)
                 #     break
 
-                args = [start_time, time.time(), 0, 0, servo_in_pos] #type_of_movement, cinch, 
+                args = [start_time, time.time(), move_done, cinch, servo_in_pos] 
 
                 checked = {cond.type : cond.check(args) for cond in step.conditions}
               
