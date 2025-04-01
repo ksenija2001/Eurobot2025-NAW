@@ -81,14 +81,14 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 			case 0x532: // Set position for RC servos
 				uint8_t servo_states = RxData[0];
 
-				Set_Angle(0, (servo_states & 0x01)*180);
-				Set_Angle(1, (servo_states & 0x02)*180);
-				Set_Angle(2, (servo_states & 0x04)*180);
-				Set_Angle(3, (servo_states & 0x08)*180);
-				Set_Angle(4, (servo_states & 0x10)*180);
-				Set_Angle(5, (servo_states & 0x20)*180);
-				Set_Angle(6, (servo_states & 0x40)*180);
-				Set_Angle(7, (servo_states & 0x80)*180);
+				Set_Target_Angle(0, (servo_states & 0x01)*180);
+				Set_Target_Angle(1, (servo_states & 0x02)*180);
+				Set_Target_Angle(2, (servo_states & 0x04)*180);
+				Set_Target_Angle(3, (servo_states & 0x08)*180);
+				Set_Target_Angle(4, (servo_states & 0x10)*180);
+				Set_Target_Angle(5, (servo_states & 0x20)*180);
+				Set_Target_Angle(6, (servo_states & 0x40)*180);
+				Set_Target_Angle(7, (servo_states & 0x80)*180);
 
 				break;
 			case 0x690: // Enable/disable output pin
