@@ -77,11 +77,27 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 //				float left_diameter = Bytes2Float(RxData, 0);
 //				float right_diameter = Bytes2Float(RxData, 4);
 //				float track = Bytes2Float(RxData, 8);
+				break;
+			case 0x532:
+				uint8_t servo_states = RxData[0];
+
+				Set_Angle(0, (servo_states & 0x01)*180);
+				Set_Angle(1, (servo_states & 0x02)*180);
+				Set_Angle(2, (servo_states & 0x04)*180);
+				Set_Angle(3, (servo_states & 0x08)*180);
+				Set_Angle(4, (servo_states & 0x10)*180);
+				Set_Angle(5, (servo_states & 0x20)*180);
+				Set_Angle(6, (servo_states & 0x40)*180);
+				Set_Angle(7, (servo_states & 0x80)*180);
+
+				break;
 			case 0x690: // Enable/disable output pin
 				uint8_t output = RxData[0];
 				uint8_t state = RxData[1];
 
 				Set_Output(output, state);
+
+				break;
 			default:
 				receive_status = HAL_ERROR;
 			}

@@ -42,6 +42,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 FDCAN_HandleTypeDef hfdcan1;
 
@@ -162,20 +163,25 @@ int main(void)
 //  Set_Output(3, 0);
 //  Set_Output(4, 0);
 
+  Set_ADC_Channel(0);
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+  HAL_ADC_Start_DMA(&hadc1, &adc_output, 1);
+
+  Init_RC_Servo(0, &htim1, TIM_CHANNEL_1);
+  Init_RC_Servo(1, &htim1, TIM_CHANNEL_2);
+  Init_RC_Servo(2, &htim1, TIM_CHANNEL_3);
+  Init_RC_Servo(3, &htim1, TIM_CHANNEL_4);
+
+  Init_RC_Servo(4, &htim8, TIM_CHANNEL_1);
+  Init_RC_Servo(5, &htim8, TIM_CHANNEL_2);
+  Init_RC_Servo(6, &htim8, TIM_CHANNEL_3);
+  Init_RC_Servo(7, &htim8, TIM_CHANNEL_4);
+
+  HAL_Delay(1000);
+
+  Set_Target_Angle(0, 180);
 
 
-//  Set_ADC_Channel(0);
-//  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-//  HAL_ADC_Start_DMA(&hadc1, &adc_output, 1);
-//  Init_RC_Servo(0, &htim1, TIM_CHANNEL_1);
-//  Init_RC_Servo(1, &htim1, TIM_CHANNEL_2);
-//  Init_RC_Servo(2, &htim1, TIM_CHANNEL_3);
-//  Init_RC_Servo(3, &htim1, TIM_CHANNEL_4);
-//
-//  Init_RC_Servo(4, &htim8, TIM_CHANNEL_1);
-//  Init_RC_Servo(5, &htim8, TIM_CHANNEL_2);
-//  Init_RC_Servo(6, &htim8, TIM_CHANNEL_3);
-//  Init_RC_Servo(7, &htim8, TIM_CHANNEL_4);
 
   /* USER CODE END 2 */
 
@@ -183,6 +189,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+//	  HAL_Delay(1000);
+//
+//	  Set_Angle(id, 0);
+//
+//	  HAL_Delay(1000);
 //	if (rx_set) {
 //		rx_set = 0;
 //		HAL_Delay(500);
@@ -502,9 +514,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 143;
+  htim6.Init.Prescaler = 287;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 49999;
+  htim6.Init.Period = 39999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -706,6 +718,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
 }
 
