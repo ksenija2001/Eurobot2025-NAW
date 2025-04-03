@@ -7,9 +7,21 @@ LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 CONFIG_PATH = os.path.join(ROOT_PATH, 'config')
 STRATEGIES_PATH = os.path.join(ROOT_PATH, 'strategies')
 
+class LIDAR_FOV:
+    FRONT_DEPLOY = 500 
+    FRONT_UNDEPLOY = 500
+    BACK_DEPLOY = 600
+    BACK_UNDEPLOY = 450
+
+class ODOM_DATA:
+    odom_left_diameter = 72
+    odom_right_diameter = 72
+    odom_track = 274.5
+    wheel_diameter = 74
+    wheel_track = 150
+
 
 class IDs(Enum):
-
     RESET_ODOM  = 0x4F0
     ODOM_CONFIG = 0x4F1
 

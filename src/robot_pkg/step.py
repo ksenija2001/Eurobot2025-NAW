@@ -3,7 +3,7 @@ import time
 from robot_pkg.main import can_handler, log_handler
 from robot_pkg.conditions import Condition
 from robot_pkg.servo import Servo
-from robot_pkg.move import Move
+from robot_pkg.move import Move, Position
 from robot_pkg.io import I_O
 
 class Step:
@@ -15,23 +15,33 @@ class Step:
         self.conditions = [Condition(cond) for cond in conditions]
         self.points = points
 
-    def step(self):
+    def move(self):
         if self.movement is not None:
             print(f"Executing movement {self.movement._type}")
             self.movement._execute()
 
-        for output in self.actuation:
-            print(f"Executing actuator {output._type}")
-            output._execute()
+    def output(self, curr_pose:Position=Position()):
+        not_sent = [output for output in self.outputs if not output._sent]
+        for output in not_sent:
+            x = abs(curr_pose.x - output.send_pose.x)
+            y = abs(curr_pose.y - output.send_pose.y)
+            if x <= 3 or y <= 3:  # if x or y is less than 3mm - activate
+                print(f"Executing actuator {output._type}")
+                output._execute()
 
-        for servo in self.servos:
-            print(f"Executing servo {servo._type}")
-            servo._execute()
+    def servo(self, curr_pose:Position=Position()):
+        not_moving = [servo for servo in self.servos if servo.check_in_position()]
+        moved = 0
+        for servo in not_moving:
+            x = abs(curr_pose.x - servo.send_pose.x)
+            y = abs(curr_pose.y - servo.send_pose.y)
+            if x <= 3 or y <= 3:  # if x or y is less than 3mm - activate
+                print(f"Executing servo {servo._type}")
+                servo._execute()
+                moved += 1
 
-        # All executed servos are started at the same time
-        if len(self.servos) > 0:
+        if moved > 0:
             Servo.send_positions()
-
 
 if __name__ == "__main__":
 

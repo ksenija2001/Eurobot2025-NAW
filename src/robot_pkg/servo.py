@@ -4,6 +4,7 @@ from threading import Thread, Event
 
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
+from robot_pkg.move import Position
 
 class ServoType(Enum):
     RIGHT_VACUUM_LIFT = 1
@@ -16,6 +17,14 @@ class ServoType(Enum):
     CENTER_LIFT = 8    
     BACK_RIGHT_LIFT = 9  
     BACK_LEFT_LIFT = 10   
+    FRONT_RIGHT_GRIPPER = 11
+    FRONT_CENTER_RIGHT_GRIPPER = 12
+    FRONT_CENTER_LEFT_GRIPPER = 13
+    FRONT_LEFT_GRIPPER = 14
+    BACK_RIGHT_GRIPPER = 15
+    BACK_CENTER_RIGHT_GRIPPER = 16
+    BACK_CENTER_LEFT_GRIPPER = 17
+    BACK_LEFT_GRIPPER = 18
 
 class Servo:
     servo_list:list[int] = []
@@ -29,6 +38,7 @@ class Servo:
         self.id = 0
         self.position = 0
         self.speed = 0
+        self.activate_pose = Position()
         self._type = None
     
     def _execute(self):
@@ -37,6 +47,9 @@ class Servo:
 
         Servo.servo_list.extend([self.id, self.position, self.speed])
         Servo.servo_in_position[self.id] = False
+    
+    def check_in_position(self):
+        return Servo.servo_in_position[self.id]
 
     @classmethod
     def check_in_positions(cls):
@@ -105,103 +118,223 @@ class Servo:
         Servo.logger.info("Servo receiving thread stopped.")
 
     @classmethod
-    def RightVacuumLift(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.RIGHT_VACUUM_LIFT.value
-        servo.position = position
-        servo.speed = speed
-        servo._type = ServoType.RIGHT_VACUUM_LIFT.name
+    def FrontVacuumLift(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
 
-        return servo
+        servo1.id = ServoType.RIGHT_VACUUM_LIFT.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.RIGHT_VACUUM_LIFT.name
 
-    @classmethod
-    def RightVacuum(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.RIGHT_VACUUM.value
-        servo.position = position
-        servo.speed = speed
-        servo._type = ServoType.RIGHT_VACUUM.name
+        servo2.id = ServoType.LEFT_VACUUM_LIFT.value
+        servo2.position = 300 - position
+        servo2.speed = speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.LEFT_VACUUM_LIFT.name
 
-        return servo
+        return servo1, servo2
+    
+    # @classmethod
+    # def LeftVacuumLift(cls, position:int, speed:int=100, activate_pose=Position()):
+    #     servo = cls()
+    #     servo.id = ServoType.LEFT_VACUUM_LIFT.value
+    #     servo.position = position
+    #     servo.speed = speed
+    #     servo.activate_pose = activate_pose
+    #     servo._type = ServoType.LEFT_VACUUM_LIFT.name
 
-    @classmethod
-    def LeftVacuumLift(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.LEFT_VACUUM_LIFT.value
-        servo.position = position
-        servo.speed = speed
-        servo._type = ServoType.LEFT_VACUUM_LIFT.name
-
-        return servo
-
-    @classmethod
-    def LeftVacuum(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.LEFT_VACUUM.value
-        servo.position = position
-        servo.speed = speed
-        servo._type = ServoType.LEFT_VACUUM.name
-
-        return servo
+    #     return servo
 
     @classmethod
-    def RightGripLift(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.RIGHT_GRIP_LIFT.value
-        servo.position = position
-        servo.speed = speed
-        servo._type = ServoType.RIGHT_GRIP_LIFT.name
+    def FrontVacuum(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
 
-        return servo
+        servo1.id = ServoType.RIGHT_VACUUM.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.RIGHT_VACUUM.name
+
+        servo2.id = ServoType.LEFT_VACUUM.value
+        servo2.position = position
+        servo2.speed = 300 - speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.LEFT_VACUUM.name
+
+        return servo1, servo2
+
+    # @classmethod
+    # def LeftVacuum(cls, position:int, speed:int=100, activate_pose=Position()):
+    #     servo = cls()
+    #     servo.id = ServoType.LEFT_VACUUM.value
+    #     servo.position = position
+    #     servo.speed = speed
+    #     servo.activate_pose = activate_pose
+    #     servo._type = ServoType.LEFT_VACUUM.name
+
+    #     return servo
 
     @classmethod
-    def LeftGripLift(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.LEFT_GRIP_LIFT.value
-        servo.position = position
-        servo.speed = speed        
-        servo._type = ServoType.LEFT_GRIP_LIFT.name
+    def FrontGripLift(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
 
-        return servo
+        servo1.id = ServoType.RIGHT_GRIP_LIFT.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.RIGHT_GRIP_LIFT.name
+
+        servo2.id = ServoType.LEFT_GRIP_LIFT.value
+        servo2.position = 300 - position
+        servo2.speed = speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.LEFT_GRIP_LIFT.name
+
+        return servo1, servo2
+
+    # @classmethod
+    # def LeftGripLift(cls, position:int, speed:int=100, activate_pose=Position()):
+    #     servo = cls()
+    #     servo.id = ServoType.LEFT_GRIP_LIFT.value
+    #     servo.position = position
+    #     servo.speed = speed   
+    #     servo.activate_pose = activate_pose
+    #     servo._type = ServoType.LEFT_GRIP_LIFT.name
+
+    #     return servo
 
     @classmethod
-    def CenterSwing(cls, position:int, speed:int=100):
+    def CenterSwing(cls, position:int, speed:int=100, activate_pose=Position()):
         servo = cls()
         servo.id = ServoType.CENTER_SWING.value
         servo.position = position
         servo.speed = speed
+        servo.activate_pose = activate_pose
         servo._type = ServoType.CENTER_SWING.name
 
         return servo
 
     @classmethod
-    def CenterLift(cls, position:int, speed:int=100):
+    def CenterLift(cls, position:int, speed:int=100, activate_pose=Position()):
         servo = cls()
         servo.id = ServoType.CENTER_LIFT.value
         servo.position = position
         servo.speed = speed
+        servo.activate_pose = activate_pose
         servo._type = ServoType.CENTER_LIFT.name
 
         return servo
 
     @classmethod
-    def BackRightLift(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.BACK_RIGHT_LIFT.value
-        servo.position = position
-        servo.speed = speed
-        servo._type = ServoType.BACK_RIGHT_LIFT.name
+    def BackLift(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
 
-        return servo
+        servo1.id = ServoType.BACK_RIGHT_LIFT.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.BACK_RIGHT_LIFT.name
+
+        servo2.id = ServoType.BACK_LEFT_LIFT.value
+        servo2.position = 300 - position
+        servo2.speed = speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.BACK_LEFT_LIFT.name
+
+        return servo1, servo2
+    
+    @classmethod
+    def FrontSideGrip(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
+
+        servo1.id = ServoType.FRONT_RIGHT_GRIPPER.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.FRONT_RIGHT_GRIPPER.name
+
+        servo2.id = ServoType.FRONT_LEFT_GRIPPER.value
+        servo2.position = 180 - position
+        servo2.speed = speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.FRONT_LEFT_GRIPPER.name
+
+        return servo1, servo2
+    
+    @classmethod
+    def FrontCenterGrip(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
+
+        servo1.id = ServoType.FRONT_CENTER_RIGHT_GRIPPER.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.FRONT_CENTER_RIGHT_GRIPPER.name
+
+        servo2.id = ServoType.FRONT_CENTER_LEFT_GRIPPER.value
+        servo2.position = 180 - position
+        servo2.speed = speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.FRONT_CENTER_LEFT_GRIPPER.name
+
+        return servo1, servo2
 
     @classmethod
-    def BackLeftLift(cls, position:int, speed:int=100):
-        servo = cls()
-        servo.id = ServoType.BACK_LEFT_LIFT.value
-        servo.position = position
-        servo.speed = speed
-        servo._type = ServoType.BACK_LEFT_LIFT.name
+    def BackSideGrip(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
 
-        return servo
+        servo1.id = ServoType.BACK_RIGHT_GRIPPER.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.BACK_RIGHT_GRIPPER.name
+
+        servo2.id = ServoType.BACK_LEFT_GRIPPER.value
+        servo2.position = 180 - position
+        servo2.speed = speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.BACK_LEFT_GRIPPER.name
+
+        return servo1, servo2
+    
+    @classmethod
+    def FrontCenterGrip(cls, position:int, speed:int=100, activate_pose=Position()):
+        servo1 = cls()
+        servo2 = cls()
+
+        servo1.id = ServoType.BACK_CENTER_RIGHT_GRIPPER.value
+        servo1.position = position
+        servo1.speed = speed
+        servo1.activate_pose = activate_pose
+        servo1._type = ServoType.BACK_CENTER_RIGHT_GRIPPER.name
+
+        servo2.id = ServoType.BACK_CENTER_LEFT_GRIPPER.value
+        servo2.position = 180 - position
+        servo2.speed = speed
+        servo2.activate_pose = activate_pose
+        servo2._type = ServoType.BACK_CENTER_LEFT_GRIPPER.name
+
+        return servo1, servo2
+
+    
+
+    # @classmethod
+    # def BackLeftLift(cls, position:int, speed:int=100, activate_pose=Position()):
+    #     servo = cls()
+    #     servo.id = ServoType.BACK_LEFT_LIFT.value
+    #     servo.position = position
+    #     servo.speed = speed
+    #     servo.activate_pose = activate_pose
+    #     servo._type = ServoType.BACK_LEFT_LIFT.name
+
+    #     return servo
 
     

@@ -4,7 +4,7 @@ from threading import Thread, Event
 
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
-
+from robot_pkg.move import Position
 
 class ActuatorType(Enum):
     PUMP = 4
@@ -25,6 +25,8 @@ class I_O:
     def __init__(self):
         self.pin:int = 0
         self.on:bool = False
+        self.send_pose = Position()
+        self.sent = False
         self._type:str = None
 
     @classmethod
@@ -64,23 +66,26 @@ class I_O:
         I_O._inputs_logger.info("Input receiving thread stopped.")
     
     @classmethod
-    def Pump(cls, state:bool):
+    def Pump(cls, state:bool, send_pose:Position=Position()):
         pump = cls()
         pump.pin = ActuatorType.PUMP.value
         pump.state = state
+        pump.send_pose = send_pose
         pump._type = ActuatorType.PUMP.name
 
         return pump
 
     @classmethod
-    def Valve(cls, state:bool):
+    def Valve(cls, state:bool, send_pose:Position=Position()):
         valve = cls()
         valve.pin = ActuatorType.VALVE.value
         valve.state = state
+        valve.send_pose = send_pose
         valve._type = ActuatorType.VALVE.name
 
         return valve
     
     def _execute(self):
+        self.sent = True
         data = struct.pack('2B', self.pin, self.state)
         I_O.send_queue.append(data)

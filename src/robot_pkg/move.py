@@ -16,12 +16,31 @@ class MoveType(Enum):
     ROTATE_FOR = 6
     SPLINE = 7
 
+class Position:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.theta = 0
+    
+    def reset(self, x, y, theta):
+        self.x = x
+        self.y = y
+        self.theta = theta
+    
+    def __le__(self, other):
+        return self.x <= other.x and self.y <= other.y
+    
+    def __ge__(self, other):
+        return self.x >= other.x and self.y >= other.y
+
+
 class Move:
     _logger = log_handler.get_logger("move")
     _odom_logger = log_handler.get_logger("odom")
     _thread:Thread = None
     running:Event = Event()
     move_done:Event = Event()
+    pose = Position()
    
     def __init__(self):
         self.send_queue = None
@@ -49,6 +68,9 @@ class Move:
                 odom_msg = odom_queue.pop()
 
                 [x, y, theta, left, right, trans, ang, gyr_ang] = struct.unpack('8f', odom_msg.data)
+                Move.pose.x = x
+                Move.pose.y = y
+                Move.pose.theta = theta
 
                 Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}")
             
@@ -176,4 +198,5 @@ class Move:
         Move.move_done.wait()
 
         self.send_queue.append(self.data)
+
         Move.move_done.clear()

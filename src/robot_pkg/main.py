@@ -12,8 +12,6 @@ from robot_pkg.can_controller import CanNetwork
 can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
 can_handler.init_queues(10)
 
-from robot_pkg.odometry import OdometryHandler, Odometry
-
 from robot_pkg.servo import Servo
 from robot_pkg.move import Move
 from robot_pkg.io import I_O
@@ -26,14 +24,15 @@ def main_func():
     # Open can socket and start sending and receiving threads
     can_handler.start_threads()
 
-    # Start odometry listening thread and initial odometry
-    odom = OdometryHandler(Odometry(0.0, 0.0, 90*math.pi/180))
-    odom.start()
+    # # Start odometry listening thread and initial odometry
+    # odom = OdometryHandler(Odometry(0.0, 0.0, 90*math.pi/180))
+    # odom.start()
 
     Servo.start_threads()
     Move.start_threads()
     I_O.start_threads()
 
+    execute = None
     if len(sys.argv) > 1:
         strategy =  choose_strategy(sys.argv[1], sys.argv[2], sys.argv[3])
         if strategy is None:
@@ -70,12 +69,13 @@ def main_func():
         print("Cancelling")
         print("\n")
 
-    if execute.thread.is_alive():
+    if execute is not None and execute.thread.is_alive():
         execute.is_active = False
         execute.thread.join()
 
-    odom.stop()
     Servo.stop_threads()
+    Move.stop_threads()
+    I_O.stop_threads()
 
     can_handler.stop_threads()
 

@@ -1,8 +1,31 @@
 from collections.abc import Iterable
 from typing import Any
-from robot_pkg.data import Color, Square, Mood
+from enum import Enum
 from robot_pkg.step import Step
 from robot_pkg.conditions import ConditionType, Condition
+
+class Color(Enum):
+    BLUE   = 'blue'
+    YELLOW = 'yellow'
+
+    def __eq__(self, other:str):
+        return self.name.lower() == other
+
+class Square(Enum):
+    UPPER  = 'upper'
+    CENTER = 'center'
+    LOWER  = 'lower'
+
+    def __eq__(self, other:str):
+        return self.name.lower() == other
+
+
+class Mood(Enum):
+    PASSIVE   = 'passive'
+    AGGRESSIVE = 'aggressive'
+
+    def __eq__(self, other:str):
+        return self.name.lower() == other
 
 class Strategy:
     def __init__(self, color:str, square:str, mood:str):

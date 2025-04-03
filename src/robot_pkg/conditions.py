@@ -54,7 +54,7 @@ conditions = {
 
 class Condition:
 
-    def __init__(self, args:tuple): #_type, step_ID=None, value=None)
+    def __init__(self, args:tuple): 
         self.type = args[0]
         self.value = None
         self.ID = None
