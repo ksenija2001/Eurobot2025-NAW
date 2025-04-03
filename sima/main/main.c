@@ -6,7 +6,7 @@ Socket rpi_socket = {
     .tag = "RPi"
 };
 
-// I2C_Bus bus;
+I2C_Bus bus;
 // TOF tof = {
 //     .tag = "TOF"
 // };
