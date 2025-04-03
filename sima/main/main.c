@@ -6,18 +6,15 @@ Socket rpi_socket = {
     .tag = "RPi"
 };
 
-I2C_Bus bus;
-TOF tof = {
-    .tag = "TOF"
-};
-
-uint8_t buff[] = {0x7f, 0xff};
-uint8_t data = 254;
+// I2C_Bus bus;
+// TOF tof = {
+//     .tag = "TOF"
+// };
 
 void app_main(void)
 {
-    init_i2c_bus(&bus, GPIO_NUM_4, GPIO_NUM_5, 7);
-    init_tof(&tof, &bus, I2C_TOF_ADDRESS, GPIO_NUM_6);
+    // init_i2c_bus(&bus, GPIO_NUM_4, GPIO_NUM_5, 7);
+    // init_tof(&tof, &bus, I2C_TOF_ADDRESS, GPIO_NUM_6);
 
     // init_wifi(WIFI_SSID, WIFI_PASS);
     // init_socket(&rpi_socket);
