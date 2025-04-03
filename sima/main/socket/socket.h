@@ -29,7 +29,7 @@ typedef struct {
 void init_socket(Socket* sock);
 void socket_close(Socket* sock);
 
-void socket_connect(Socket* sock, char* host_ip, int port);
+void socket_connect(Socket* sock, const char* host_ip, const int port);
 
 void socket_recv(Socket* sock);
 void socket_tran(Socket* sock);

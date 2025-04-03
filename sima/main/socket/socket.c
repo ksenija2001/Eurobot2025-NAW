@@ -17,7 +17,7 @@ void init_socket(Socket* sock){
     sock->created = 1;
 }
 
-void socket_connect(Socket* sock, char* host_ip, int port){
+void socket_connect(Socket* sock, const char* host_ip, const int port){
     struct sockaddr_in dest_addr;
     inet_pton(AF_INET, host_ip, &dest_addr.sin_addr);
     dest_addr.sin_family = AF_INET;
