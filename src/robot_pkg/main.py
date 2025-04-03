@@ -14,7 +14,7 @@ can_handler.init_queues(10)
 
 from robot_pkg.servo import Servo
 from robot_pkg.move import Move
-from robot_pkg.io import I_O
+from robot_pkg.in_out import I_O
 from robot_pkg.utils import user_cmd,choose_strategy
 from robot_pkg.execute import Execute
 

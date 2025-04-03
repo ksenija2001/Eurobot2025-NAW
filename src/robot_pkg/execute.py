@@ -3,7 +3,7 @@ import time
 from robot_pkg.strategy import Strategy 
 from robot_pkg.servo import Servo
 from robot_pkg.move import Move, Position
-from robot_pkg.io import I_O, SensorType
+from robot_pkg.in_out import I_O, SensorType
 from robot_pkg.data import Variables
 from robot_pkg.conditions import ConditionType 
 
@@ -32,6 +32,7 @@ class Execute:
             # Empty step
             if step.movement is None and \
                 len(step.servos) == 0 and \
+                len(step.outputs) == 0 and \
                 len(step.conditions) <= 1:
 
                 next_step_id = None
@@ -83,9 +84,9 @@ class Execute:
                 elif ConditionType.TIMEOUT in checked and checked[ConditionType.TIMEOUT] != False:
                     print(f"Condition met TYPE: {ConditionType.TIMEOUT}")
                     next_step_id = checked[ConditionType.TIMEOUT]
-                    if not Servo.check_in_positions():
-                        # TODO check if it's a problem if not all servos are in position
-                        continue
+                    # if not Servo.check_in_positions():
+                    #     # TODO check if it's a problem if not all servos are in position
+                    #     continue
                 elif ConditionType.CINCH in checked and checked[ConditionType.CINCH] != False:
                     print(f"Condition met TYPE: {ConditionType.CINCH}")
                     next_step_id = checked[ConditionType.CINCH]

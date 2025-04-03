@@ -39,14 +39,20 @@ class Strategy:
         return self.color == other.color and self.square == other.square and self.mood == other.mood
 
     def __call__(self, ID=None, m=None, a:list=[], s:list=[], c:list[Condition]=[], p=0) -> Any:
-        if ConditionType.CINCH not in [cond_type for cond_type, id in c]:
+        if ConditionType.CINCH not in [cond_type for cond_type, _, _ in c]:
             if m != None:
                 c.append((ConditionType.POSITION,))
             
             if len(s) > 0:
                 c.append((ConditionType.SERVO,))
 
-        step = Step(ID, m, a, s, c, p)
+        servos = []
+        for servo in s:
+            if type(servo) is tuple:
+                servos.extend(servo)
+            else:
+                servos.append(servo)
+        step = Step(ID, m, a, servos, c, p)
         self.steps.append(step)
 
         c.clear() # conditions are cleared before next step

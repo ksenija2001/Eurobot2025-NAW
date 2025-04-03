@@ -1,9 +1,9 @@
 from robot_pkg.strategy import Strategy, Color, Square, Mood
 from robot_pkg.move import Move
-from robo_pkg.servo import Servo
-from robot_pkg.io import I_O
+from robot_pkg.servo import Servo
+from robot_pkg.in_out import I_O
 from robot_pkg.conditions import ConditionType
-from robot_pkg.play_elements import Area, MaterialStock
+# from robot_pkg.play_elements import Area, MaterialStock
 
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
@@ -17,6 +17,30 @@ strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PA
 #                   Servo.BucketSeparator(BucketSeparatorHome)],                  
 #           p = 5,
 #           c =[(ConditionType.CINCH, 1),])
+
+
+strategy1(s=[Servo.FrontSideGrip(0, 100), 
+             Servo.FrontGripLift(0, 10),
+             Servo.FrontVacuumLift(0, 10),
+             Servo.FrontVacuum(60, 10)]) #, c=[(ConditionType.TIMEOUT, None, 3),])
+strategy1(m=Move.Distance(200, 100, 100))
+strategy1(s=[Servo.FrontSideGrip(180, 100)])
+# strategy1(m=Move.Distance(50, 100, 100))
+
+strategy1(a=[I_O.Pump(1), 
+             I_O.Valve(1)])
+strategy1(s=[Servo.FrontVacuumLift(210, 10)])
+
+
+
+strategy1(s=[Servo.FrontVacuumLift(0, 10)])
+            
+
+
+# strategy1(s=[Servo.FrontVacuumLift(0, 100)])
+# strategy1(s=[Servo.FrontSideGrip(180, 100)])
+
+
 
 # strategy1(m=Move.Distance(100, 100, 100))
 

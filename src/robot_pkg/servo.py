@@ -17,21 +17,30 @@ class ServoType(Enum):
     CENTER_LIFT = 8    
     BACK_RIGHT_LIFT = 9  
     BACK_LEFT_LIFT = 10   
-    FRONT_RIGHT_GRIPPER = 11
-    FRONT_CENTER_RIGHT_GRIPPER = 12
-    FRONT_CENTER_LEFT_GRIPPER = 13
-    FRONT_LEFT_GRIPPER = 14
+    FRONT_RIGHT_GRIPPER = 11        # 0 - open, 180 - closed
+    FRONT_CENTER_RIGHT_GRIPPER = 12 # 0 - closed, 180 - open
+    FRONT_CENTER_LEFT_GRIPPER = 13  # 0 - open, 180 - closed
+    FRONT_LEFT_GRIPPER = 14         # 0 - closed, 180 - open
     BACK_RIGHT_GRIPPER = 15
     BACK_CENTER_RIGHT_GRIPPER = 16
     BACK_CENTER_LEFT_GRIPPER = 17
     BACK_LEFT_GRIPPER = 18
 
+def integer_list_to_byte(integer_list):
+    control_byte = 0
+    for element in integer_list:
+        control_byte += pow(2, element)
+    return control_byte
+
 class Servo:
     servo_list:list[int] = []
+    rc_servo_list:list[int] = []
     servo_thread:Thread = None
     running:Event = Event()
     servo_in_position:dict = {enum_item.value: True for enum_item in ServoType}
     send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value]
+    rc_send_queue = can_handler.msg_send_queues[IDs.SET_RC_SERVO_POSITIONS.value]
+
     logger = log_handler.get_logger("servo")
 
     def __init__(self):
@@ -45,8 +54,11 @@ class Servo:
         while not Servo.servo_in_position[self.id]:
             pass
 
-        Servo.servo_list.extend([self.id, self.position, self.speed])
-        Servo.servo_in_position[self.id] = False
+        if self.id <= 10:
+            Servo.servo_list.extend([self.id, self.position, self.speed])
+            Servo.servo_in_position[self.id] = False
+        else:
+            Servo.rc_servo_list.append((self.id, self.position))
     
     def check_in_position(self):
         return Servo.servo_in_position[self.id]
@@ -64,7 +76,7 @@ class Servo:
     @classmethod
     def send_positions(cls):
         if len(Servo.servo_list) > 0:
-            # Servo.logger.debug(f"Sending: {Servo.servo_list}")
+            Servo.logger.debug(f"Sending: {Servo.servo_list}")
             size = len(Servo.servo_list)//3
             Servo.servo_list.insert(0, size)
 
@@ -73,6 +85,19 @@ class Servo:
             Servo.send_queue.append(servo_msg)
 
             Servo.servo_list.clear()
+
+        if len(Servo.rc_servo_list) > 0:
+            byte_list = [0]*8
+            for id, position in Servo.rc_servo_list:
+                byte_list[id-11] = 1 if position > 0 else 0
+            byte = 0
+            for i in range(0,8):
+                byte += byte_list[i] << i
+            # byte_list = [bit for bit in range(0, 8) if bit+11 in Servo.rc_servo_list]
+            servo_msg = struct.pack('>B', byte)
+            print(servo_msg)
+            Servo.rc_send_queue.append(servo_msg)
+            time.sleep(0.5)
 
     @classmethod
     def _receive(cls, running:Event):
@@ -159,8 +184,8 @@ class Servo:
         servo1._type = ServoType.RIGHT_VACUUM.name
 
         servo2.id = ServoType.LEFT_VACUUM.value
-        servo2.position = position
-        servo2.speed = 300 - speed
+        servo2.position = 300 - position
+        servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.LEFT_VACUUM.name
 
@@ -183,13 +208,13 @@ class Servo:
         servo2 = cls()
 
         servo1.id = ServoType.RIGHT_GRIP_LIFT.value
-        servo1.position = position
+        servo1.position = 300 - position
         servo1.speed = speed
         servo1.activate_pose = activate_pose
         servo1._type = ServoType.RIGHT_GRIP_LIFT.name
 
         servo2.id = ServoType.LEFT_GRIP_LIFT.value
-        servo2.position = 300 - position
+        servo2.position = position
         servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.LEFT_GRIP_LIFT.name
@@ -306,7 +331,7 @@ class Servo:
         return servo1, servo2
     
     @classmethod
-    def FrontCenterGrip(cls, position:int, speed:int=100, activate_pose=Position()):
+    def BackCenterGrip(cls, position:int, speed:int=100, activate_pose=Position()):
         servo1 = cls()
         servo2 = cls()
 

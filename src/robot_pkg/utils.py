@@ -2,7 +2,8 @@ import time, datetime
 import os, glob, subprocess, argparse, sys
 from threading import Event
 
-from robot_pkg.step import Servo, ServoType, Move
+from robot_pkg.servo import Servo, ServoType
+from robot_pkg.move import Move
 from robot_pkg.consts import LOG_PATH, STRATEGIES_PATH
 from robot_pkg.consts import IDs
 
@@ -20,16 +21,16 @@ readline.parse_and_bind("tab: complete")
 readline.set_completer(completer)
 
 servo_dict = {
-    ServoType.BACK_LEFT_LIFT.value: Servo.BackLeftLift,
-    ServoType.BACK_RIGHT_LIFT.value: Servo.BackRightLift,
+    ServoType.BACK_LEFT_LIFT.value: Servo.BackLift,
     ServoType.CENTER_LIFT.value: Servo.CenterLift,
     ServoType.CENTER_SWING.value: Servo.CenterSwing,
-    ServoType.LEFT_GRIP_LIFT.value: Servo.LeftGripLift,
-    ServoType.LEFT_VACUUM.value: Servo.LeftVacuum,
-    ServoType.LEFT_VACUUM_LIFT.value: Servo.LeftVacuumLift,
-    ServoType.RIGHT_GRIP_LIFT.value: Servo.RightGripLift,
-    ServoType.RIGHT_VACUUM.value: Servo.RightVacuum,
-    ServoType.RIGHT_VACUUM_LIFT.value: Servo.RightVacuumLift
+    ServoType.LEFT_GRIP_LIFT.value: Servo.FrontGripLift,
+    ServoType.LEFT_VACUUM.value: Servo.FrontVacuum,
+    ServoType.LEFT_VACUUM_LIFT.value: Servo.FrontVacuumLift,
+    ServoType.BACK_CENTER_LEFT_GRIPPER.value: Servo.BackCenterGrip,
+    ServoType.FRONT_CENTER_LEFT_GRIPPER.value: Servo.FrontCenterGrip,
+    ServoType.BACK_LEFT_GRIPPER.value: Servo.BackSideGrip,
+    ServoType.FRONT_LEFT_GRIPPER.value: Servo.FrontSideGrip
 }
 
 def user_cmd(running:Event):

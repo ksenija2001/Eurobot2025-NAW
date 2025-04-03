@@ -20,7 +20,7 @@ class I_O:
     _thread:Thread = None
     running:Event = Event()
     sensor_states:dict = {enum_item.value: Event() for enum_item in SensorType}
-    send_queue = can_handler.msg_send_queues[IDs.SET_I_O.value]
+    send_queue = can_handler.msg_send_queues[IDs.SET_IO.value]
 
     def __init__(self):
         self.pin:int = 0
@@ -31,7 +31,7 @@ class I_O:
 
     @classmethod
     def _receive(cls, running:Event):
-        input_queue = can_handler.msg_receive_queues[IDs.GET_I_O.value]
+        input_queue = can_handler.msg_receive_queues[IDs.GET_IO.value]
         while running.is_set():
             if len(input_queue) > 0:
                 input_msg = input_queue.pop()
