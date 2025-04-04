@@ -29,14 +29,14 @@ class Execute:
             while step.ID != next_step_id:
                 step = self.steps.pop(0)
             
-            # Empty step
-            if step.movement is None and \
-                len(step.servos) == 0 and \
-                len(step.outputs) == 0 and \
-                len(step.conditions) <= 1:
+            # # Empty step
+            # if step.movement is None and \
+            #     len(step.servos) == 0 and \
+            #     len(step.outputs) == 0 and \
+            #     len(step.conditions) <= 1:
 
-                next_step_id = None
-                continue
+            #     next_step_id = None
+            #     continue
             
             print(f"Current step ID: {step.ID}")
             print(step.conditions)

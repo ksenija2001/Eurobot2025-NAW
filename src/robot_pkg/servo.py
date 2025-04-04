@@ -34,7 +34,7 @@ def integer_list_to_byte(integer_list):
 
 class Servo:
     servo_list:list[int] = []
-    rc_servo_list:list[int] = []
+    # rc_servo_list:list[int] = []
     servo_thread:Thread = None
     running:Event = Event()
     servo_in_position:dict = {enum_item.value: True for enum_item in ServoType}
@@ -47,19 +47,26 @@ class Servo:
         self.id = 0
         self.position = 0
         self.speed = 0
+        self.executed = False
         self.activate_pose = Position()
         self._type = None
     
     def _execute(self):
         while not Servo.servo_in_position[self.id]:
             pass
-
+        
+        self.executed = True
         if self.id <= 10:
             Servo.servo_list.extend([self.id, self.position, self.speed])
             Servo.servo_in_position[self.id] = False
         else:
-            Servo.rc_servo_list.append((self.id, self.position))
-    
+            data = [self.id, self.position]
+            servo_msg = struct.pack('2B', *data)
+            Servo.logger.debug(f"Sending: {data}")
+
+            Servo.rc_send_queue.append(servo_msg)
+            Servo.servo_in_position[self.id] = False
+
     def check_in_position(self):
         return Servo.servo_in_position[self.id]
 
@@ -86,18 +93,18 @@ class Servo:
 
             Servo.servo_list.clear()
 
-        if len(Servo.rc_servo_list) > 0:
-            byte_list = [0]*8
-            for id, position in Servo.rc_servo_list:
-                byte_list[id-11] = 1 if position > 0 else 0
-            byte = 0
-            for i in range(0,8):
-                byte += byte_list[i] << i
-            # byte_list = [bit for bit in range(0, 8) if bit+11 in Servo.rc_servo_list]
-            servo_msg = struct.pack('>B', byte)
-            print(servo_msg)
-            Servo.rc_send_queue.append(servo_msg)
-            time.sleep(0.5)
+        # if len(Servo.rc_servo_list) > 0:
+        #     byte_list = [0]*8
+        #     for id, position in Servo.rc_servo_list:
+        #         byte_list[id-11] = 1 if position > 0 else 0
+        #     byte = 0
+        #     for i in range(0,8):
+        #         byte += byte_list[i] << i
+        #     # byte_list = [bit for bit in range(0, 8) if bit+11 in Servo.rc_servo_list]
+        #     servo_msg = struct.pack('>B', byte)
+        #     print(servo_msg)
+        #     Servo.rc_send_queue.append(servo_msg)
+        #     time.sleep(0.5)
 
     @classmethod
     def _receive(cls, running:Event):
