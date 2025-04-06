@@ -25,26 +25,26 @@ esp_err_t i2c_device_alive(I2C_Bus* bus, uint16_t address){
     return i2c_master_probe(bus->bus_handle, address, 1000);
 }
 
-void i2c_send(I2C_Device* dev, uint16_t address, uint8_t* data, uint8_t len){
+void i2c_send(I2C_Device* dev, uint16_t address, uint8_t* data, uint16_t len){
+    i2c_master_transmit(dev->dev_handle, data, len, 100);
+}
+
+void i2c_sendByte(I2C_Device* dev, uint8_t* data){
+    i2c_master_transmit(dev->dev_handle, data, 1, 100);
+}
+
+void i2c_sendWord(I2C_Device* dev, uint8_t* data){
+    i2c_master_transmit(dev->dev_handle, data, 2, 100);
+}
+
+void i2c_receive(I2C_Device* dev, uint16_t address, uint8_t* data, uint16_t len){
 
 }
 
-void i2c_sendByte(I2C_Device* dev, uint16_t address, uint8_t data){
-
+void i2c_receiveByte(I2C_Device* dev, uint8_t* buff){
+    i2c_master_receive(dev->dev_handle, buff, 1, 100);
 }
 
-void i2c_sendWord(I2C_Device* dev, uint16_t address, uint16_t data){
-
-}
-
-void i2c_receive(I2C_Device* dev, uint16_t address, uint8_t* data, uint8_t len){
-
-}
-
-void i2c_receiveByte(I2C_Device* dev, uint16_t address, uint8_t* buff){
-
-}
-
-void i2c_receiveWord(I2C_Device* dev, uint16_t address, uint8_t* data){
-
+void i2c_receiveWord(I2C_Device* dev, uint8_t* buff){
+    i2c_master_receive(dev->dev_handle, buff, 2, 100);
 }

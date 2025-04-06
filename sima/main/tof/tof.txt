@@ -1,0 +1,56 @@
+# init
+
+VL53LMZ_Reset -> I2C pin reset
+VL53LMZ_Init:
+    # i2c initialization
+    vl53lmz_is_alive:
+        write 0x7fff 0x00
+        # 0x7fff important reg ?
+
+        read 0x00 -> dev ID
+        read 0x01 -> rev ID
+
+        write 0x7fff 0x02
+
+    vl53lmz_set_i2c_address:
+        write 0x7fff 0x00
+        write 0x0004 adress
+        write 0x7fff 0x02
+
+    vl53lmz_init:
+        Software reset
+        write 0x000E 0x01
+        Enable firmware access
+        Enable host access to G01
+        Power-on status
+        Wake-up MCU
+        Download firmware
+        Check firmware
+        Reset MCU
+
+
+#config
+
+VL53LMZ_Config
+vl53lmz_start_ranging
+
+# while
+
+VL53LMZ_Get_Distance
+ConvertDist2Point
+
+
+
+
+###########################
+
+Comments section
+
+write 0x7fff 0x00 -> START COMMUNICATION
+write 0x7fff 0x02 -> STOP COMMUNICATION
+
+Reg addresses:
+    0x7fff -> Control register ?
+    0x0004 -> I2C address
+
+###########################

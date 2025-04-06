@@ -1,7 +1,5 @@
 #include "main.h"
 
-#include "driver/i2c.h"
-
 Socket rpi_socket = {
     .tag = "RPi"
 };

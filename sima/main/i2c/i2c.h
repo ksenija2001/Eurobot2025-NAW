@@ -22,12 +22,12 @@ void init_i2c_device(I2C_Bus* bus, I2C_Device* dev, uint8_t dev_address, uint32_
 
 esp_err_t i2c_device_alive(I2C_Bus* bus, uint16_t address);
 
-void i2c_send(I2C_Device* dev, uint16_t address, uint8_t* data, uint8_t len);
-void i2c_sendByte(I2C_Device* dev, uint16_t address, uint8_t data);
-void i2c_sendWord(I2C_Device* dev, uint16_t address, uint16_t data);
+void i2c_send(I2C_Device* dev, uint16_t address, uint8_t* data, uint16_t len);
+void i2c_sendByte(I2C_Device* dev, uint8_t* data);
+void i2c_sendWord(I2C_Device* dev, uint8_t* data);
 
-void i2c_receive(I2C_Device* dev, uint16_t address, uint8_t* buff, uint8_t len);
-void i2c_receiveByte(I2C_Device* dev, uint16_t address, uint8_t* buff);
-void i2c_receiveWord(I2C_Device* dev, uint16_t address, uint8_t* buff);
+void i2c_receive(I2C_Device* dev, uint16_t address, uint8_t* buff, uint16_t len);
+void i2c_receiveByte(I2C_Device* dev, uint8_t* buff);
+void i2c_receiveWord(I2C_Device* dev, uint8_t* buff);
 
 #endif //I2C_H
