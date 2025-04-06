@@ -1,0 +1,26 @@
+/*
+ * quaternion.h
+ *
+ *  Created on: Apr 6, 2025
+ *      Author: filip
+ */
+
+#ifndef INC_QUATERNION_H_
+#define INC_QUATERNION_H_
+
+#include <math.h>
+
+typedef struct {
+    float w, x, y, z;
+} Quaternion;
+
+typedef struct {
+    float roll;
+    float pitch;
+    float yaw;
+} EulerAngles;
+
+
+
+
+#endif /* INC_QUATERNION_H_ */

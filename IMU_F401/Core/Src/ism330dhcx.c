@@ -26,7 +26,7 @@ ISM330DHCX_Status init_ISM330DHCX(ISM330DHCX *ism, uint8_t address, I2C_HandleTy
 	ism->address = address;
 	ism->i2c = i2c;
 
-	ism->timer_time = 0;
+	ism->timer_time = 0.005f;
 
 	// Read whoami
 	if(readReg(ism, ISM_REG_WHOAMI, &(ism->whoami)) != ISM_OK){
@@ -62,6 +62,8 @@ ISM330DHCX_Status init_ISM330DHCX(ISM330DHCX *ism, uint8_t address, I2C_HandleTy
 	if(setReg(ism, ISM_REG_CTRL3_C, 0x40, ISM_REG_MASK_BDU, ISM_ERROR_BDU) != ISM_OK){
 		return ism->lastStatus;
 	}
+
+	ism->data.gyroscope.quaternion = init_quaternion();
 
 	ism->initialized = 1;
 	return ism->lastStatus;
@@ -209,7 +211,7 @@ ISM330DHCX_Status get_Axies_Raw_Accelerometer(ISM330DHCX *ism){
  * @retval		ISM status
  */
 ISM330DHCX_Status get_Axies_All(ISM330DHCX *ism, float ms){
-	ism->timer_time = ms;
+	//ism->timer_time = ms;
 	get_Axies_Raw_All(ism);
 
 	if(ism->lastStatus == ISM_OK){
@@ -228,7 +230,7 @@ ISM330DHCX_Status get_Axies_All(ISM330DHCX *ism, float ms){
  * @retval 		ISM status
  */
 ISM330DHCX_Status get_Axies_Gyroscope(ISM330DHCX *ism, float ms){
-	ism->timer_time = ms;
+	//ism->timer_time = ms;
 
 	/* FINISH THIS !!! */
 
@@ -244,7 +246,7 @@ ISM330DHCX_Status get_Axies_Gyroscope(ISM330DHCX *ism, float ms){
  * @retval		ISM status
  */
 ISM330DHCX_Status get_Axies_Accelerometer(ISM330DHCX *ism, float ms){
-	ism->timer_time = ms;
+	//ism->timer_time = ms;
 
 	/* FINISH THIS ALSOOO !!! */
 
@@ -263,7 +265,7 @@ ISM330DHCX_Status convert_Raw(ISM330DHCX* ism, float ms){
 	Angle angle;
 	Acceleration acceleration;
 
-	ism->timer_time = ms;
+	//ism->timer_time = ms;
 
 	angle = convert_Raw_Gyroscope(ism, ms);
 	acceleration= convert_Raw_Accelerometer(ism, ms);
@@ -288,7 +290,7 @@ ISM330DHCX_Status convert_Raw(ISM330DHCX* ism, float ms){
  * @retval		ISM status
  */
 __weak Acceleration convert_Raw_Accelerometer(ISM330DHCX* ism, float ms){
-	ism->timer_time = ms;
+	//ism->timer_time = ms;
 
 	float x = (float) ism->data.accelerometer.raw.x * ISM_FS_ACC_2G_SENSITIVITY;
 	float y = (float) ism->data.accelerometer.raw.y * ISM_FS_ACC_2G_SENSITIVITY;
@@ -319,7 +321,7 @@ float getFABS(float val){
  * @retval		Angle structure of absolute angles {x,y,z}
  */
 __weak Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms){
-	ism->timer_time = ms;
+	//ism->timer_time = ms;
 
 	float x_angle = ((float) ism->data.gyroscope.raw.x) * ISM_FS_GYRO_250_SENSITIVITY * ms / 1000.0;
 	float y_angle = ((float) ism->data.gyroscope.raw.y) * ISM_FS_GYRO_250_SENSITIVITY * ms / 1000.0;
@@ -343,7 +345,7 @@ __weak Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms){
  * @retval		ISM status
  */
 __weak ISM330DHCX_Status ISM_INTERRUPT_TIMER(ISM330DHCX* ism, float ms){
-	ism->timer_time = ms;
+	//ism->timer_time = ms;
 	HAL_I2C_Mem_Read_DMA(ism->i2c, ism->address, ISM_REG_OUT, ISM_REG_SIZE, buffer, ISM_REG_OUT_SIZE);
 
 	return ISM_OK;
@@ -359,6 +361,16 @@ __weak ISM330DHCX_Status ISM_INTERRUPT_TIMER(ISM330DHCX* ism, float ms){
 __weak ISM330DHCX_Status ISM_INTERRUPT_DMA(ISM330DHCX* ism){
 	__get_Raw_All(ism, buffer);
 	convert_Raw(ism, ism->timer_time);
+
+	float gx = ((float) ism->data.gyroscope.raw.x) * ISM_FS_GYRO_250_SENSITIVITY / 1000.0;
+	float gy = ((float) ism->data.gyroscope.raw.y) * ISM_FS_GYRO_250_SENSITIVITY / 1000.0;
+	float gz = ((float) ism->data.gyroscope.raw.z) * ISM_FS_GYRO_250_SENSITIVITY / 1000.0;
+
+	if(getFABS(gx) < 4) gx = 0;
+	if(getFABS(gy) < 4) gy = 0;
+	if(getFABS(gz) < 4) gz = 0;
+
+	quaternion_update(&ism->data.gyroscope.quaternion, deg2rad(gx), deg2rad(gy), deg2rad(gz), ism->timer_time);
 
 	return ISM_OK;
 }

@@ -1,0 +1,82 @@
+/*
+ * quaternion.c
+ *
+ *  Created on: Apr 6, 2025
+ *      Author: filip
+ */
+
+#include "quaternion.h"
+
+// Initialize unit quaternion
+inline Quaternion init_quaternion(void) {
+    return (Quaternion){1.0f, 0.0f, 0.0f, 0.0f};
+}
+
+// Normalize quaternion
+void quaternion_normalize(Quaternion *q) {
+    float norm = sqrtf(q->w*q->w + q->x*q->x + q->y*q->y + q->z*q->z);
+    q->w /= norm;
+    q->x /= norm;
+    q->y /= norm;
+    q->z /= norm;
+}
+
+// Multiply q1 * q2
+Quaternion quaternion_multiply(Quaternion q1, Quaternion q2) {
+    return (Quaternion){
+        q1.w*q2.w - q1.x*q2.x - q1.y*q2.y - q1.z*q2.z,
+        q1.w*q2.x + q1.x*q2.w + q1.y*q2.z - q1.z*q2.y,
+        q1.w*q2.y - q1.x*q2.z + q1.y*q2.w + q1.z*q2.x,
+        q1.w*q2.z + q1.x*q2.y - q1.y*q2.x + q1.z*q2.w
+    };
+}
+
+// Update quaternion with gyro data (rad/s) and dt (s)
+void quaternion_update(Quaternion *q, float gx, float gy, float gz, float dt) {
+    float half_dt = 0.5f * dt;
+    Quaternion dq = {
+        0,
+        gx * half_dt,
+        gy * half_dt,
+        gz * half_dt
+    };
+    Quaternion delta = quaternion_multiply(*q, dq);
+
+    q->w += delta.w;
+    q->x += delta.x;
+    q->y += delta.y;
+    q->z += delta.z;
+
+    quat_normalize(q);
+}
+
+// Convert quaternion to Euler angles (radians)
+EulerAngles quaternion_to_euler(Quaternion q) {
+    EulerAngles angles;
+
+    // Roll (x-axis rotation)
+    float sinr = 2.0f * (q.w * q.x + q.y * q.z);
+    float cosr = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+    angles.roll = atan2f(sinr, cosr);
+
+    // Pitch (y-axis rotation)
+    float sinp = 2.0f * (q.w * q.y - q.z * q.x);
+    if (fabsf(sinp) >= 1)
+        angles.pitch = copysignf(M_PI / 2, sinp);
+    else
+        angles.pitch = asinf(sinp);
+
+    // Yaw (z-axis rotation)
+    float siny = 2.0f * (q.w * q.z + q.x * q.y);
+    float cosy = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+    angles.yaw = atan2f(siny, cosy);
+
+    return angles;
+}
+
+float rad2deg(float rad){
+	return deg * np.pi/180.0
+}
+float deg2rad(float deg){
+	return deg * np.pi/180.0;
+}

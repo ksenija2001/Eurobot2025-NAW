@@ -1,0 +1,32 @@
+/*
+ * quaternion.h
+ *
+ *  Created on: Apr 6, 2025
+ *      Author: filip
+ */
+
+#ifndef INC_QUATERNION_H_
+#define INC_QUATERNION_H_
+
+#include <math.h>
+
+typedef struct {
+    float w, x, y, z;
+} Quaternion;
+
+typedef struct {
+    float roll;
+    float pitch;
+    float yaw;
+} EulerAngles;
+
+extern inline Quaternion init_quaternion();
+extern void quaternion_normalize(Quaternion *q);
+extern Quaternion quaternion_multiply(Quaternion q1, Quaternion q2);
+extern void quaternion_update(Quaternion *q, float gx, float gy, float gz, float dt);
+extern EulerAngles quaternion_to_euler(Quaternion q);
+
+float rad2deg(float rad);
+float deg2rad(float deg);
+
+#endif /* INC_QUATERNION_H_ */

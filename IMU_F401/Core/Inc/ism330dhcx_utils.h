@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include "ism330dhcx_settings.h"
+#include "quaternion.h"
 
 typedef struct Raw{
 	int16_t x;
@@ -53,6 +54,7 @@ typedef struct Angle{
 typedef struct Gyroscope{
 	Raw   raw;
 	Angle angle;
+	Quaternion quaternion;
 }Gyroscope;
 
 typedef struct ISM330DHCX_Data{

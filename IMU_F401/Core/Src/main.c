@@ -51,7 +51,8 @@ ISM330DHCX ism = {0};
 uint8_t buff = 249;
 float dt = 0.005;
 
-float roll, pitch, yaw;
+EulerAngles angle;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -132,7 +133,6 @@ int main(void)
   status = set_Fullscale_Gyroscope(&ism, ISM_FS_GYRO_250);
   if(status != ISM_OK) Error_Handler();
 
-  roll = pitch = yaw = 0;
   HAL_Delay(100);
   /* USER CODE END 2 */
 
@@ -143,6 +143,7 @@ int main(void)
 
   while (1)
   {
+	  angle = quaternion_to_euler(ism.data.gyroscope.quaternion);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
