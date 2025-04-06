@@ -16,9 +16,10 @@ class Step:
         self.points = points
 
     def move(self):
-        if self.movement is not None:
+        if self.movement is not None and not self.movement.executed:
             print(f"Executing movement {self.movement._type}")
             self.movement._execute()
+            
 
     def output(self, curr_pose:Position=Position()):
         not_sent = [output for output in self.outputs if not output.sent]

@@ -45,8 +45,9 @@ class Move:
     def __init__(self):
         self.send_queue = None
         self.data:bytes 
+        self.executed = False
         self._type:str = ""
-
+        
     @classmethod
     def _receive(cls, running:Event):
         move_done_queue = can_handler.msg_receive_queues[IDs.GET_MOVE_DONE.value]
@@ -198,5 +199,6 @@ class Move:
         Move.move_done.wait()
 
         self.send_queue.append(self.data)
+        self.executed = True
 
         Move.move_done.clear()

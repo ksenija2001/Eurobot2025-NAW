@@ -26,11 +26,6 @@ class ServoType(Enum):
     BACK_CENTER_LEFT_GRIPPER = 17   # 0 - open, 180 - closed
     BACK_LEFT_GRIPPER = 18
 
-def integer_list_to_byte(integer_list):
-    control_byte = 0
-    for element in integer_list:
-        control_byte += pow(2, element)
-    return control_byte
 
 class Servo:
     servo_list:list[int] = []
@@ -40,7 +35,8 @@ class Servo:
     servo_in_position:dict = {enum_item.value: True for enum_item in ServoType}
     send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value]
     rc_send_queue = can_handler.msg_send_queues[IDs.SET_RC_SERVO_POSITIONS.value]
-
+    servo_positions:dict = {enum_item.value: 0 for enum_item in ServoType}
+    
     logger = log_handler.get_logger("servo")
 
     def __init__(self):
@@ -93,18 +89,6 @@ class Servo:
 
             Servo.servo_list.clear()
 
-        # if len(Servo.rc_servo_list) > 0:
-        #     byte_list = [0]*8
-        #     for id, position in Servo.rc_servo_list:
-        #         byte_list[id-11] = 1 if position > 0 else 0
-        #     byte = 0
-        #     for i in range(0,8):
-        #         byte += byte_list[i] << i
-        #     # byte_list = [bit for bit in range(0, 8) if bit+11 in Servo.rc_servo_list]
-        #     servo_msg = struct.pack('>B', byte)
-        #     print(servo_msg)
-        #     Servo.rc_send_queue.append(servo_msg)
-        #     time.sleep(0.5)
 
     @classmethod
     def _receive(cls, running:Event):
@@ -128,7 +112,8 @@ class Servo:
 
                 [id, angle_high, angle_low] = struct.unpack('3B', servo_msg.data)
                 angle = int.from_bytes([angle_high, angle_low])
-        
+
+                Servo.servo_positions[id] = angle
                 Servo.logger.info(f"Servo {id} position: {angle}")
 
             time.sleep(0.01)  # 10ms
@@ -248,7 +233,7 @@ class Servo:
         servo.activate_pose = activate_pose
         servo._type = ServoType.CENTER_SWING.name
 
-        return servo
+        return servo, None
 
     @classmethod
     def CenterLift(cls, position:int, speed:int=100, activate_pose=Position()):
@@ -259,7 +244,7 @@ class Servo:
         servo.activate_pose = activate_pose
         servo._type = ServoType.CENTER_LIFT.name
 
-        return servo
+        return servo, None
 
     @classmethod
     def BackLift(cls, position:int, speed:int=100, activate_pose=Position()):

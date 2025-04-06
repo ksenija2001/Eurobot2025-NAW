@@ -100,7 +100,8 @@ def user_cmd(running:Event):
                     servos = servo_dict[(int)(id)]((int)(position), (int)(speed))
 
                     for servo in servos:
-                        servo._execute()
+                        if servo is not None:
+                            servo._execute()
                 
                 Servo.send_positions()
 

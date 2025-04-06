@@ -29,20 +29,25 @@ class Execute:
             while step.ID != next_step_id:
                 step = self.steps.pop(0)
             
-            # # Empty step
-            # if step.movement is None and \
-            #     len(step.servos) == 0 and \
-            #     len(step.outputs) == 0 and \
-            #     len(step.conditions) <= 1:
-
-            #     next_step_id = None
-            #     continue
-            
             print(f"Current step ID: {step.ID}")
             print(step.conditions)
 
             start_time = time.time()
-            step.move()       # starts movement
+
+            # rc_servo_id = None
+            # for cond_tuple in step.conditions:
+            #     if ConditionType.SERVO_POSITION in cond_tuple:  
+            #         rc_servo_id = cond_tuple[2]
+            #         rc_servo_position = cond_tuple[3]
+            #         Servo.check_position(rc_servo_id)
+            #         time.sleep(0.1)
+            #         if rc_servo_position*0.95 < Servo.servo_positions[rc_servo_id] <= rc_servo_position*1.05:
+            #             break
+            #         else:
+            #             next_step_id = cond_tuple[1]
+
+            # Activate servos and send outputs based on current position
+            step.move()            # starts movement
             step.servo()  # activates servos that do not have a specified pose
             step.output() # sends outputs that do not have a specified pose
 
@@ -54,9 +59,11 @@ class Execute:
                 servo_in_pos = Servo.check_in_positions()
                 # print(f"Servo: {servo_in_pos}")
 
-                # Activate servos and send outputs based on current position
-                step.servo(curr_pose)
-                step.output(curr_pose)
+                 # Activate servos and send outputs based on current position
+                step.move()            # starts movement
+                step.servo(curr_pose)  # activates servos that do not have a specified pose
+                step.output(curr_pose) # sends outputs that do not have a specified pose
+
 
                 # if (self.front_detection.is_set() or self.back_detection.is_set()) and \
                 #     step.movement is not None and step.movement.type == MoveType.TO_XY and \
@@ -75,7 +82,6 @@ class Execute:
                 #     break
 
                 args = [start_time, time.time(), move_done, cinch, servo_in_pos] 
-
                 checked = {cond.type : cond.check(args) for cond in step.conditions}
               
                 if ConditionType.TIME in checked and checked[ConditionType.TIME] != False: 
@@ -105,12 +111,13 @@ class Execute:
                 elif len(step.conditions) == 0:
                     pass
                 else:
+                   
                     continue
                 
                 Variables.points += step.points
                 #self.display.setNumber(Variables.points)
                 # self.nucleo.set_motor_speed(0, 0, 2000)
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 print("-------------------------------")
 
                 if len(self.steps) == 0:

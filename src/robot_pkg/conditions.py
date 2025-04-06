@@ -4,13 +4,14 @@ import time
 
 
 class ConditionType(Enum):
-    TIMEOUT    = 0 
-    TIME       = 1
-    POSITION   = 2
-    END_SWITCH = 3
-    CINCH      = 4
-    DETECTION  = 5
-    SERVO      = 6
+    TIMEOUT    = 0      # Wait for defined amount of time, delay
+    TIME       = 1      # Check if match time has run out
+    POSITION   = 2      # Wait for movement to finish
+    END_SWITCH = 3      
+    CINCH      = 4      # Wait for cinch to be pulled 
+    DETECTION  = 5      # React to a detection
+    SERVO      = 6      # Wait for servo to finish moving
+    SERVO_POSITION = 7  # Check before step if servo is in last set position
 
 def timeout(timeout, args) -> bool:
     start_time = args[0]
