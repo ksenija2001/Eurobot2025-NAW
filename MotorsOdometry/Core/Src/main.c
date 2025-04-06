@@ -147,14 +147,14 @@ int main(void)
   HAL_Delay(2000);
   synthesis_init();
 
-  synthesis_start_distance(500, 1000, 2000);
-  while(synthesis_phase != -1);
-  synthesis_start_distance(50, 100, 100);
-  while(synthesis_phase != -1);
-  synthesis_start_distance(-500, 1000, 2000);
-  while(synthesis_phase != -1);
-  synthesis_start_distance(-50, 100, 100);
-  while(synthesis_phase != -1);
+//  synthesis_start_distance(500, 1000, 2000);
+//  while(synthesis_phase != -1);
+//  synthesis_start_distance(50, 100, 100);
+//  while(synthesis_phase != -1);
+//  synthesis_start_distance(-500, 1000, 2000);
+//  while(synthesis_phase != -1);
+//  synthesis_start_distance(-50, 100, 100);
+//  while(synthesis_phase != -1);
 
 //  synthesis_start_XY(0, 500, 'f', 1000, 2000, 50, 15);
 //  while(synthesis_phase != -1);
