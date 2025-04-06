@@ -8,16 +8,20 @@
 #ifndef INC_ISM330DHCX_UTILS_H_
 #define INC_ISM330DHCX_UTILS_H_
 
-#if defined(STM32F407xx) || defined(STM32F401xE)
+/*
+ * If needed user can include custom board or library
+ */
+#if defined(STM32F407xx) || defined(STM32F401xE) // || defined(CUSTOM_BOARD_F_SERIES)
 	#include "stm32f4xx_hal.h"
-#elif defined(STM32G431xx) || defined(STM32G441xx)
+#elif defined(STM32G431xx) || defined(STM32G441xx) // || defined(CUSTOM_BOARD_G_SERIES)
 	#include "stm32g4xx_hal.h"
 #else
-
+	// #include "custom_hal_library.h"
 #endif
 
 #include <stdint.h>
 #include "ism330dhcx_settings.h"
+#include "quaternion.h"
 
 typedef struct Raw{
 	int16_t x;
@@ -50,6 +54,7 @@ typedef struct Angle{
 typedef struct Gyroscope{
 	Raw   raw;
 	Angle angle;
+	Quaternion quaternion;
 }Gyroscope;
 
 typedef struct ISM330DHCX_Data{
@@ -65,10 +70,11 @@ typedef struct {
 	uint8_t address;
 
 	I2C_HandleTypeDef* i2c;
-	uint8_t user_convert;
 
 	ISM330DHCX_Status lastStatus;
 	ISM330DHCX_Data data;
+
+	float timer_time;
 } ISM330DHCX;
 
 ISM330DHCX_Status writeReg(ISM330DHCX *ism, uint8_t reg, uint8_t *data);

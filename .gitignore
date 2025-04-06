@@ -1,6 +1,6 @@
 # STM32CubeIDE
-*/.settings/
-*/.metadata/
-*/Debug/
+**/.settings/
+**/.metadata/
+**/Debug/
 
 .IMU_F401.bak

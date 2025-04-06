@@ -8,6 +8,11 @@
 #ifndef INC_ISM330DHCX_REGS_H_
 #define INC_ISM330DHCX_REGS_H_
 
+/*
+ * List of ISM330DHCX registers
+ */
+#define ISM_REG_SIZE 0x1
+#define ISM_REG_OUT_SIZE 0xC
 #define ISM_REG_WHOAMI 0x0f
 #define ISM_REG_DATA_WHOAMI 0x6b
 #define ISM_REG_STATUS 0x1e
@@ -47,5 +52,19 @@
 
 #define ISM_REG_OUTZ_L_A 0x2C
 #define ISM_REG_OUTZ_H_A 0x2D
+
+/*
+ * Masks for ISM330DHCX registers
+ */
+
+#define ISM_REG_MASK_BOOT 		 0x80
+#define ISM_REG_MASK_BDU		 0x40
+#define ISM_REG_MASK_SW_RESET	 0x01
+#define ISM_REG_MASK_DEVICE_CONF 0x02
+
+#define ISM_REG_MASK_ODR 		0xF0
+#define ISM_REG_MASK_FS_ACC  	0x0C
+#define ISM_REG_MASK_FS_GYRO	0x0F
+
 
 #endif /* INC_ISM330DHCX_REGS_H_ */

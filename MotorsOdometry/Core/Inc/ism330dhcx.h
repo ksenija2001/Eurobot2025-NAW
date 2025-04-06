@@ -35,10 +35,10 @@ ISM330DHCX_Status get_Axies_Accelerometer(ISM330DHCX *ism, float ms);
 
 ISM330DHCX_Status convert_Raw(ISM330DHCX* ism, float ms);
 
-Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms);
-Acceleration convert_Raw_Accelerometer(ISM330DHCX* ism, float ms);
+__weak Angle convert_Raw_Gyroscope(ISM330DHCX* ism, float ms);
+__weak Acceleration convert_Raw_Accelerometer(ISM330DHCX* ism, float ms);
 
-extern Angle (*user_convert_Raw_Gyroscope)(ISM330DHCX* ism, float ms);
-extern Acceleration (*user_convert_Raw_Accelerometer)(ISM330DHCX* ism, float ms);
+__weak ISM330DHCX_Status ISM_INTERRUPT_TIMER(ISM330DHCX* ism, float ms);
+__weak ISM330DHCX_Status ISM_INTERRUPT_DMA(ISM330DHCX* ism);
 
 #endif /* INC_ISM330DHCX_H_ */

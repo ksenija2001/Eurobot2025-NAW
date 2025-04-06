@@ -38,6 +38,10 @@ ISM330DHCX_Status readRegs(ISM330DHCX *ism, uint8_t reg, uint8_t *data, uint8_t 
 	return ISM_ERROR_READ;
 }
 
+/*
+ * @brief		Reseting and setting ISM registers
+ */
+
 ISM330DHCX_Status setReg(ISM330DHCX *ism, uint8_t reg, uint8_t bits, uint8_t mask, ISM330DHCX_Status error){
 	uint8_t buff;
 

@@ -5,12 +5,18 @@
  *      Author: filip
  */
 
-#if defined(STM32F407xx) || defined(STM32F401xE)
+#ifndef INC_ISM330DHCX_SETTINGS_H_
+#define INC_ISM330DHCX_SETTINGS_H_
+
+/*
+ * If needed user can include custom board or library
+ */
+#if defined(STM32F407xx) || defined(STM32F401xE) // || defined(CUSTOM_BOARD_F_SERIES)
 	#include "stm32f4xx_hal.h"
-#elif defined(STM32G431xx) || defined(STM32G441xx)
+#elif defined(STM32G431xx) || defined(STM32G441xx) // || defined(CUSTOM_BOARD_G_SERIES)
 	#include "stm32g4xx_hal.h"
 #else
-
+	// #include "custom_hal_library.h"
 #endif
 
 extern I2C_HandleTypeDef hi2c1;
@@ -31,12 +37,9 @@ extern DMA_HandleTypeDef hdma_i2c1_tx;
 
 #define ISM_ZERO_RATE_LEVEL_GYRO 4.0
 
-#ifndef INC_ISM330DHCX_SETTINGS_H_
-#define INC_ISM330DHCX_SETTINGS_H_
-
 typedef enum {
 	ISM_OK=0, ISM_ERROR=1, ISM_ERROR_WHOAMI, ISM_ERROR_SW,
-	ISM_ERROR_CONFIG_BIT, ISM_ERROR_BDU,
+	ISM_ERROR_NOT_INITIALIZED, ISM_ERROR_CONFIG_BIT, ISM_ERROR_BDU,
 	ISM_ERROR_FS_GYRO, ISM_ERROR_FS_ACC,
 	ISM_ERROR_ODR_GYRO, ISM_ERROR_ODR_ACC,
 	ISM_ERROR_READ, ISM_ERROR_WRITE, ISM_ERROR_SET_REG,
