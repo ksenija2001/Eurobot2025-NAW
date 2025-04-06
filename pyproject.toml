@@ -10,7 +10,8 @@ dependencies = [
     'pyyaml',
     'py_trees',
     'python-can',
-    'pigpio'
+    'pigpio',
+    'smbus'
 ]
 
 

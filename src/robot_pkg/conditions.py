@@ -4,7 +4,7 @@ import time
 
 
 class ConditionType(Enum):
-    TIMEOUT    = 0
+    TIMEOUT    = 0 
     TIME       = 1
     POSITION   = 2
     END_SWITCH = 3

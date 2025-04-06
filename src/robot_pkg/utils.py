@@ -97,8 +97,10 @@ def user_cmd(running:Event):
                     if speed == "":
                         break
 
-                    servo = servo_dict[(int)(id)]((int)(position), (int)(speed))
-                    servo._execute()
+                    servos = servo_dict[(int)(id)]((int)(position), (int)(speed))
+
+                    for servo in servos:
+                        servo._execute()
                 
                 Servo.send_positions()
 

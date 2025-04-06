@@ -21,14 +21,19 @@ strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PA
 # strategy1(s=[Servo.FrontVacuum(60, 10)])
 # strategy1(m=Move.Distance(-200, 100, 2000))
 
+# strategy1(s=[Servo.BackCenterGrip(50,10),
+#             Servo.BackSideGrip(130, 10),
+#             Servo.BackLift(250, 10)])
+
+
 strategy1(s=[Servo.FrontSideGrip(30, 100),
              Servo.FrontCenterGrip(150, 100),
              Servo.FrontGripLift(0, 50),
              Servo.FrontVacuumLift(0, 10),
              Servo.FrontVacuum(60, 100),
              Servo.CenterSwing(150, 10),
-             Servo.CenterLift(300, 10)]) #, c=[(ConditionType.TIMEOUT, None, 3),])
-strategy1(m=Move.Distance(100, 100, 100))
+             Servo.CenterLift(300, 10)],) #, c=[(ConditionType.TIMEOUT, None, 3),])
+# strategy1(m=Move.Distance(100, 100, 100))
 strategy1(s=[Servo.FrontSideGrip(90, 100),
              Servo.FrontCenterGrip(90, 100)])
 # strategy1(m=Move.Distance(50, 100, 100))

@@ -22,8 +22,8 @@ class ServoType(Enum):
     FRONT_CENTER_LEFT_GRIPPER = 13  # 0 - open, 180 - closed
     FRONT_LEFT_GRIPPER = 14         # 0 - closed, 180 - open
     BACK_RIGHT_GRIPPER = 15
-    BACK_CENTER_RIGHT_GRIPPER = 16
-    BACK_CENTER_LEFT_GRIPPER = 17
+    BACK_CENTER_RIGHT_GRIPPER = 16  # 0 - closed, 180 - open
+    BACK_CENTER_LEFT_GRIPPER = 17   # 0 - open, 180 - closed
     BACK_LEFT_GRIPPER = 18
 
 def integer_list_to_byte(integer_list):

@@ -3,7 +3,6 @@ from threading import Event, Thread
 
 paused:Event = Event()
 import time, sys
-import math
 
 from robot_pkg.logger import LogHandler
 log_handler = LogHandler()
@@ -17,9 +16,14 @@ from robot_pkg.move import Move
 from robot_pkg.in_out import I_O
 from robot_pkg.utils import user_cmd,choose_strategy
 from robot_pkg.execute import Execute
+from robot_pkg.battery import Battery
 
 def main_func():
     main_log = log_handler.get_logger("main")
+
+    battery = Battery()
+    battery_state = battery.read_voltage()
+    main_log.info(f"Voltage: {battery_state:.2f}")
 
     # Open can socket and start sending and receiving threads
     can_handler.start_threads()
