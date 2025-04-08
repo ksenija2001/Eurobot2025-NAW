@@ -34,22 +34,19 @@ class Execute:
 
             start_time = time.time()
 
-            # rc_servo_id = None
-            # for cond_tuple in step.conditions:
-            #     if ConditionType.SERVO_POSITION in cond_tuple:  
-            #         rc_servo_id = cond_tuple[2]
-            #         rc_servo_position = cond_tuple[3]
-            #         Servo.check_position(rc_servo_id)
-            #         time.sleep(0.1)
-            #         if rc_servo_position*0.95 < Servo.servo_positions[rc_servo_id] <= rc_servo_position*1.05:
-            #             break
-            #         else:
-            #             next_step_id = cond_tuple[1]
-
-            # Activate servos and send outputs based on current position
-            step.move()            # starts movement
-            step.servo()  # activates servos that do not have a specified pose
-            step.output() # sends outputs that do not have a specified pose
+            # Conditions that need to be checked before start of step
+            for cond in step.conditions:
+                if cond._type == ConditionType.SERVO_POSITION:  
+                    position = Servo.check_position(cond.servo_id)
+                    time.sleep(0.1)
+                    next_step_id = cond.check([None, None, None, None, None, position])
+                    if next_step_id != False:
+                        continue
+                         
+            # Activate servos and send outputs that do not depend on current position
+            step.move()    
+            step.servo()  
+            step.output() 
 
             # Waiting for end of step and checking conditions
             while self.running:
@@ -57,13 +54,10 @@ class Execute:
                 move_done = Move.move_done.is_set()
                 curr_pose = Move.pose
                 servo_in_pos = Servo.check_in_positions()
-                # print(f"Servo: {servo_in_pos}")
 
-                 # Activate servos and send outputs based on current position
-                step.move()            # starts movement
-                step.servo(curr_pose)  # activates servos that do not have a specified pose
-                step.output(curr_pose) # sends outputs that do not have a specified pose
-
+                # Activate servos and send outputs based on current position
+                step.servo(curr_pose)  
+                step.output(curr_pose) 
 
                 # if (self.front_detection.is_set() or self.back_detection.is_set()) and \
                 #     step.movement is not None and step.movement.type == MoveType.TO_XY and \
@@ -81,9 +75,10 @@ class Execute:
                 #     self.steps.insert(step, 0)
                 #     break
 
-                args = [start_time, time.time(), move_done, cinch, servo_in_pos] 
-                checked = {cond.type : cond.check(args) for cond in step.conditions}
+                args = [start_time, time.time(), move_done, cinch, servo_in_pos, None] 
+                checked = {cond._type : cond.check(args) for cond in step.conditions}
               
+                # Conditions that are continouosly checked during step execution
                 if ConditionType.TIME in checked and checked[ConditionType.TIME] != False: 
                     print(f"Condition met TYPE: {ConditionType.TIME}")
                     next_step_id = checked[ConditionType.TIME]  
@@ -111,7 +106,6 @@ class Execute:
                 elif len(step.conditions) == 0:
                     pass
                 else:
-                   
                     continue
                 
                 Variables.points += step.points

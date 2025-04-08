@@ -28,10 +28,6 @@ def main_func():
     # Open can socket and start sending and receiving threads
     can_handler.start_threads()
 
-    # # Start odometry listening thread and initial odometry
-    # odom = OdometryHandler(Odometry(0.0, 0.0, 90*math.pi/180))
-    # odom.start()
-
     Servo.start_threads()
     Move.start_threads()
     I_O.start_threads()

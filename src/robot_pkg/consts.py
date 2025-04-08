@@ -7,6 +7,8 @@ LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 CONFIG_PATH = os.path.join(ROOT_PATH, 'config')
 STRATEGIES_PATH = os.path.join(ROOT_PATH, 'strategies')
 
+START_TIME = 0
+
 class LIDAR_FOV:
     FRONT_DEPLOY = 500 
     FRONT_UNDEPLOY = 500

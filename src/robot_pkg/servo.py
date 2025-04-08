@@ -233,7 +233,7 @@ class Servo:
         servo.activate_pose = activate_pose
         servo._type = ServoType.CENTER_SWING.name
 
-        return servo, None
+        return servo
 
     @classmethod
     def CenterLift(cls, position:int, speed:int=100, activate_pose=Position()):
@@ -244,7 +244,7 @@ class Servo:
         servo.activate_pose = activate_pose
         servo._type = ServoType.CENTER_LIFT.name
 
-        return servo, None
+        return servo
 
     @classmethod
     def BackLift(cls, position:int, speed:int=100, activate_pose=Position()):

@@ -12,7 +12,7 @@ class Step:
         self.movement = movement
         self.outputs = outputs
         self.servos = servos
-        self.conditions = [Condition(cond) for cond in conditions]
+        self.conditions = conditions
         self.points = points
 
     def move(self):
