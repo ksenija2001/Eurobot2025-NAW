@@ -28,7 +28,7 @@ class Mood(Enum):
         return self.name.lower() == other
 
 class Strategy:
-    def __init__(self, color:str, square:str, mood:str):
+    def __init__(self, color:str="yellow", square:str="upper", mood:str="passive"):
         self.color  = Color(color).name
         self.square = Square(square).name
         self.mood   = Mood(mood).name
@@ -61,8 +61,8 @@ class Strategy:
             self.steps.append(step)
 
             c.clear() # conditions are cleared before next step
-            s.clear()
-            a.clear()
+            # s.clear()
+            # a.clear()
         else:
             task_steps[0].ID = ID
             self.steps.extend(task_steps)

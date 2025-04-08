@@ -17,6 +17,7 @@ from robot_pkg.in_out import I_O
 from robot_pkg.utils import user_cmd,choose_strategy
 from robot_pkg.execute import Execute
 from robot_pkg.battery import Battery
+from robot_pkg.consts import Variables
 
 def main_func():
     main_log = log_handler.get_logger("main")
@@ -40,8 +41,11 @@ def main_func():
 
         main_log.info(f"------ Strategy -------\n{strategy}")
 
+        Variables.match_start_time = time.time()
+
         execute = Execute(strategy)
         execute.start()
+
     else:
         main_log.info("Debug mode active")
 

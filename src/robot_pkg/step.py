@@ -7,12 +7,12 @@ from robot_pkg.move import Move, Position
 from robot_pkg.in_out import I_O
 
 class Step:
-    def __init__(self, ID, movement:Move, outputs:list[I_O], servos:list[Servo], conditions:list[tuple], points):
+    def __init__(self, ID, movement:Move, outputs:list[I_O], servos:list[Servo], conditions:list[Condition], points):
         self.ID = ID
         self.movement = movement
         self.outputs = outputs
         self.servos = servos
-        self.conditions = conditions
+        self.conditions = [cond for cond in conditions]  # needs to be copied because the list is cleared in step afterward
         self.points = points
 
     def move(self):

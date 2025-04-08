@@ -30,7 +30,7 @@ class Execute:
                 step = self.steps.pop(0)
             
             print(f"Current step ID: {step.ID}")
-            print(step.conditions)
+            print(f"Conditions: {step.conditions}")
 
             start_time = time.time()
 

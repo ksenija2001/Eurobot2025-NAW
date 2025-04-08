@@ -1,5 +1,5 @@
 from enum import Enum
-from robot_pkg.consts import START_TIME
+from robot_pkg.consts import Variables
 import time
 
 class ConditionType(Enum):
@@ -66,7 +66,7 @@ class Condition:
             args: step_start_time, current_time, move_done, cinch_state, servos_moving, servo_position
         '''
         if self._type == ConditionType.TIME:
-            if START_TIME + args[1] >= self.time:
+            if args[1] - Variables.match_start_time >= self.time:
                 return self.ID
         elif self._type == ConditionType.TIMEOUT:
             if args[1] - args[0] >= self.time:
@@ -76,7 +76,7 @@ class Condition:
                 return self.ID
         elif self._type == ConditionType.CINCH:
             if not args[3]:
-                START_TIME = time.time()  # sets the match start time
+                Variables.match_start_time = time.time()  # sets the match start time
                 return self.ID
         elif self._type == ConditionType.SERVO:
             if args[4]:
@@ -91,7 +91,7 @@ class Condition:
         # return False
     
     def __repr__(self):
-        return str(self._type) + " " + str(self.ID) + " " + str(self.value)
+        return str(self._type) + " " + str(self.ID) #+ " " + str(self.value)
 
     @classmethod
     def MatchTime(cls, step_id:int, time:int):

@@ -21,7 +21,7 @@ class ServoType(Enum):
     FRONT_CENTER_RIGHT_GRIPPER = 12 # 0 - closed, 180 - open
     FRONT_CENTER_LEFT_GRIPPER = 13  # 0 - open, 180 - closed
     FRONT_LEFT_GRIPPER = 14         # 0 - closed, 180 - open
-    BACK_RIGHT_GRIPPER = 15
+    BACK_RIGHT_GRIPPER = 15         
     BACK_CENTER_RIGHT_GRIPPER = 16  # 0 - closed, 180 - open
     BACK_CENTER_LEFT_GRIPPER = 17   # 0 - open, 180 - closed
     BACK_LEFT_GRIPPER = 18
@@ -309,13 +309,13 @@ class Servo:
         servo2 = cls()
 
         servo1.id = ServoType.BACK_RIGHT_GRIPPER.value
-        servo1.position = position
+        servo1.position =  position
         servo1.speed = speed
         servo1.activate_pose = activate_pose
         servo1._type = ServoType.BACK_RIGHT_GRIPPER.name
 
         servo2.id = ServoType.BACK_LEFT_GRIPPER.value
-        servo2.position = 180 - position
+        servo2.position = 180 -  position
         servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.BACK_LEFT_GRIPPER.name
