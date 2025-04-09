@@ -20,10 +20,15 @@ strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PA
 #           c =[(ConditionType.CINCH, 1),])
 
 
+# strategy1(a=[I_O.Pump(0), I_O.Valve(0)])  # Check why not continuing
 
-strategy1(task_steps=grip_back())
+# strategy1(task_steps=grip_back())
 strategy1(task_steps=init_front_servos())
-strategy1(task_steps=two_level())
+strategy1(task_steps=tree_and_one_level())
+
+strategy1(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100),
+         Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
+# strategy1(a=[I_O.Pump(1), I_O.Valve(1)])
 
 # strategy1(m=Move.ResetOdom(0, 0, 1.57))
 

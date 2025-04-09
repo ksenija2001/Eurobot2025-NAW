@@ -140,13 +140,13 @@ class Servo:
         servo2 = cls()
 
         servo1.id = ServoType.RIGHT_VACUUM_LIFT.value
-        servo1.position = position
+        servo1.position = 300 - position
         servo1.speed = speed
         servo1.activate_pose = activate_pose
         servo1._type = ServoType.RIGHT_VACUUM_LIFT.name
 
         servo2.id = ServoType.LEFT_VACUUM_LIFT.value
-        servo2.position = 300 - position
+        servo2.position = position
         servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.LEFT_VACUUM_LIFT.name
@@ -239,7 +239,7 @@ class Servo:
     def CenterLift(cls, position:int, speed:int=100, activate_pose=Position()):
         servo = cls()
         servo.id = ServoType.CENTER_LIFT.value
-        servo.position = position
+        servo.position = 300 - position
         servo.speed = speed
         servo.activate_pose = activate_pose
         servo._type = ServoType.CENTER_LIFT.name
@@ -290,13 +290,13 @@ class Servo:
         servo2 = cls()
 
         servo1.id = ServoType.FRONT_CENTER_RIGHT_GRIPPER.value
-        servo1.position = position
+        servo1.position = 180 - position
         servo1.speed = speed
         servo1.activate_pose = activate_pose
         servo1._type = ServoType.FRONT_CENTER_RIGHT_GRIPPER.name
 
         servo2.id = ServoType.FRONT_CENTER_LEFT_GRIPPER.value
-        servo2.position = 180 - position
+        servo2.position = position
         servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.FRONT_CENTER_LEFT_GRIPPER.name
