@@ -36,13 +36,21 @@ class Execute:
 
             # Conditions that need to be checked before start of step
             for cond in step.conditions:
-                if cond._type == ConditionType.SERVO_POSITION:  
-                    position = Servo.check_position(cond.servo_id)
-                    time.sleep(0.1)
-                    next_step_id = cond.check([None, None, None, None, None, position])
+                if cond._type == ConditionType.BACK:
+                    back_sensor_state = I_O.sensor_states[SensorType.BACK.value] 
+                    next_step_id = cond.check([None, None, None, None, None, None, back_sensor_state])
                     if next_step_id != False:
                         continue
-                         
+
+                if cond._type == ConditionType.FRONT:
+                    front_sensor_state = I_O.sensor_states[SensorType.FRONT_CENTER_LEFT.value] or \
+                                         I_O.sensor_states[SensorType.FRONT_LEFT.value] or \
+                                         I_O.sensor_states[SensorType.FRONT_CENTER_RIGHT.value] or \
+                                         I_O.sensor_states[SensorType.FRONT_RIGHT.value] 
+                    next_step_id = cond.check([None, None, None, None, None, front_sensor_state, None])
+                    if next_step_id != False:
+                        continue
+
             # Activate servos and send outputs that do not depend on current position
             step.move()    
             step.servo()  
@@ -50,7 +58,7 @@ class Execute:
 
             # Waiting for end of step and checking conditions
             while self.running:
-                cinch = I_O.sensor_states[SensorType.CINCH.value].is_set()
+                cinch = I_O.sensor_states[SensorType.CINCH.value]
                 move_done = Move.move_done.is_set()
                 curr_pose = Move.pose
                 servo_in_pos = Servo.check_in_positions()
@@ -75,11 +83,13 @@ class Execute:
                 #     self.steps.insert(step, 0)
                 #     break
 
-                args = [start_time, time.time(), move_done, cinch, servo_in_pos, None] 
+                args = [start_time, time.time(), move_done, cinch, servo_in_pos, None, None] 
                 checked = {cond._type : cond.check(args) for cond in step.conditions}
               
+                if len(step.conditions) == 0:
+                    pass
                 # Conditions that are continouosly checked during step execution
-                if ConditionType.TIME in checked and checked[ConditionType.TIME] != False: 
+                elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False: 
                     print(f"Condition met TYPE: {ConditionType.TIME}")
                     next_step_id = checked[ConditionType.TIME]  
                 elif ConditionType.TIMEOUT in checked and checked[ConditionType.TIMEOUT] != False:
@@ -91,6 +101,8 @@ class Execute:
                 elif ConditionType.CINCH in checked and checked[ConditionType.CINCH] != False:
                     print(f"Condition met TYPE: {ConditionType.CINCH}")
                     next_step_id = checked[ConditionType.CINCH]
+                # elif (ConditionType.FRONT in checked and checked[ConditionType.FRONT] != False) or \
+                #      (ConditionType.BACK in checked and checked[ConditionType.BACK] != False):
                 elif ConditionType.POSITION in checked and ConditionType.SERVO in checked:
                     if checked[ConditionType.POSITION] != False and checked[ConditionType.SERVO] != False:
                         print(f"Condition met TYPE: {ConditionType.POSITION} and {ConditionType.SERVO}")
@@ -103,8 +115,6 @@ class Execute:
                 elif ConditionType.SERVO in checked and checked[ConditionType.SERVO] != False:
                     print(f"Condition met TYPE: {ConditionType.SERVO}")
                     next_step_id = checked[ConditionType.SERVO]
-                elif len(step.conditions) == 0:
-                    pass
                 else:
                     continue
                 

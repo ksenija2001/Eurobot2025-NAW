@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from typing import Any
 from enum import Enum
 from robot_pkg.step import Step
+from robot_pkg.move import Move, MoveType
 from robot_pkg.conditions import ConditionType, Condition
 
 class Color(Enum):
@@ -38,18 +39,21 @@ class Strategy:
     def __eq__(self, other):
         return self.color == other.color and self.square == other.square and self.mood == other.mood
 
-    def __call__(self, sensors=None, task_steps:list=None, ID=None, m=None, a:list=[], s:list=[], c:list[Condition]=[], p=0) -> Any:
+    def __call__(self, sensors=None, task_steps:list=None, ID=None, m:Move=None, a:list=[], s:list=[], c:list[Condition]=[], p=0) -> Any:
         if task_steps is None:
             if ConditionType.CINCH not in [cond._type for cond in c]:
-                if m != None and ConditionType.POSITION not in [cond._type for cond in c]:
-                    c.append(Condition.InPosition(None))
-                
                 if len(s) > 0:
                     c.append(Condition.ServoMoving(None))
 
                 if ID != 100:
                     c.append(Condition.MatchTime(100, 96)) 
+                
+                if m != None and ConditionType.POSITION not in [cond._type for cond in c]:
+                    c.append(Condition.InPosition(None))
 
+                    if m._type == MoveType.RESET.name:
+                        c.clear()
+                
             servos = []
             for servo in s:
                 if type(servo) is tuple:

@@ -10,7 +10,8 @@ class ConditionType(Enum):
     CINCH      = 4      # Wait for cinch to be pulled 
     DETECTION  = 5      # React to a detection
     SERVO      = 6      # Wait for servo to finish moving
-    SERVO_POSITION = 7  # Check before step if servo is in last set position
+    FRONT      = 7      # Check if there are cans in the front
+    BACK       = 8      # Check if there are cans in the back
 
 # def timeout(timeout, args) -> bool:
 #     start_time = args[0]
@@ -63,7 +64,7 @@ class Condition:
 
     def check(self, args:list):
         '''
-            args: step_start_time, current_time, move_done, cinch_state, servos_moving, servo_position
+            args: step_start_time, current_time, move_done, cinch_state, servos_moving, front_sensor_state, back_sensor_state
         '''
         if self._type == ConditionType.TIME:
             if args[1] - Variables.match_start_time >= self.time:
@@ -81,10 +82,12 @@ class Condition:
         elif self._type == ConditionType.SERVO:
             if args[4]:
                 return self.ID
-        elif self._type == ConditionType.SERVO_POSITION:
-            if self.servo_position*0.95 >= args[5] or args[5] >= self.servo_position*1.05:
+        elif self._type == ConditionType.FRONT:
+            if not args[5]:
                 return self.ID
-        
+        elif self._type == ConditionType.BACK:
+            if not args[6]:
+                return self.ID
         return False
         # if conditions[self.type](self.value, args):
         #     return self.ID

@@ -17,10 +17,10 @@ class MoveType(Enum):
     SPLINE = 7
 
 class Position:
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.theta = 0
+    def __init__(self, x:float=0, y:float=0, theta:float=0):
+        self.x = x
+        self.y = y
+        self.theta = theta
     
     def reset(self, x, y, theta):
         self.x = x

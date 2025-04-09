@@ -52,6 +52,9 @@ def two_level():
          Servo.FrontSideGrip(30, 100),
          Servo.CenterLift(180, 10),
          Servo.FrontCenterGrip(150, 100)])
+    
+    return s.steps
+
 
 def tree_and_one_level():
     '''
@@ -78,9 +81,9 @@ def tree_and_one_level():
 
     s(m=Move.Distance(-150, 100, 100))
     s(m=Move.Rotate(3.14, 1, 1), 
-      s=[Servo.BackSideGrip(20, 100)])
+      s=[Servo.BackSideGrip(30, 100)])
     s(m=Move.Distance(-170, 100, 100))
-    s(s=[Servo.BackSideGrip(90, 100)])
+    s(s=[Servo.BackSideGrip(50, 100)])
     s(m=Move.Distance(150, 100, 100))
     s(m=Move.Rotate(3.14, 1, 1))
 
@@ -100,5 +103,83 @@ def tree_and_one_level():
 
     s(m=Move.Distance(-300, 100, 100))
 
+    return s.steps
+
+
+def level_lift():
+    '''
+        Lifts one or two levels on top of a one level.
+    '''
+    s= Strategy()
+
+    s(s=[Servo.BackCenterGrip(30, 100),
+             Servo.BackSideGrip(30, 100),
+             Servo.BackLift(300, 50)])
+
+    s(m=Move.Distance(-150, 100, 100))
+    s(s=[Servo.BackCenterGrip(50, 100),
+         Servo.BackSideGrip(50, 100)])
+
+    s(s=[Servo.BackLift(0, 30)])
+
+    s(m=Move.Distance(-150, 100, 100))
+    s(s=[Servo.BackCenterGrip(30, 100),
+         Servo.BackSideGrip(30, 100)])
+
+    s(m=Move.Distance(150, 100, 100))
+
+    return s.steps
+
+def all_grip():
+    s = Strategy()
+
+    s(s=[Servo.FrontSideGrip(50, 100),
+         Servo.FrontCenterGrip(130, 100),
+         Servo.BackCenterGrip(50, 100),
+         Servo.BackSideGrip(50, 100)])
+
+    return s.steps
+
+def grip_front():
+    s = Strategy()
+
+    s(s=[Servo.FrontSideGrip(50, 100),
+         Servo.FrontCenterGrip(130, 100)])
+
+    return s.steps
+
+def grip_back():
+    s = Strategy()
+
+    s(s=[Servo.BackCenterGrip(50, 100),
+         Servo.BackSideGrip(50, 100)])
+
+    return s.steps
+
+def all_open():
+    s = Strategy()
+
+    s(s=[Servo.FrontSideGrip(30, 100),
+         Servo.FrontCenterGrip(150, 100),
+         Servo.BackCenterGrip(30, 100),
+         Servo.BackSideGrip(40, 100)])
+
+    return s.steps
+
+def ungrip_back():
+    s = Strategy()
+
+    s(s=[Servo.BackCenterGrip(30, 100),
+         Servo.BackSideGrip(40, 100)])
+
+    return s.steps
+
+def ungrip_front():
+    s = Strategy()
+
+    s(s=[Servo.FrontSideGrip(30, 100),
+         Servo.FrontCenterGrip(150, 100)])
+
+    return s.steps
 
 

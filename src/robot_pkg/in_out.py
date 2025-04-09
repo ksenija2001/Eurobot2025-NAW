@@ -5,13 +5,19 @@ from threading import Thread, Event
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
 from robot_pkg.move import Position
+from robot_pkg.consts import Variables
 
 class ActuatorType(Enum):
     PUMP = 4
     VALVE = 3
 
 class SensorType(Enum):
-    CINCH = 0
+    CINCH = 7
+    FRONT_RIGHT = 3
+    FRONT_CENTER_RIGHT = 2
+    FRONT_CENTER_LEFT = 4
+    FRONT_LEFT = 5
+    BACK = 6
 
 
 class I_O:
@@ -19,7 +25,7 @@ class I_O:
     _inputs_logger = log_handler.get_logger("inputs")
     _thread:Thread = None
     running:Event = Event()
-    sensor_states:dict = {enum_item.value: Event() for enum_item in SensorType}
+    sensor_states:dict = {enum_item.value: False for enum_item in SensorType}
     send_queue = can_handler.msg_send_queues[IDs.SET_IO.value]
 
     def __init__(self):
@@ -39,14 +45,16 @@ class I_O:
                 [pin, state] = struct.unpack('2B', input_msg.data)
 
                 if state and pin in I_O.sensor_states:
-                    I_O.sensor_states[pin].set()
+                    I_O.sensor_states[pin] = True
                     I_O._inputs_logger.info(f"Input {pin} enabled")
                 elif pin in I_O.sensor_states:
-                    I_O.sensor_states[pin].clear()
+                    I_O.sensor_states[pin] = False
                     I_O._inputs_logger.info(f"Input {pin} disabled")
                 else:
                     I_O._inputs_logger.info(f"Input {pin} doesn't exist")
-                
+            
+            Variables.front_detection = any([state for pin, state in I_O.sensor_states.items() if pin in range(2, 6)])
+            
             time.sleep(0.01)  # 10ms
     
     @classmethod

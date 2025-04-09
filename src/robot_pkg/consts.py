@@ -11,6 +11,8 @@ STRATEGIES_PATH = os.path.join(ROOT_PATH, 'strategies')
 class Variables:
     match_start_time = float('inf')
     points = 0
+    front_detection = False
+    back_detection = False
     
 class LIDAR_FOV:
     FRONT_DEPLOY = 500 
