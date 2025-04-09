@@ -52,6 +52,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
+TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -72,6 +73,7 @@ static void MX_TIM8_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
+static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -118,6 +120,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM6_Init();
   MX_TIM7_Init();
+  MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 //  HAL_NVIC_SetPriority()
   FDCAN_Init(&hfdcan1);
@@ -135,10 +138,7 @@ int main(void)
 //  Enable_Torque(&huart1, 0x04, 0x01);
 
 //
-//  uint8_t ids[] = {0x02, 0x01};
-//  uint16_t angles[] = {100, 130};
-//  uint8_t speeds[] = {10, 10};
-//  Sync_Set_Goal_Position(&huart1, ids, angles, speeds, 2);
+
 //  Set_Moving_Speed(&huart1, 0x02, 10);
 //  Set_Moving_Speed(&huart1, 0x01, 10);
 //  HAL_Delay(1000);
@@ -176,15 +176,39 @@ int main(void)
   Init_RC_Servo(5, &htim8, TIM_CHANNEL_2);
   Init_RC_Servo(6, &htim8, TIM_CHANNEL_3);
   Init_RC_Servo(7, &htim8, TIM_CHANNEL_4);
+//
+//  HAL_Delay(2000);
+//
+//  Set_Target_Angle(5, 120);
+//
+//  HAL_Delay(2000);
+//
+//  Set_Target_Angle(5, 50);
 
-  HAL_Delay(5000);
 
-  Set_Target_Angle(2, 135);
+//  Set_Target_Angle(3, 180);
+//  Set_Target_Angle(2, 0);
+//  Set_Target_Angle(1, 180);
+//
+//  HAL_Delay(5000);
+//
+//  Set_Target_Angle(0, 180);
+//  Set_Target_Angle(3, 0);
+//  Set_Target_Angle(2, 180);
+//  Set_Target_Angle(1, 0);
 
-  HAL_Delay(5000);
 
-  Set_Target_Angle(2, 0);
-
+//  uint8_t ids[] = {0x03, 0x01};
+//  uint16_t angles[] = {300, 0};
+//  uint8_t speeds[] = {10, 10};
+//  Sync_Set_Goal_Position(&huart1, ids, angles, speeds, 2);
+//
+//  HAL_Delay(5000);
+//
+//  angles[0] = 0;
+//  angles[1] = 300;
+//
+//  Sync_Set_Goal_Position(&huart1, ids, angles, speeds, 2);
 
 
 
@@ -519,9 +543,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 287;
+  htim6.Init.Prescaler = 11;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 39999;
+  htim6.Init.Period = 59999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -662,6 +686,38 @@ static void MX_TIM8_Init(void)
 }
 
 /**
+  * @brief TIM16 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM16_Init(void)
+{
+
+  /* USER CODE BEGIN TIM16_Init 0 */
+
+  /* USER CODE END TIM16_Init 0 */
+
+  /* USER CODE BEGIN TIM16_Init 1 */
+
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 5;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = 47999;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM16_Init 2 */
+
+  /* USER CODE END TIM16_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -677,7 +733,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 57600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -724,7 +780,7 @@ static void MX_DMA_Init(void)
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel2_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
 }

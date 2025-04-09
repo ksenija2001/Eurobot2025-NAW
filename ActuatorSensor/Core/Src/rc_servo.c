@@ -29,6 +29,10 @@ void Set_Angle(uint8_t index, uint8_t angle){
 	__HAL_TIM_SET_COMPARE(rc_servos[index].TIM.tim, rc_servos[index].TIM.channel, duty);
 }
 
+uint16_t Get_Current_Angle(uint8_t index){
+	return rc_servos[index].curr_angle;
+}
+
 void Set_Target_Angle(uint8_t index, uint8_t angle){
 	rc_servos[index].target_angle = angle;
 	rc_servos[index].state = 0;
@@ -43,48 +47,36 @@ void Set_ADC_Channel(uint8_t index){
 // 1/(144MHz/4) * (24.5 + 12) = 1.01us conversion rate
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	float I = adc_output * mA_LSB;
+	if (adc_channel == 5 || adc_channel == 6) {
+		I /= 10;
+	}
 	rc_servos[adc_channel].curr_I = 0.999 * rc_servos[adc_channel].curr_I + 0.001 * I;
-//	rc_servos[adc_channel].curr_I *= (rc_servos[adc_channel].last_target_angle <= rc_servos[adc_channel].target_angle) ? 1 : -1;
 
 	switch (rc_servos[adc_channel].state){
 	case 0: // target changed
-		if (rc_servos[adc_channel].curr_I < I_MAX && (uint8_t)rc_servos[adc_channel].target_angle != (uint8_t)rc_servos[adc_channel].curr_angle){
+		rc_servos[adc_channel].state_cnt++;
+		if ((rc_servos[adc_channel].curr_I < I_MAX || rc_servos[adc_channel].state_cnt < 200) && (uint8_t)rc_servos[adc_channel].target_angle != (uint8_t)rc_servos[adc_channel].curr_angle){
 			rc_servos[adc_channel].curr_angle += (rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle) ? ANGLE_STEP : -ANGLE_STEP;
-			Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
+			// Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
 		} else if (rc_servos[adc_channel].curr_I >= I_MAX){
 			rc_servos[adc_channel].state = 1;
 		} else {
 			rc_servos[adc_channel].state = 2;
+			uint8_t msg[2] = {adc_channel+11, 1};
+			FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_2, 2, msg);
 		}
 		break;
 	case 1: // target reached by overcurrent
-		rc_servos[adc_channel].target_angle = rc_servos[adc_channel].curr_angle;
+//		rc_servos[adc_channel].target_angle = rc_servos[adc_channel].curr_angle;
 		rc_servos[adc_channel].state = 2;
+		uint8_t msg[2] = {adc_channel+11, 1};
+		FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_2, 2, msg);
 		break;
 	case 2: // target reached
+		rc_servos[adc_channel].state_cnt = 0;
 		rc_servos[adc_channel].curr_I = 0.0;
 		break;
 	}
-//	// Angle is increasing and current angle hasn't reached the target angle
-//	if((rc_servos[adc_channel].curr_I > 0 && rc_servos[adc_channel].curr_I < I_MAX) &&
-//		rc_servos[adc_channel].target_angle != rc_servos[adc_channel].curr_angle){
-//		rc_servos[adc_channel].curr_angle += ANGLE_STEP;
-//		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
-//	} // Angle is decreasing and current angle hasn't reached the target angle
-//	else if((rc_servos[adc_channel].curr_I > -I_MAX && rc_servos[adc_channel].curr_I < 0) &&
-//			rc_servos[adc_channel].target_angle != rc_servos[adc_channel].curr_angle){
-//			rc_servos[adc_channel].curr_angle -= ANGLE_STEP;
-//			Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
-//	}
-//	else if (rc_servos[adc_channel].curr_I > I_MAX){
-//		rc_servos[adc_channel].target_angle = rc_servos[adc_channel].curr_angle;
-////		rc_servos[adc_channel].curr_angle -= (rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle) ? ANGLE_STEP : -ANGLE_STEP;
-////		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
-//	}
-////	else if(rc_servos[adc_channel].curr_I > I_MAX && rc_servos[adc_channel].target_angle > rc_servos[adc_channel].curr_angle){
-////		rc_servos[adc_channel].curr_angle -= 0.01;
-////		Set_Angle(adc_channel, rc_servos[adc_channel].curr_angle);
-////	}
 
 	if (++adc_sample_num >= SAMPLE_NUM) {
 		adc_sample_num = 0;

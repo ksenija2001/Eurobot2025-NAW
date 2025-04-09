@@ -23,6 +23,7 @@ uint8_t receive_status = HAL_ERROR;
 uint8_t ids[10];
 uint16_t angles[10];
 uint8_t speeds[10];
+uint8_t servo_id;
 
 uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan)
 {
@@ -72,25 +73,33 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 				break;
 			case 0x531: // Get servo position
-				uint8_t id = RxData[0];
-				Get_Present_Position(&huart1, id);
-//				float left_diameter = Bytes2Float(RxData, 0);
-//				float right_diameter = Bytes2Float(RxData, 4);
-//				float track = Bytes2Float(RxData, 8);
+				servo_id = RxData[0];
+
+				if (servo_id <= 10)
+					Get_Present_Position(&huart1, servo_id);
+				else {
+					uint16_t angle = Get_Current_Angle(servo_id-11);
+					uint8_t msg[] = {servo_id, (uint8_t)((angle & 0xFF00) >> 8), (angle & 0x00FF)};
+					FDCAN_Send_Data(0x531, FDCAN_DLC_BYTES_3, 3, msg);
+				}
+
 				break;
 			case 0x532: // Set position for RC servos
-				uint8_t servo_states = RxData[0];
+				servo_id = RxData[0];
+				uint8_t position = RxData[1];
 
-				Set_Target_Angle(0, (servo_states & 0x01)*180);
-				Set_Target_Angle(1, (servo_states & 0x02)*180);
-				Set_Target_Angle(2, (servo_states & 0x04)*180);
-				Set_Target_Angle(3, (servo_states & 0x08)*180);
-				Set_Target_Angle(4, (servo_states & 0x10)*180);
-				Set_Target_Angle(5, (servo_states & 0x20)*180);
-				Set_Target_Angle(6, (servo_states & 0x40)*180);
-				Set_Target_Angle(7, (servo_states & 0x80)*180);
+				// IDs of RC servos start from 11, but indexing is from 0
+				if (position > 150) position = 150;
+				else if (position < 20) position = 20;
+
+				Set_Target_Angle(servo_id-11, position);
+				Set_Angle(servo_id-11, position);
 
 				break;
+			case 0x533:
+				servo_id = RxData[0];
+
+
 			case 0x690: // Enable/disable output pin
 				uint8_t output = RxData[0];
 				uint8_t state = RxData[1];

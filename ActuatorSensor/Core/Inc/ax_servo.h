@@ -55,6 +55,7 @@ void Get_Present_Speed(UART_HandleTypeDef* huart, uint8_t ID);
 void Get_Moving_Status(UART_HandleTypeDef* huart, uint8_t ID);
 void Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t ID, uint16_t angle);
 void Set_Moving_Speed(UART_HandleTypeDef* huart, uint8_t ID, uint8_t speed_percentage);
+void wait_RxState(UART_HandleTypeDef* huart);
 
 
 extern uint8_t rx_buffer[256];
