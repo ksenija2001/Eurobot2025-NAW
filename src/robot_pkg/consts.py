@@ -29,10 +29,11 @@ class ODOM_DATA:
 
 
 class IDs(Enum):
+    SET_LIDAR = 0x4C0
+    GET_LIDAR   = 0x4CF
+
     RESET_ODOM  = 0x4F0
     ODOM_CONFIG = 0x4F1
-
-    GET_ODOM = 0x4FF
 
     SET_MOTOR_SPEED  = 0x4D0
     SET_MOTOR_RPM    = 0x4D1
@@ -41,9 +42,10 @@ class IDs(Enum):
     SET_ROTATION_TO  = 0x4D4
     SET_XY           = 0x4D5
     SET_SPLINE       = 0x4D6
+    SET_STOP         = 0x4D7
 
     GET_MOTOR_SPEED = 0x4DF
-    GET_MOVE_DONE   = 0x4D7 #4DE
+    GET_MOVE_DONE   = 0x4DE
 
     SET_SERVO_POSITIONS = 0x530
     GET_SERVO_POSITIONS = 0x531
@@ -53,6 +55,9 @@ class IDs(Enum):
 
     SET_IO = 0x690
     GET_IO = 0x69F
+
+    GET_ODOM = 0x6FF
+
 
     @classmethod
     def has_key(cls, name):

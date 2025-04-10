@@ -15,6 +15,7 @@ class MoveType(Enum):
     ROTATE_TO = 5
     ROTATE_FOR = 6
     SPLINE = 7
+    STOP = 8
 
 class Position:
     def __init__(self, x:float=0, y:float=0, theta:float=0):
@@ -103,6 +104,18 @@ class Move:
         move.data = struct.pack('3f', x, y, theta)
         move.send_queue = can_handler.msg_send_queues[IDs.RESET_ODOM.value]
         move._type = MoveType.RESET.name
+
+        return move
+
+    @classmethod
+    def Stop(cls):
+        '''
+            Gives stop signal.
+        '''
+        move = cls()
+        move.data = struct.pack('B', 1)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_STOP.value]
+        move._type = MoveType.STOP.name
 
         return move
 

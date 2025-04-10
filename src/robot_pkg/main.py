@@ -11,6 +11,7 @@ from robot_pkg.can_controller import CanNetwork
 can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
 can_handler.init_queues(10)
 
+from robot_pkg.lidar import Lidar
 from robot_pkg.servo import Servo
 from robot_pkg.move import Move
 from robot_pkg.in_out import I_O
@@ -32,6 +33,7 @@ def main_func():
     Servo.start_threads()
     Move.start_threads()
     I_O.start_threads()
+    Lidar.start_threads()
 
     execute = None
     if len(sys.argv) > 1:
@@ -77,6 +79,7 @@ def main_func():
         execute.is_active = False
         execute.thread.join()
 
+    Lidar.stop_threads()
     Servo.stop_threads()
     Move.stop_threads()
     I_O.stop_threads()
