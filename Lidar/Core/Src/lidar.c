@@ -1,4 +1,4 @@
-#include <lidar.h>
+#include "lidar.h"
 
 uint8_t rx_buff[BUFFER_SIZE];
 uint8_t last_rx_buff[BUFFER_SIZE];
@@ -13,14 +13,24 @@ sDescriptor_t response_desc = {
 // Variables for parsing lidar express scan data
 sResponse_t response;
 sResponse_t last_response = {0};
-sCabin_t cabin;
-float_t angle_diff;
+//sCabin_t cabin;
+//float angle_diff;
 
 // Variables for lidar PWM control
 sPWM_t lidar_pwm = {
 		.ccr1 = 0,
 		.inc = 1
 };
+
+sVector3_t point_cloud[360];
+uint16_t pc_index = 0;
+sVector3_t last_point_cloud[360];
+uint16_t lpc_index = 0;
+
+// Odometry data
+sOdom_t opponent;
+sOdom_t self;
+
 
 // Debug variables
 sInfo_t lidar_info;
@@ -32,14 +42,16 @@ uint16_t typ_scan_mode = 3;   // typical scan mode is Sensitivity
 union U_F{
 	float f;
 	uint8_t u[4];
-} convert_theta1, convert_theta2, convert_distance1, convert_distance2;
+} convert_theta1, convert_theta2, convert_distance1, convert_distance2, convert_x, convert_y, convert_z;
 
-UART_HandleTypeDef *huart2_pc;
 
-uint8_t cabin_bytes[17];
-uint16_t distance;
+//UART_HandleTypeDef *huart2_pc;
+
+//uint8_t cabin_bytes[17];
 int8_t delta_theta;
 uint8_t u_delta_theta;
+uint16_t u_distance;
+float distance, theta;
 
 uint8_t front = 0, back = 0;
 uint32_t last_detection = 0;
@@ -72,6 +84,27 @@ uint32_t last_detection = 0;
 // 				 max_distance = 0x10m = 16m
 //               name = Stability
 
+void Lidar_Start(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim, UART_HandleTypeDef* huart){
+	  HAL_TIM_Base_Start_IT(parse_htim);   /* Timer for parsing LIDAR data*/
+
+	  Lidar_Get_Health(huart);
+	  Lidar_Motor_Speed(motor_htim, TIM_CHANNEL_1, 660, ramp_htim);
+	  Lidar_Stop(huart);
+	  Lidar_Get_Info(huart);
+	  Lidar_Get_Lidar_Conf(huart, 0x01, 0x04, 0x00);
+	  Lidar_Express_Scan(huart, 0x00); // Legacy Express Scan
+}
+
+void Lidar_Stop_All(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim,  UART_HandleTypeDef* huart){
+	Lidar_Stop(huart);
+
+    Lidar_Motor_Speed(motor_htim, TIM_CHANNEL_1, 0, ramp_htim);
+    Lidar_Motor_Stop(motor_htim, TIM_CHANNEL_1);
+    Lidar_Get_Health(huart);
+
+    HAL_TIM_Base_Stop_IT(parse_htim);
+}
+
 // Calculates XOR of all bytes in message to be sent to lidar
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start){
 	uint8_t crc = 0;
@@ -83,7 +116,7 @@ uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start){
 }
 
 // Nromalization of angles defined by rplidar protocol
-float_t Angle_Diff(float_t w1, float_t w2){
+float Angle_Diff(float w1, float w2){
 	if(w1 <= w2){
 		return w2 - w1;
 	} else {
@@ -187,8 +220,6 @@ void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TI
 
 	if(rpm == 0) lidar_pwm.ccr1 = 0;
 	lidar_pwm.inc = lidar_pwm.ccr1 > TIM3->CCR1 ? 1:-1;
-
-	//if(duty > 0.3) TIM3->CCR1 = round(PWM_ARR * 0.3);
 
 	// Increments rpm every 0.5ms for
 	HAL_TIM_Base_Start_IT(tim_ramp);
@@ -314,7 +345,7 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
 				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
-				response.start_angle = (float_t)((((uint16_t)(rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64);
+				response.start_angle = (float)((((uint16_t)(rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64);
 				response.S           = rx_buff[3] & 0x80;
 				uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
 				if(response.checksum != crc){
@@ -331,63 +362,45 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 
 				// information about the next start_angle is needed to calculate theta for this data response
 				if(last_response.sync != 0){
-					angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
+					float angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
 
 					// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
 					for(uint8_t i=4, k=1; i<response_desc.length; i=i+5, k=k+2){
 
 						// distance1 and theta1
-						distance = ( ((uint16_t)last_rx_buff[i+1] << 8) | (last_rx_buff[i] & 0xFC) ) >> 2;
-						cabin.distance1 = (float_t)distance;
+						u_distance = ( ((uint16_t)last_rx_buff[i+1] << 8) | (last_rx_buff[i] & 0xFC) ) >> 2;
+						distance = (float)u_distance;
 
 						u_delta_theta = ((last_rx_buff[i] & 0x03) << 4) | (last_rx_buff[i+4] & 0x0F);
 						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
 
-						cabin.theta1    = last_response.start_angle + ((angle_diff/32.0) * k) - (float_t)delta_theta / 8.0;
+						theta = last_response.start_angle + ((angle_diff/32.0) * k) - (float)delta_theta / 8.0;
+
+						Process_Distance(distance, theta);
 
 						// distance2 and theta2
-						distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
-						cabin.distance2 = (float_t)distance;
+						u_distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
+						distance = (float)u_distance;
 
 						u_delta_theta = ((last_rx_buff[i+2] & 0x03) << 4) | ((last_rx_buff[i+4] & 0xF0) >> 4);
 						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
 
-						cabin.theta2    = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float_t)delta_theta / 8.0;
+						theta = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float)delta_theta / 8.0;
 
-						if(cabin.theta1>360) cabin.theta1-=360;
-						if(cabin.theta2>360) cabin.theta2-=360;
-
-						if((cabin.theta1 > 0 && cabin.theta1 < 10 ) || (cabin.theta1 > 350 && cabin.theta1 < 0)){
-							if(cabin.distance1 < 300 && cabin.distance1 != 0){
-								front = 1;
-								last_detection = HAL_GetTick();
-							}
-						}
-
-						if((cabin.theta2 > 0 && cabin.theta2 < 10 ) || (cabin.theta2 > 350 && cabin.theta2 < 0)){
-							if(cabin.distance2 < 300 && cabin.distance2 != 0){
-								front = 1;
-								last_detection = HAL_GetTick();
-							}
-						}
-
-
-						// Debug info sent over UART
-//						Cabin_To_Bytes(cabin, cabin_bytes);
-//						HAL_UART_Transmit(huart2_pc, cabin_bytes, 17, 100);
+						Process_Distance(distance, theta);
 					}
 				}
 
-				if(front){
-					  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, 1);
-				}
-				else{
-					  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, 0);
-				}
-
-				if(HAL_GetTick() > last_detection + 150){
-					front = 0;
-				}
+//				if(front){
+//					  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, 1);
+//				}
+//				else{
+//					  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, 0);
+//				}
+//
+//				if(HAL_GetTick() > last_detection + 150){
+//					front = 0;
+//				}
 
 				last_response = response;
 				memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
@@ -398,6 +411,22 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				break;
 			}
 		}
+	}
+}
+
+void Point_Cloud_To_Bytes(sVector3_t pc[], uint16_t size, uint8_t* bytes){
+	bytes[0] = START;
+	for (uint16_t i=0; i<size; ++i){
+		convert_x.f = pc[i].vector[0];
+		convert_y.f = pc[i].vector[1];
+		convert_z.f = pc[i].vector[2];
+
+		for (uint8_t j=i*12+1; j<i+1+4; ++j){
+			bytes[j] = convert_x.u[j];
+			bytes[j+4] = convert_y.u[j];
+			bytes[j+8] = convert_z.u[j];
+		}
+
 	}
 }
 
@@ -418,24 +447,94 @@ void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes){
 
 }
 
+sVector3_t Process_Distance(float distance, float angle){
+	sVector3_t point;
 
-// Order of commands sent by SDK when using this lidar
-// GET_INFO - return 20 bytes
-// Unknown - 0xA5 0xFF 0x04 0x00 0x00 0x00 0x00 0x5E, no response
-// GET_INFO - retruns 20 bytes
-// GET_HEALTH - returns 3 bytes
-// GET_LIDAR_CONF weird - 0xA5 0x84 0x04 0x01 0x00 0x00 0x00 0x24
-// STOP
-// GET_INFO
-// GET_INFO
-// GET_LIDAR_CONF for Typical Scan Mode
-// STOP
-// GET_INFO
-// GET_LIDAR_CONF for Scan Mode us Per Sample - for scan mode returned in previous get lidar conf
-// GET_LIDAR_CONF for Scan Mode Max Distance - for scan mode returned in ||
-// GET_LIDAR_CONF for Scan Mode Ans Type - ||
-// GET_LIDAR_CONF for Scan Mode Name - ||
-// GET_LIDAR_CONF weird - 0xA5 0x84 0x04 0x01 0x00 0x00 0x00 0x24
-// EXPRESS_SCAN
+	// Normalize angle
+	if(angle>360) {
+//		Get_Opponent();  // TODO get opponent position periodically because LIDAR sends data every 10us
+		angle -= 360;
+	}
 
+	// Convert angle and distance to a point in global coordinate system
+	ConvertDist2Point((int16_t)angle, distance, self.x, self.y, self.theta, &point);
+	if (point.vector[0] <= 2950 || point.vector[0] >= 50 ||
+		point.vector[1] <= 1950 || point.vector[1] >= 50) {
+		// Point in bounds of table
+
+		point_cloud[pc_index++] = point;
+		// TODO how to save points to be able to search them easiliy for
+
+	} else if (point.vector[0] > 2950 || point.vector[0] <= 3050 ||
+			   point.vector[1] > 1950 || point.vector[1] <= 2050) {
+		// Point in region of beacons
+	}
+
+	return point;
+}
+
+float norm(sVector3_t a, sVector3_t b){
+	return sqrt((a.vector[0] - b.vector[0])*(a.vector[0] - b.vector[0]) + (a.vector[1] - b.vector[1])*(a.vector[1] - b.vector[1]));
+}
+
+
+void Get_Opponent(){
+	// Segment point cloud into groups of points
+	uint8_t i=0, j=0, k=0;
+
+	while (i < pc_index-1) {
+		sVector3_t pivot = point_cloud[i];
+
+		// Average close points
+		for (j=i+1; j < pc_index; ++j){
+			if (norm(pivot, point_cloud[j]) <= BEACON_SUPPORT_DIAMETER){
+				pivot.vector[0] = (pivot.vector[0] + point_cloud[j].vector[0])/2.0;
+				pivot.vector[1] = (pivot.vector[1] + point_cloud[j].vector[1])/2.0;
+			}
+		}
+
+		// Shift point cloud to the left to get rid of averaged points
+		point_cloud[i] = pivot;
+		pc_index -= j-i-1;
+		for (k=i+1; k < pc_index; ++k){
+			point_cloud[k] = point_cloud[k+(j-i-1)];
+		}
+
+		++i;
+	}
+
+	// Average first and last group if they are close enough
+	if (norm(point_cloud[0], point_cloud[pc_index-1]) <= BEACON_SUPPORT_DIAMETER){
+		point_cloud[0].vector[0] = (point_cloud[0].vector[0] + point_cloud[pc_index-1].vector[0])/2.0;
+		point_cloud[0].vector[1] = (point_cloud[0].vector[1] + point_cloud[pc_index-1].vector[1])/2.0;
+
+		pc_index -= 1;
+	}
+
+	sVector3_t new_op = point_cloud[0];
+	sVector3_t last_op = {.vector= {opponent.x, opponent.y, 400.0} };
+	float min = norm(last_op, new_op);
+	float dist;
+	for(i=1; i<pc_index; ++i){  // if there is only one candidate it will stay point_cloud[0]
+		dist = norm(last_op, point_cloud[i]);
+		if (dist < min){
+			new_op = point_cloud[i];
+			min = dist;
+		}
+	}
+
+	float dir = (new_op.vector[1] - self.y)/(new_op.vector[0] - self.x);
+	float theta = atan(dir);
+
+	// Filter last known opponent position and new estimate
+	opponent.x = 0.5*opponent.x + 0.5*(new_op.vector[0] + cos(theta)*42.5);  // max diameter = (70+100)/2 = 85/2 = 42.5
+	opponent.y = 0.5*opponent.y + 0.5*(new_op.vector[1] + sin(theta)*42.5);
+	opponent.theta = 0.5*opponent.theta + 0.5*theta;
+
+	// Reset point cloud
+//	memcpy(last_point_cloud, point_cloud, sizeof(point_cloud));
+//	lpc_index = pc_index;
+	memset(point_cloud, 0, sizeof(point_cloud));
+	pc_index = 0;
+}
 

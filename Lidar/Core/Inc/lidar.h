@@ -8,6 +8,10 @@
 #include <math.h>
 #include "stm32g4xx_hal.h"
 #include "dma.h"
+#include "vector.h"
+#include "point_cloud.h"
+#include "svd.h"
+
 
 #define BUFFER_SIZE 84
 #define PWM_ARR 5759
@@ -29,6 +33,15 @@
 
 // Response packet
 #define START2         0x5A
+
+// Opponent robot
+#define BEACON_SUPPORT_DIAMETER 70  // mm
+
+typedef struct {
+	float x;
+	float y;
+	float theta;
+} sOdom_t;
 
 // Response descriptor struct
 typedef struct {
@@ -65,21 +78,25 @@ typedef struct{
 typedef struct{
 	uint8_t sync;          // identifies the start of a new response packet - 0xA5
 	uint8_t checksum;      // XOR of all data bytes in response packet
-	float_t start_angle;  // reference value for the angle data in current response packet
+	float start_angle;  // reference value for the angle data in current response packet
 	uint8_t S;             // start flag of new scan
 } sResponse_t;
 
 typedef struct{
-	float_t distance1;
-	float_t distance2;
-	float_t theta1;
-	float_t theta2;
+	float distance1;
+	float distance2;
+	float theta1;
+	float theta2;
 } sCabin_t;
 
 typedef struct{
 	uint16_t ccr1;
 	int8_t inc;
 } sPWM_t;
+
+// Start/Stop lidar
+void Lidar_Start(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim, UART_HandleTypeDef* huart);
+void Lidar_Stop_All(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim,  UART_HandleTypeDef* huart);
 
 // Commands without response
 void Lidar_Stop(UART_HandleTypeDef *huart);
@@ -99,11 +116,17 @@ void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
 void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_rpm);
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
 void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes);
-
+sVector3_t Process_Distance(float distance, float angle);
+void Get_Opponent();
 void TIM6_IT(TIM_HandleTypeDef *tim);
 void TIM7_IT(TIM_HandleTypeDef *tim);
 
+void Point_Cloud_To_Bytes(sVector3_t pc[], uint16_t size, uint8_t* bytes);
+
 extern uint8_t rx_buff[BUFFER_SIZE];
 extern sDescriptor_t response_desc;
+extern sVector3_t point_cloud[360];
+extern sVector3_t last_point_cloud[360];
+extern sOdom_t self;
 
 #endif /* INC_LIDAR_H_ */
