@@ -60,7 +60,7 @@ void Vector_Rotate(sVector3_t* a, float roll, float pitch, float yaw){
 	float z = a->vector[2];
 	a->vector[0] =  x*cos(pitch)*cos(yaw) + y*(sin(roll)*sin(pitch)*cos(yaw) - cos(roll)*sin(yaw)) + z*(cos(roll)*sin(pitch)*cos(yaw) + sin(roll)*sin(yaw));
 	a->vector[1] =  x*cos(pitch)*sin(yaw) + y*(sin(roll)*sin(pitch)*sin(yaw) + cos(roll)*cos(yaw)) + z*(cos(roll)*sin(pitch)*sin(yaw) - sin(roll)*cos(yaw));
-	a->vector[2] = -x*sin(pitch)          + y*sin(roll)*cos(pitch)                                 + z*cos(roll)*cos(pitch);
+	a->vector[2] =  -x*sin(pitch)          + y*sin(roll)*cos(pitch)                                 + z*cos(roll)*cos(pitch);
 }
 
 void Vector_Translate(sVector3_t* a, float x, float y, float z){

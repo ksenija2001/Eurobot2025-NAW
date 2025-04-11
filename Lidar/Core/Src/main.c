@@ -50,12 +50,14 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim16;
+TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
+uint8_t start_lidar;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,6 +70,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_TIM16_Init(void);
+static void MX_TIM17_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -112,6 +115,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   MX_TIM16_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
   FDCAN_Init(&hfdcan1);
 
@@ -128,16 +132,55 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t started = 0;
 
-//  uint32_t milis = HAL_GetTick();
   while (1)
   {
-//    if(HAL_GetTick() - milis > 10000) break;
-//
-//	if(HAL_UART_GetError(&huart2) != HAL_OK){
-//		uint32_t error = HAL_UART_GetError(&huart2);
-//		break;
-//	}
+	  if ( start_lidar && !started){
+		  started = 1;
+		  Lidar_Start(&htim3, &htim6, &htim7, &huart2);
+	  } else if ( !start_lidar && started){
+		  started = 0;
+		  Lidar_Stop_All(&htim3, &htim6, &htim7, &huart2);
+	  }
+
+	  if (send_status == HAL_OK)
+	  {
+		send_status = HAL_ERROR;
+		HAL_GPIO_TogglePin(LED_CAN_TX_GPIO_Port, LED_CAN_TX_Pin);
+	  }
+	  else
+	  {
+		HAL_GPIO_WritePin(LED_CAN_TX_GPIO_Port, LED_CAN_TX_Pin, GPIO_PIN_RESET);
+	  }
+
+	  if (receive_status == HAL_OK)
+	  {
+		receive_status = HAL_ERROR;
+		HAL_GPIO_TogglePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin);
+	  }
+	  else
+	  {
+		HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_RESET);
+	  }
+
+	  if (express_scan_status){
+		HAL_GPIO_WritePin(GPIOB, LED_G_Pin, GPIO_PIN_SET);
+		express_scan_status = 0;
+	  } else {
+		HAL_GPIO_WritePin(GPIOB, LED_G_Pin, GPIO_PIN_RESET);
+	  }
+
+	  if (proccessing_status){
+		  HAL_GPIO_WritePin(GPIOB, LED_R_Pin, GPIO_PIN_SET);
+		  proccessing_status = 0;
+	  } else {
+		HAL_GPIO_WritePin(GPIOB, LED_R_Pin, GPIO_PIN_RESET);
+	  }
+
+
+	  HAL_Delay(50);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -168,7 +211,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-  RCC_OscInitStruct.PLL.PLLN = 9;
+  RCC_OscInitStruct.PLL.PLLN = 18;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -186,7 +229,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -301,9 +344,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 2;
+  htim6.Init.Prescaler = 1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 11999;
+  htim6.Init.Period = 35999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -375,9 +418,9 @@ static void MX_TIM16_Init(void)
 
   /* USER CODE END TIM16_Init 1 */
   htim16.Instance = TIM16;
-  htim16.Init.Prescaler = 575;
+  htim16.Init.Prescaler = 287;
   htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim16.Init.Period = 62499;
+  htim16.Init.Period = 45999;
   htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim16.Init.RepetitionCounter = 0;
   htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -388,6 +431,38 @@ static void MX_TIM16_Init(void)
   /* USER CODE BEGIN TIM16_Init 2 */
 
   /* USER CODE END TIM16_Init 2 */
+
+}
+
+/**
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
+
+  /* USER CODE BEGIN TIM17_Init 0 */
+
+  /* USER CODE END TIM17_Init 0 */
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  htim17.Instance = TIM17;
+  htim17.Init.Prescaler = 2;
+  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim17.Init.Period = 47999;
+  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim17.Init.RepetitionCounter = 0;
+  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
 
 }
 
@@ -473,13 +548,9 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED_R_Pin|LED_G_Pin|LED_B_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ERROR_Out_GPIO_Port, ERROR_Out_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, LED_CAN_RX_Pin|LED_CAN_TX_Pin, GPIO_PIN_RESET);
@@ -496,19 +567,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ERROR_In_Pin */
-  GPIO_InitStruct.Pin = ERROR_In_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(ERROR_In_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ERROR_Out_Pin */
-  GPIO_InitStruct.Pin = ERROR_Out_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(ERROR_Out_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_CAN_RX_Pin LED_CAN_TX_Pin */
   GPIO_InitStruct.Pin = LED_CAN_RX_Pin|LED_CAN_TX_Pin;

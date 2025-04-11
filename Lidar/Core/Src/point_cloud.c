@@ -31,12 +31,12 @@ double deg2rad(double deg){
 
 void ConvertDist2Point(int16_t angle, float_t distance, float rx, float ry, float rtheta, sVector3_t* point){
 	if (distance > 0) {
-		point->vector[0] = distance * cos(deg2rad(angle));
-		point->vector[1] = distance * sin(deg2rad(angle));
+		point->vector[0] = distance * sin(deg2rad(angle));
+		point->vector[1] = distance * cos(deg2rad(angle));
 		point->vector[2] = 0.0;
 
 		/* Rotate point to global coordinate system rotation */
-		Vector_Rotate(point, M_PI, 0.0, M_PI_2 - rtheta);
+		Vector_Rotate(point, M_PI, 0.0, -M_PI_2 - rtheta);
 
 		/* Translate point to global coordinate system */
 		Vector_Translate(point, rx, ry, 400.0);

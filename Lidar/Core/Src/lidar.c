@@ -1,5 +1,7 @@
 #include "lidar.h"
 
+extern TIM_HandleTypeDef htim17;
+
 uint8_t rx_buff[BUFFER_SIZE];
 uint8_t last_rx_buff[BUFFER_SIZE];
 
@@ -22,7 +24,12 @@ sPWM_t lidar_pwm = {
 		.inc = 1
 };
 
-sVector3_t point_cloud[360];
+float distances[360];
+float xs[360];
+float ys[360];
+float zs[360];
+
+sVector3_t point_cloud[400];
 uint16_t pc_index = 0;
 sVector3_t last_point_cloud[360];
 uint16_t lpc_index = 0;
@@ -42,7 +49,7 @@ uint16_t typ_scan_mode = 3;   // typical scan mode is Sensitivity
 union U_F{
 	float f;
 	uint8_t u[4];
-} convert_theta1, convert_theta2, convert_distance1, convert_distance2, convert_x, convert_y, convert_z;
+} convert_theta1, convert_theta2, convert_distance1, convert_distance2, convert_x, convert_y, convert_z, convert_t;
 
 
 //UART_HandleTypeDef *huart2_pc;
@@ -55,6 +62,9 @@ float distance, theta;
 
 uint8_t front = 0, back = 0;
 uint32_t last_detection = 0;
+
+uint8_t express_scan_status = 0;
+uint8_t proccessing_status = 0;
 
 
 // Since Sensitivity utilizes ultra capsulated data format - which is hard to decode, scan mode 1 will be used
@@ -83,6 +93,24 @@ uint32_t last_detection = 0;
 // 				 answer_type = 0x84 // ultra capsulated
 // 				 max_distance = 0x10m = 16m
 //               name = Stability
+
+void Timer_Delay(uint16_t count){
+	uint16_t i=0;
+
+	// 1ms interrupt
+	HAL_TIM_Base_Start_IT(&htim17);
+
+	while(i < count){
+		if((TIM17->SR & 0x02) >> 1){
+			TIM17->SR &= ~(0x02);
+			TIM17->CNT = 0;
+			++i;
+
+		}
+	}
+
+	HAL_TIM_Base_Stop_IT(&htim17);
+}
 
 void Lidar_Start(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim, UART_HandleTypeDef* huart){
 	  HAL_TIM_Base_Start_IT(parse_htim);   /* Timer for parsing LIDAR data*/
@@ -131,6 +159,7 @@ void Lidar_Stop(UART_HandleTypeDef *huart){
 	// No response exists for this command, host system should wait for at least 1ms before sending another request
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 
+//	Timer_Delay(1);
 	HAL_Delay(1);
 }
 
@@ -140,6 +169,8 @@ void Lidar_Reset(UART_HandleTypeDef *huart){
 
 	// No response exists for this command, host system should wait for at least 10ms before sending another request
 	HAL_UART_Transmit_DMA(huart, msg, 2);
+
+//	Timer_Delay(10);
 
 	HAL_Delay(10);
 }
@@ -151,6 +182,8 @@ void Lidar_Unknown(UART_HandleTypeDef *huart){
 	// No response exists for this command, host system should wait for at least 10ms before sending another request
 	HAL_UART_Transmit_DMA(huart, msg, 8);
 
+//	Timer_Delay(1);
+
 	HAL_Delay(1);
 }
 
@@ -160,6 +193,8 @@ void Lidar_Get_Health(UART_HandleTypeDef *huart){
 
 	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 2);
+
+//	Timer_Delay(2);
 
 	// Minimal time needed for the response to come in before sending next command
 	HAL_Delay(2);
@@ -172,6 +207,8 @@ void Lidar_Get_Samplerate(UART_HandleTypeDef *huart){
 	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 2);
 
+//	Timer_Delay(2);
+
 	// Minimal time needed for the response to come in before sending next command
 	HAL_Delay(2);
 
@@ -183,6 +220,9 @@ void Lidar_Get_Info(UART_HandleTypeDef *huart){
 
 	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 2);
+
+//	Timer_Delay(3);
+
 	// Minimal time needed for the response to come in before sending next command
 	HAL_Delay(3);
 }
@@ -202,6 +242,8 @@ void Lidar_Get_Lidar_Conf(UART_HandleTypeDef *huart, uint8_t config, uint8_t req
 
 	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, length+1);
+
+//	Timer_Delay(2);
 
 	HAL_Delay(2);
 }
@@ -226,7 +268,11 @@ void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TI
 
 	HAL_TIM_PWM_Start(tim, channel);
 
+//	while (huart->RxState != HAL_UART_STATE_READY);
+
 	// Waits for lidar to reach speed
+//	Timer_Delay(500);
+
 	HAL_Delay(500);
 }
 
@@ -245,6 +291,9 @@ void Lidar_Scan(UART_HandleTypeDef *huart){
 
 	Change_Size_DMA(7);
 	HAL_UART_Transmit(huart, msg, 2, 100);
+
+//	Timer_Delay(1);
+
 	// No response exists for this command, host system should wait for at least 1ms before sending another request
 	HAL_Delay(1);
 }
@@ -256,6 +305,8 @@ void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id){
 
 	Change_Size_DMA(7);
 	HAL_UART_Transmit_DMA(huart, msg, 9);
+
+//	Timer_Delay(1);
 
 	HAL_Delay(1);
 }
@@ -342,7 +393,8 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 
 				break;
 			case 0x82:  // Express scan in scan mode 1
-				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+				express_scan_status = 1;
+
 				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
 				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
 				response.start_angle = (float)((((uint16_t)(rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64);
@@ -350,12 +402,12 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
 				if(response.checksum != crc){
 					// bad message
-					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+//					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+//					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 					last_response = response;
 					memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
 
-					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+//					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 
 					break;
 				}
@@ -376,7 +428,7 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 
 						theta = last_response.start_angle + ((angle_diff/32.0) * k) - (float)delta_theta / 8.0;
 
-						Process_Distance(distance, theta);
+						Process_Distance(distance, (uint16_t)theta);
 
 						// distance2 and theta2
 						u_distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
@@ -387,7 +439,7 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 
 						theta = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float)delta_theta / 8.0;
 
-						Process_Distance(distance, theta);
+//						Process_Distance(distance, (uint16_t)theta);
 					}
 				}
 
@@ -405,7 +457,6 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				last_response = response;
 				memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
 
-				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
 				break;
 			default:
 				break;
@@ -447,26 +498,31 @@ void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes){
 
 }
 
-sVector3_t Process_Distance(float distance, float angle){
+sVector3_t Process_Distance(float distance, uint16_t angle){
 	sVector3_t point;
 
 	// Normalize angle
-	if(angle>360) {
-//		Get_Opponent();  // TODO get opponent position periodically because LIDAR sends data every 10us
-		angle -= 360;
-	}
+	angle %= 360;
+
+//	distances[angle] = distance;
 
 	// Convert angle and distance to a point in global coordinate system
-	ConvertDist2Point((int16_t)angle, distance, self.x, self.y, self.theta, &point);
-	if (point.vector[0] <= 2950 || point.vector[0] >= 50 ||
-		point.vector[1] <= 1950 || point.vector[1] >= 50) {
-		// Point in bounds of table
+	ConvertDist2Point(angle, distance, self.x, self.y, self.theta, &point);
+	xs[angle] = point.vector[0];
+	ys[angle] = point.vector[1];
+	zs[angle] = point.vector[2];
 
+	if ((point.vector[0] <= 500 && point.vector[0] >= 50) &&
+		(point.vector[1] <= 500 && point.vector[1] >= 50)) {
+		// Point in bounds of table
+		proccessing_status = 1;
 		point_cloud[pc_index++] = point;
+
+		if (pc_index >= 400) pc_index = 0;
 		// TODO how to save points to be able to search them easiliy for
 
-	} else if (point.vector[0] > 2950 || point.vector[0] <= 3050 ||
-			   point.vector[1] > 1950 || point.vector[1] <= 2050) {
+	} else if ((point.vector[0] > 2950 && point.vector[0] <= 3050) &&
+			   (point.vector[1] > 1950 && point.vector[1] <= 2050)) {
 		// Point in region of beacons
 	}
 
@@ -481,20 +537,29 @@ float norm(sVector3_t a, sVector3_t b){
 void Get_Opponent(){
 	// Segment point cloud into groups of points
 	uint8_t i=0, j=0, k=0;
+	float sum_x=0, sum_y=0;
 
 	while (i < pc_index-1) {
-		sVector3_t pivot = point_cloud[i];
 
 		// Average close points
 		for (j=i+1; j < pc_index; ++j){
-			if (norm(pivot, point_cloud[j]) <= BEACON_SUPPORT_DIAMETER){
-				pivot.vector[0] = (pivot.vector[0] + point_cloud[j].vector[0])/2.0;
-				pivot.vector[1] = (pivot.vector[1] + point_cloud[j].vector[1])/2.0;
+			if (norm(point_cloud[i], point_cloud[j]) > BEACON_SUPPORT_DIAMETER){
+				break;
+//				pivot.vector[0] = (pivot.vector[0] + point_cloud[j].vector[0])/2.0;
+//				pivot.vector[1] = (pivot.vector[1] + point_cloud[j].vector[1])/2.0;
 			}
 		}
 
+		sum_x = sum_y = 0;
+		for (k=i; k<j; ++k){
+			sum_x += point_cloud[k].vector[0];
+			sum_y += point_cloud[k].vector[1];
+		}
+
 		// Shift point cloud to the left to get rid of averaged points
-		point_cloud[i] = pivot;
+		point_cloud[i].vector[0] = sum_x/(j-i);
+		point_cloud[i].vector[1] = sum_y/(j-i);
+
 		pc_index -= j-i-1;
 		for (k=i+1; k < pc_index; ++k){
 			point_cloud[k] = point_cloud[k+(j-i-1)];
@@ -523,13 +588,28 @@ void Get_Opponent(){
 		}
 	}
 
-	float dir = (new_op.vector[1] - self.y)/(new_op.vector[0] - self.x);
-	float theta = atan(dir);
+	float theta = atan2((new_op.vector[1] - self.y),(new_op.vector[0] - self.x));
 
 	// Filter last known opponent position and new estimate
 	opponent.x = 0.5*opponent.x + 0.5*(new_op.vector[0] + cos(theta)*42.5);  // max diameter = (70+100)/2 = 85/2 = 42.5
 	opponent.y = 0.5*opponent.y + 0.5*(new_op.vector[1] + sin(theta)*42.5);
-	opponent.theta = 0.5*opponent.theta + 0.5*theta;
+	//opponent.theta = 0.5*opponent.theta + 0.5*theta; // TODO get actual direction from last position
+
+	// x, y, theta, timestamp = 4+4+4+4 bytes
+	uint8_t bytes[16];
+	convert_x.f = opponent.x;
+	convert_y.f = opponent.y;
+	convert_z.f = opponent.theta;
+	convert_t.f = (float)HAL_GetTick();
+
+	for(int j=0; j<4; ++j){
+		bytes[j]    = convert_x.u[j];
+		bytes[j+4]  = convert_y.u[j];
+		bytes[j+8]  = convert_z.u[j];
+		bytes[j+12] = convert_t.u[j];
+	}
+
+	FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_16, 16, bytes);
 
 	// Reset point cloud
 //	memcpy(last_point_cloud, point_cloud, sizeof(point_cloud));

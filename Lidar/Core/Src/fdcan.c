@@ -51,7 +51,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 	//  CHAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
 	if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
 	{
-
+		HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_SET);
 		/* Retreive Rx messages from RX FIFO0 */
 		receive_status = HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, RxData);
 
@@ -61,7 +61,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 		{
 			switch (RxHeader.Identifier)
 			{
-			case 0x4FF: // Receive odoemtry
+			case 0x6FF: // Receive odoemtry
 				self.x = Bytes2Float(RxData, 0);
 				self.y = Bytes2Float(RxData, 4);
 				self.theta = Bytes2Float(RxData, 8);
@@ -71,9 +71,9 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				uint8_t status = RxData[0];
 
 				if (status){
-					Lidar_Start(&htim3, &htim6, &htim7, &huart2);
+					start_lidar = 1;
 				} else {
-					Lidar_Stop_All(&htim3, &htim6, &htim7, &huart2);
+					start_lidar = 0;
 				}
 
 				break;

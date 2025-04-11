@@ -71,17 +71,13 @@ void Error_Handler(void);
 #define LED_G_GPIO_Port GPIOB
 #define LED_B_Pin GPIO_PIN_13
 #define LED_B_GPIO_Port GPIOB
-#define ERROR_In_Pin GPIO_PIN_6
-#define ERROR_In_GPIO_Port GPIOC
-#define ERROR_Out_Pin GPIO_PIN_7
-#define ERROR_Out_GPIO_Port GPIOC
 #define LED_CAN_RX_Pin GPIO_PIN_9
 #define LED_CAN_RX_GPIO_Port GPIOA
 #define LED_CAN_TX_Pin GPIO_PIN_10
 #define LED_CAN_TX_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
-
+extern uint8_t start_lidar;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

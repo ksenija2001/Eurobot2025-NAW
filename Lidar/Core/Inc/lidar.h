@@ -10,7 +10,8 @@
 #include "dma.h"
 #include "vector.h"
 #include "point_cloud.h"
-#include "svd.h"
+//#include "svd.h"
+#include "fdcan.h"
 
 
 #define BUFFER_SIZE 84
@@ -116,17 +117,21 @@ void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
 void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_rpm);
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
 void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes);
-sVector3_t Process_Distance(float distance, float angle);
+sVector3_t Process_Distance(float distance, uint16_t angle);
 void Get_Opponent();
 void TIM6_IT(TIM_HandleTypeDef *tim);
 void TIM7_IT(TIM_HandleTypeDef *tim);
 
 void Point_Cloud_To_Bytes(sVector3_t pc[], uint16_t size, uint8_t* bytes);
+void Timer_Delay(uint16_t count);
+
 
 extern uint8_t rx_buff[BUFFER_SIZE];
 extern sDescriptor_t response_desc;
-extern sVector3_t point_cloud[360];
+extern sVector3_t point_cloud[400];
 extern sVector3_t last_point_cloud[360];
 extern sOdom_t self;
+extern uint8_t express_scan_status;
+extern uint8_t proccessing_status;
 
 #endif /* INC_LIDAR_H_ */
