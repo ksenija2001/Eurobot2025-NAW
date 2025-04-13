@@ -30,7 +30,7 @@ class ODOM_DATA:
 
 class IDs(Enum):
     SET_LIDAR = 0x4C0
-    GET_LIDAR   = 0x4CF
+    
 
     RESET_ODOM  = 0x4F0
     ODOM_CONFIG = 0x4F1
@@ -57,6 +57,10 @@ class IDs(Enum):
     GET_IO = 0x69F
 
     GET_ODOM = 0x6FF
+
+    GET_LIDAR   = 0x4CF
+
+    UNKNOWN = 0x88
 
 
     @classmethod

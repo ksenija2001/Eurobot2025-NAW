@@ -57,9 +57,15 @@ class CanNetwork:
                 msg = self.bus.recv(timeout=0.1)                  # blocks until a message is ready
                 if msg is not None:
                     msg_id = msg.arbitration_id
-                    self.msg_receive_queues[msg_id].append(msg)  # stores received message in appropriate queue
+
+                    if msg_id in self.msg_receive_queues:
+                        self.msg_receive_queues[msg_id].append(msg)  # stores received message in appropriate queue
             
-                    self.logger.debug(f"Message {IDs(msg_id).name} put into queue.")
+                        self.logger.debug(f"Message {IDs(msg_id).name} put into queue.")
+                    else:
+                        self.logger.debug(f"Unkown message {msg_id} received: {msg.data}")
+                    # if msg_id == IDs.UNKNOWN.value:
+                    #     self.logger.info(f"UNKNOWN msg: {msg.data}")
             except can.CanError as e:
                 self.logger.warning(f"Message NOT received correctly: {e}")
             

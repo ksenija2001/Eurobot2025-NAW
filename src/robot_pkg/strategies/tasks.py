@@ -114,9 +114,9 @@ def level_lift():
     '''
     s= Strategy()
 
-    s(s=[Servo.BackCenterGrip(30, 100),
-             Servo.BackSideGrip(30, 100),
-             Servo.BackLift(300, 50)])
+    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100),
+             Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100),
+             Servo.BackLift(BACK_LIFT_DOWN, 50)])
 
     s(m=Move.Distance(-150, 100, 100))
     s(s=[Servo.BackCenterGrip(50, 100),

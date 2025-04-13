@@ -17,9 +17,9 @@ class Lidar:
             if len(lidar_queue) > 0:
                 lidar_msg = lidar_queue.pop()
 
-                [x, y, theta] = struct.unpack('3f', lidar_msg.data)
+                [x, y, theta, timestamp] = struct.unpack('4f', lidar_msg.data)
 
-                Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}")
+                Lidar._logger.debug(f"Opponent [{timestamp}]: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}")
 
             time.sleep(0.01)  # 10ms
     
@@ -46,3 +46,17 @@ class Lidar:
         send_queue = can_handler.msg_send_queues[IDs.SET_LIDAR.value]
         lidar_msg = struct.pack('B', (start_stop & 0x01))
         send_queue.append(lidar_msg)
+
+if __name__ == "__main__":
+    can_handler.start_threads()
+
+    Lidar.start_threads()
+
+    start_time = time.time()
+    while(1):
+        if time.time() - start_time > 600:
+            break
+
+    Lidar.stop_threads()
+
+    can_handler.stop_threads()
