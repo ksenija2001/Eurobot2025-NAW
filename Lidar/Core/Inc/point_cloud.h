@@ -25,6 +25,8 @@ void Translation_Vec(arm_matrix_instance_f32* U, arm_matrix_instance_f32* VT, sV
 void Rotation_Matrix(arm_matrix_instance_f32* U, arm_matrix_instance_f32* VT, sVector3_t* rpy);
 void Process_Point_Cloud(sVector3_t point_cloud[], sVector3_t last_point_cloud[]);
 
+double deg2rad(double deg);
+
 extern arm_matrix_instance_f32 H, U, VT, D;
 
 #endif /* POINT_CLOUD_H_ */

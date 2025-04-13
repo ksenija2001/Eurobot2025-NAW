@@ -24,10 +24,8 @@ sPWM_t lidar_pwm = {
 		.inc = 1
 };
 
-float distances[360];
-float xs[360];
-float ys[360];
-float zs[360];
+uint16_t last_angle;
+uint32_t last_timestamp;
 
 sVector3_t point_cloud[400];
 uint16_t pc_index = 0;
@@ -36,6 +34,7 @@ uint16_t lpc_index = 0;
 
 // Odometry data
 sOdom_t opponent;
+float op_speed;
 sOdom_t self;
 
 
@@ -439,7 +438,7 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 
 						theta = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float)delta_theta / 8.0;
 
-//						Process_Distance(distance, (uint16_t)theta);
+						Process_Distance(distance, (uint16_t)theta);
 					}
 				}
 
@@ -498,35 +497,46 @@ void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes){
 
 }
 
-sVector3_t Process_Distance(float distance, uint16_t angle){
+void Process_Distance(float distance, uint16_t angle){
 	sVector3_t point;
 
 	// Normalize angle
-	angle %= 360;
-
-//	distances[angle] = distance;
-
-	// Convert angle and distance to a point in global coordinate system
-	ConvertDist2Point(angle, distance, self.x, self.y, self.theta, &point);
-	xs[angle] = point.vector[0];
-	ys[angle] = point.vector[1];
-	zs[angle] = point.vector[2];
-
-	if ((point.vector[0] <= 500 && point.vector[0] >= 50) &&
-		(point.vector[1] <= 500 && point.vector[1] >= 50)) {
-		// Point in bounds of table
-		proccessing_status = 1;
-		point_cloud[pc_index++] = point;
-
-		if (pc_index >= 400) pc_index = 0;
-		// TODO how to save points to be able to search them easiliy for
-
-	} else if ((point.vector[0] > 2950 && point.vector[0] <= 3050) &&
-			   (point.vector[1] > 1950 && point.vector[1] <= 2050)) {
-		// Point in region of beacons
+//	angle %= 360;
+	angle += 353;
+	if (angle > 360){
+		angle -= 360;
 	}
 
-	return point;
+
+	if ((last_angle > 357 && last_angle < 360) && angle >= 0){
+		if (pc_index >= 1 ) Get_Opponent();
+
+		memset(point_cloud, 0, sizeof(point_cloud));
+		pc_index = 0;
+	}
+
+	last_angle = angle;
+
+	if (distance > 0 ) {
+		point.vector[0] = self.x + cos(deg2rad(angle) - self.theta) * distance;
+		point.vector[1] = self.y + sin(self.theta - deg2rad(angle)) * distance;
+		point.vector[2] = 400.0;
+
+
+		if ((point.vector[0] <= 2000 && point.vector[0] >= -100) &&
+			(point.vector[1] <= 1500 && point.vector[1] >= -100)) {
+			// Point in bounds of table
+			proccessing_status = 1;
+			point_cloud[pc_index++] = point;
+
+			if (pc_index >= 400) pc_index = 0;
+			// TODO how to save points to be able to search them easiliy for
+
+		} else if ((point.vector[0] > 2950 && point.vector[0] <= 3050) &&
+				   (point.vector[1] > 1950 && point.vector[1] <= 2050)) {
+			// Point in region of beacons
+		}
+	}
 }
 
 float norm(sVector3_t a, sVector3_t b){
@@ -569,7 +579,7 @@ void Get_Opponent(){
 	}
 
 	// Average first and last group if they are close enough
-	if (norm(point_cloud[0], point_cloud[pc_index-1]) <= BEACON_SUPPORT_DIAMETER){
+	if (pc_index > 1 && norm(point_cloud[0], point_cloud[pc_index-1]) <= BEACON_SUPPORT_DIAMETER){
 		point_cloud[0].vector[0] = (point_cloud[0].vector[0] + point_cloud[pc_index-1].vector[0])/2.0;
 		point_cloud[0].vector[1] = (point_cloud[0].vector[1] + point_cloud[pc_index-1].vector[1])/2.0;
 
@@ -589,18 +599,27 @@ void Get_Opponent(){
 	}
 
 	float theta = atan2((new_op.vector[1] - self.y),(new_op.vector[0] - self.x));
+	float op_x = opponent.x, op_y=opponent.y;
 
 	// Filter last known opponent position and new estimate
-	opponent.x = 0.5*opponent.x + 0.5*(new_op.vector[0] + cos(theta)*42.5);  // max diameter = (70+100)/2 = 85/2 = 42.5
-	opponent.y = 0.5*opponent.y + 0.5*(new_op.vector[1] + sin(theta)*42.5);
+	opponent.x = 0.5*op_x + 0.5*(new_op.vector[0]); // + cos(theta)*42.5);  // max diameter = (70+100)/2 = 85/2 = 42.5
+	opponent.y = 0.5*op_y + 0.5*(new_op.vector[1]); // + sin(theta)*42.5);
+	opponent.theta = atan2((opponent.y - op_y),(opponent.x - op_x));
+
+
 	//opponent.theta = 0.5*opponent.theta + 0.5*theta; // TODO get actual direction from last position
+	uint32_t timestamp = HAL_GetTick();
+
+	op_speed = (sqrt( (op_x - opponent.x)*(op_x - opponent.x) + (op_y - opponent.y)*(op_y - opponent.y)))/(timestamp - last_timestamp);
+
+	last_timestamp = timestamp;
 
 	// x, y, theta, timestamp = 4+4+4+4 bytes
 	uint8_t bytes[16];
 	convert_x.f = opponent.x;
 	convert_y.f = opponent.y;
 	convert_z.f = opponent.theta;
-	convert_t.f = (float)HAL_GetTick();
+	convert_t.f = (float)timestamp;
 
 	for(int j=0; j<4; ++j){
 		bytes[j]    = convert_x.u[j];
@@ -614,7 +633,7 @@ void Get_Opponent(){
 	// Reset point cloud
 //	memcpy(last_point_cloud, point_cloud, sizeof(point_cloud));
 //	lpc_index = pc_index;
-	memset(point_cloud, 0, sizeof(point_cloud));
-	pc_index = 0;
+//	memset(point_cloud, 0, sizeof(point_cloud));
+//	pc_index = 0;
 }
 

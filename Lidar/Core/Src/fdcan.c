@@ -89,7 +89,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 uint8_t FDCAN_Send_Data(uint32_t id, uint32_t dlc, uint8_t size, uint8_t *data)
 {
-	// send_status = HAL_ERROR;
+//	 send_status = HAL_ERROR;
 
 	// Configure TX Header for FDCAN
 	TxHeader.Identifier = id;

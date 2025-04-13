@@ -117,7 +117,7 @@ void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
 void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_rpm);
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
 void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes);
-sVector3_t Process_Distance(float distance, uint16_t angle);
+void Process_Distance(float distance, uint16_t angle);
 void Get_Opponent();
 void TIM6_IT(TIM_HandleTypeDef *tim);
 void TIM7_IT(TIM_HandleTypeDef *tim);
