@@ -58,7 +58,8 @@ class IDs(Enum):
 
     GET_ODOM = 0x6FF
 
-    GET_LIDAR   = 0x4CF
+    GET_OPPONENT   = 0x4CE
+    GET_DETECTION  = 0x4CF
 
     UNKNOWN = 0x88
 

@@ -12,14 +12,27 @@ class Lidar:
         
     @classmethod
     def _receive(cls, running:Event):
-        lidar_queue = can_handler.msg_receive_queues[IDs.GET_LIDAR.value]
+        lidar_queue = can_handler.msg_receive_queues[IDs.GET_OPPONENT.value]
+        detection_queue = can_handler.msg_receive_queues[IDs.GET_DETECTION.value]
+
         while running.is_set():
             if len(lidar_queue) > 0:
                 lidar_msg = lidar_queue.pop()
 
-                [x, y, theta, timestamp] = struct.unpack('4f', lidar_msg.data)
+                [x, y, theta, speed] = struct.unpack('4f', lidar_msg.data)
 
-                Lidar._logger.debug(f"Opponent [{timestamp}]: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}")
+                Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
+
+            if len(detection_queue) > 0:
+                lidar_msg = detection_queue.pop()
+
+                detection_side = struct.unpack('B', lidar_msg.data)[0]
+                if detection_side == 70: # 'F' - FRONT
+                    Lidar._logger.debug(f"FRONT")
+                elif detection_side == 66: # 'B' - BACK
+                    Lidar._logger.debug(f"BACK")
+                else:
+                    Lidar._logger.debug(f"Unknown detection")
 
             time.sleep(0.01)  # 10ms
     

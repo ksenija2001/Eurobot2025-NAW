@@ -252,13 +252,13 @@ class Servo:
         servo2 = cls()
 
         servo1.id = ServoType.BACK_RIGHT_LIFT.value
-        servo1.position = position
+        servo1.position = 300 - position
         servo1.speed = speed
         servo1.activate_pose = activate_pose
         servo1._type = ServoType.BACK_RIGHT_LIFT.name
 
         servo2.id = ServoType.BACK_LEFT_LIFT.value
-        servo2.position = 300 - position
+        servo2.position = position
         servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.BACK_LEFT_LIFT.name

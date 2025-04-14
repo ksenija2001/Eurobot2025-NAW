@@ -57,14 +57,14 @@ def two_level():
     return s.steps
 
 
-def tree_and_one_level():
+def three_and_one_level():
     '''
         Separates one material stock into a third level and first level.
         The third level is lifted on top of a two level, and the first is in the back grippers.
     '''
     s = Strategy()
 
-    s(m=Move.Distance(50, 100, 300))
+    s(m=Move.Distance(150, 100, 300))
 
     s(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
          Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100)])
@@ -114,21 +114,22 @@ def level_lift():
     '''
     s= Strategy()
 
-    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100),
-             Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100),
+    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+             Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
              Servo.BackLift(BACK_LIFT_DOWN, 50)])
 
-    s(m=Move.Distance(-150, 100, 100))
-    s(s=[Servo.BackCenterGrip(50, 100),
-         Servo.BackSideGrip(50, 100)])
+    s(m=Move.Distance(-170, 100, 100))
+    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100),
+         Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
 
-    s(s=[Servo.BackLift(0, 30)])
+    s(s=[Servo.BackLift(BACK_LIFT_UP, 50)])
 
-    s(m=Move.Distance(-150, 100, 100))
-    s(s=[Servo.BackCenterGrip(30, 100),
-         Servo.BackSideGrip(30, 100)])
+    s(m=Move.Distance(-200, 100, 100))
+    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+         Servo.BackSideGrip(BACK_CENTER_GRIP_OPEN, 100),
+         Servo.BackLift(BACK_LIFT_UP-50, 50)])  # ZAGLAVICE SE NA KABEL OD SENZORA AKO SE NE STAVI -50
 
-    s(m=Move.Distance(150, 100, 100))
+    s(m=Move.Distance(200, 100, 100))
 
     return s.steps
 
