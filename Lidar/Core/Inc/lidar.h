@@ -37,11 +37,14 @@
 
 // Opponent robot
 #define BEACON_SUPPORT_DIAMETER 70  // mm
+#define LIDAR_FOV 120
+#define LIDAR_SIDE_DISTANCE 400
 
 typedef struct {
 	float x;
 	float y;
 	float theta;
+	float speed;
 } sOdom_t;
 
 // Response descriptor struct
@@ -95,6 +98,11 @@ typedef struct{
 	int8_t inc;
 } sPWM_t;
 
+typedef struct{
+	uint16_t front;
+	uint16_t back;
+} sDetection_t;
+
 // Start/Stop lidar
 void Lidar_Start(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim, UART_HandleTypeDef* huart);
 void Lidar_Stop_All(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim,  UART_HandleTypeDef* huart);
@@ -128,10 +136,8 @@ void Timer_Delay(uint16_t count);
 
 extern uint8_t rx_buff[BUFFER_SIZE];
 extern sDescriptor_t response_desc;
-extern sVector3_t point_cloud[400];
-extern sVector3_t last_point_cloud[360];
 extern sOdom_t self;
-extern uint8_t express_scan_status;
-extern uint8_t proccessing_status;
+extern sDetection_t detection;
+
 
 #endif /* INC_LIDAR_H_ */

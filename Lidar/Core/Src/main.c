@@ -164,19 +164,7 @@ int main(void)
 		HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_RESET);
 	  }
 
-	  if (express_scan_status){
-		HAL_GPIO_WritePin(GPIOB, LED_G_Pin, GPIO_PIN_SET);
-		express_scan_status = 0;
-	  } else {
-		HAL_GPIO_WritePin(GPIOB, LED_G_Pin, GPIO_PIN_RESET);
-	  }
 
-	  if (proccessing_status){
-		  HAL_GPIO_WritePin(GPIOB, LED_R_Pin, GPIO_PIN_SET);
-		  proccessing_status = 0;
-	  } else {
-		HAL_GPIO_WritePin(GPIOB, LED_R_Pin, GPIO_PIN_RESET);
-	  }
 
 
 	  HAL_Delay(50);

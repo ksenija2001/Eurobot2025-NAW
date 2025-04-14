@@ -77,9 +77,13 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				}
 
 				break;
-			case 0x4CF: // Lidar send point data
+			case 0x4C1:
+				uint16_t front = (uint16_t)(RxData[1] << 8) & RxData[0];
+				uint16_t back = (uint16_t)(RxData[3] << 8) & RxData[2];
 
-				break;
+				detection.front = front;
+				detection.back  = back;
+
 			default:
 				receive_status = HAL_ERROR;
 			}

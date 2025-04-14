@@ -15,8 +15,6 @@ sDescriptor_t response_desc = {
 // Variables for parsing lidar express scan data
 sResponse_t response;
 sResponse_t last_response = {0};
-//sCabin_t cabin;
-//float angle_diff;
 
 // Variables for lidar PWM control
 sPWM_t lidar_pwm = {
@@ -27,14 +25,11 @@ sPWM_t lidar_pwm = {
 uint16_t last_angle;
 uint32_t last_timestamp;
 
-sVector3_t point_cloud[400];
+sVector3_t point_cloud[100];
 uint16_t pc_index = 0;
-sVector3_t last_point_cloud[360];
-uint16_t lpc_index = 0;
 
 // Odometry data
 sOdom_t opponent;
-float op_speed;
 sOdom_t self;
 
 
@@ -59,8 +54,9 @@ uint8_t u_delta_theta;
 uint16_t u_distance;
 float distance, theta;
 
-uint8_t front = 0, back = 0;
-uint32_t last_detection = 0;
+sDetection_t detection = {
+		.front = 500, .back = 500
+};
 
 uint8_t express_scan_status = 0;
 uint8_t proccessing_status = 0;
@@ -497,39 +493,61 @@ void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes){
 
 }
 
+void Polar2Cartesian(float distance, uint16_t angle, sVector3_t* point){
+	point->vector[0] = self.x + cos(deg2rad(angle) - self.theta) * distance;
+	point->vector[1] = self.y + sin(self.theta - deg2rad(angle)) * distance;
+	point->vector[2] = 400.0;
+}
+
+uint8_t Process_Detection(float distance, uint16_t angle){
+	// LIDAR relative x
+	float x = distance * sin(deg2rad(angle));
+
+	// Front detection
+	if ( (angle > (360 - LIDAR_FOV/2) || angle < LIDAR_FOV/2) && distance < detection.front && fabs(x) < LIDAR_SIDE_DISTANCE){
+		return 'F';
+	}
+	// Back detection
+	else if ( (angle > (180 - LIDAR_FOV/2) && angle < (180 + LIDAR_FOV/2)) && distance < detection.back && fabs(x) < LIDAR_SIDE_DISTANCE ){
+		return 'B';
+	}
+	// No detection
+	else{
+		return 0;
+	}
+}
+
 void Process_Distance(float distance, uint16_t angle){
 	sVector3_t point;
 
 	// Normalize angle
-//	angle %= 360;
 	angle += 353;
-	if (angle > 360){
-		angle -= 360;
-	}
+	angle %= 360;
 
-
-	if ((last_angle > 357 && last_angle < 360) && angle >= 0){
+	if (last_angle > 357 && last_angle < 360){
 		if (pc_index >= 1 ) Get_Opponent();
 
 		memset(point_cloud, 0, sizeof(point_cloud));
 		pc_index = 0;
 	}
 
-	last_angle = angle;
-
 	if (distance > 0 ) {
-		point.vector[0] = self.x + cos(deg2rad(angle) - self.theta) * distance;
-		point.vector[1] = self.y + sin(self.theta - deg2rad(angle)) * distance;
-		point.vector[2] = 400.0;
+		Polar2Cartesian(distance, angle, &point);
 
-
-		if ((point.vector[0] <= 2000 && point.vector[0] >= -100) &&
-			(point.vector[1] <= 1500 && point.vector[1] >= -100)) {
+		if ((point.vector[0] <= 1000 && point.vector[0] >= 0) &&
+			(point.vector[1] <= 1000 && point.vector[1] >= 0)) {
 			// Point in bounds of table
-			proccessing_status = 1;
+
+			uint8_t det = Process_Detection(distance, angle);
+
+			if (det != 0){
+				uint8_t msg[1] = {det};
+				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
+			}
+
 			point_cloud[pc_index++] = point;
 
-			if (pc_index >= 400) pc_index = 0;
+			if (pc_index >= 100) pc_index = 0;
 			// TODO how to save points to be able to search them easiliy for
 
 		} else if ((point.vector[0] > 2950 && point.vector[0] <= 3050) &&
@@ -537,6 +555,9 @@ void Process_Distance(float distance, uint16_t angle){
 			// Point in region of beacons
 		}
 	}
+
+	last_angle = angle;
+
 }
 
 float norm(sVector3_t a, sVector3_t b){
@@ -598,7 +619,7 @@ void Get_Opponent(){
 		}
 	}
 
-	float theta = atan2((new_op.vector[1] - self.y),(new_op.vector[0] - self.x));
+//	float theta = atan2((new_op.vector[1] - self.y),(new_op.vector[0] - self.x));
 	float op_x = opponent.x, op_y=opponent.y;
 
 	// Filter last known opponent position and new estimate
@@ -606,11 +627,10 @@ void Get_Opponent(){
 	opponent.y = 0.5*op_y + 0.5*(new_op.vector[1]); // + sin(theta)*42.5);
 	opponent.theta = atan2((opponent.y - op_y),(opponent.x - op_x));
 
-
 	//opponent.theta = 0.5*opponent.theta + 0.5*theta; // TODO get actual direction from last position
 	uint32_t timestamp = HAL_GetTick();
 
-	op_speed = (sqrt( (op_x - opponent.x)*(op_x - opponent.x) + (op_y - opponent.y)*(op_y - opponent.y)))/(timestamp - last_timestamp);
+	opponent.speed = (sqrt( (op_x - opponent.x)*(op_x - opponent.x) + (op_y - opponent.y)*(op_y - opponent.y)))/(timestamp - last_timestamp);
 
 	last_timestamp = timestamp;
 
@@ -619,7 +639,7 @@ void Get_Opponent(){
 	convert_x.f = opponent.x;
 	convert_y.f = opponent.y;
 	convert_z.f = opponent.theta;
-	convert_t.f = (float)timestamp;
+	convert_t.f = opponent.speed;
 
 	for(int j=0; j<4; ++j){
 		bytes[j]    = convert_x.u[j];
@@ -628,12 +648,6 @@ void Get_Opponent(){
 		bytes[j+12] = convert_t.u[j];
 	}
 
-	FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_16, 16, bytes);
-
-	// Reset point cloud
-//	memcpy(last_point_cloud, point_cloud, sizeof(point_cloud));
-//	lpc_index = pc_index;
-//	memset(point_cloud, 0, sizeof(point_cloud));
-//	pc_index = 0;
+	FDCAN_Send_Data(0x4CE, FDCAN_DLC_BYTES_16, 16, bytes);
 }
 
