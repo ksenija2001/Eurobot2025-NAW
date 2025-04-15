@@ -61,6 +61,7 @@ class Condition:
         self.servo_id = 0
         self.servo_position = 0
         self.time = 0
+        self.attempts = 0
 
     def check(self, args:list):
         '''
@@ -166,16 +167,17 @@ class Condition:
         condition._type = ConditionType.SERVO_POSITION
         return condition
 
-    # @classmethod
-    # def Detection(cls, step_id:int):
-    #     '''
-    #         Checks if all moved servos are in position.
-    #         If they aren't, jumps to step_id.
-    #     '''
-    #     condition = cls()
-    #     condition.ID = step_id
-    #     condition._type = ConditionType.DETECTION
-    #     return condition
+    @classmethod
+    def Detection(cls, step_id:int, attempts:int):
+        '''
+            Checks if attempts for trying a step ran out.
+            If they didn't, jumps to step_id.
+        '''
+        condition = cls()
+        condition.ID = step_id
+        condition.attempts = attempts
+        condition._type = ConditionType.DETECTION
+        return condition
 
 
 if __name__ == "__main__":

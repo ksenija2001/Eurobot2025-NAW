@@ -53,7 +53,8 @@ class I_O:
                 else:
                     I_O._inputs_logger.info(f"Input {pin} doesn't exist")
             
-            Variables.front_detection = any([state for pin, state in I_O.sensor_states.items() if pin in range(2, 6)])
+            # if any([state for pin, state in I_O.sensor_states.items() if pin in range(2, 6)]):
+            #     Variables.front_detection.set()
             
             time.sleep(0.01)  # 10ms
     

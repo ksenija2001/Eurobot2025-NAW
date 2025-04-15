@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from enum import Enum
+from threading import Event
 import time 
 
 ROOT_PATH = Path(__file__).parent
@@ -11,8 +12,9 @@ STRATEGIES_PATH = os.path.join(ROOT_PATH, 'strategies')
 class Variables:
     match_start_time = float('inf')
     points = 0
-    front_detection = False
-    back_detection = False
+    front_detection = Event()
+    back_detection = Event()
+    processing_detection = Event()
     
 class LIDAR_FOV:
     FRONT_DEPLOY = 500 
@@ -43,6 +45,7 @@ class IDs(Enum):
     SET_XY           = 0x4D5
     SET_SPLINE       = 0x4D6
     SET_STOP         = 0x4D7
+    SET_DETECTION    = 0x4D8
 
     GET_MOTOR_SPEED = 0x4DF
     GET_MOVE_DONE   = 0x4DE

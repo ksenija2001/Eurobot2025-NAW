@@ -2,16 +2,19 @@ from threading import Thread, Event
 import struct, math, time
 
 from robot_pkg.main import log_handler, can_handler
-from robot_pkg.consts import IDs
+from robot_pkg.consts import IDs, Variables
+from robot_pkg.move import Move
 
 
 class Lidar:
     _logger = log_handler.get_logger("lidar")
     _thread:Thread = None
+    last_detection_time = 0
     running:Event = Event()
         
     @classmethod
     def _receive(cls, running:Event):
+        s = cls()
         lidar_queue = can_handler.msg_receive_queues[IDs.GET_OPPONENT.value]
         detection_queue = can_handler.msg_receive_queues[IDs.GET_DETECTION.value]
 
@@ -21,6 +24,8 @@ class Lidar:
 
                 [x, y, theta, speed] = struct.unpack('4f', lidar_msg.data)
 
+                if speed > 150/1000 and abs(Move.pose.speed) > 150:
+                    s.get_intersection(x, y, theta, speed)
                 Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
 
             if len(detection_queue) > 0:
@@ -28,14 +33,61 @@ class Lidar:
 
                 detection_side = struct.unpack('B', lidar_msg.data)[0]
                 if detection_side == 70: # 'F' - FRONT
+                    Lidar.last_detection_time = time.time()
+                    Variables.front_detection.set()
                     Lidar._logger.debug(f"FRONT")
                 elif detection_side == 66: # 'B' - BACK
+                    Lidar.last_detection_time = time.time()
+                    Variables.back_detection.set()
                     Lidar._logger.debug(f"BACK")
                 else:
                     Lidar._logger.debug(f"Unknown detection")
 
+            # Resets last detection time after 1s if not reset before
+            if (Variables.front_detection.is_set() or Variables.back_detection.is_set()) and \
+               time.time() - Lidar.last_detection_time > 1:  # if 1s have passed from last detection
+                Variables.front_detection.clear()
+                Variables.back_detection.clear()
+
             time.sleep(0.01)  # 10ms
+
+    def get_intersection(self, op_x, op_y, op_theta, op_v):
+        self_x, self_y, self_theta, self_v = Move.pose.x, Move.pose.y, Move.pose.theta, Move.pose.speed
+
+        if self_v < 0:
+            self_theta += math.pi
+
+            if self_theta > math.pi:
+                self_theta -= 2*math.pi
+            elif self_theta < -math.pi:
+                self_theta += 2*math.pi
+
+        int_x, int_y = self.get_intersection_point(op_x, op_y, op_theta, self_x, self_y, self_theta)
+        print(f"INTERSECTION: x={int_x}, y={int_y}")
+
+        # if 0 <= int_x <= 2950 and 0 <= int_y <= 1950:
+        self_distance  = self.get_intersection_distance(int_x, int_y, self_x, self_y, self_v)
+        op_distance    = self.get_intersection_distance(int_x, int_y, op_x, op_y, op_v)
+
+        print(f"SELF DIST TO INTERSECTION POINT    : {self_distance}")
+        print(f"OPPONENT DIST TO INTERSECTION POINT: {op_distance}")
+            
+    def get_intersection_point(self, op_x, op_y, op_theta, self_x, self_y, self_theta):
+        self_k = math.tan(self_theta)
+        op_k = math.tan(op_theta)
+        self_n = self_y - self_k*self_x
+        op_n = op_y - op_k*op_x  
+
+        int_x = (op_n - self_n)/(self_k - op_k + 1e-10)
+        int_y = self_k*(int_x - self_x) + self_y
+
+        return int_x, int_y
     
+    def get_intersection_distance(self, int_x, int_y, x, y, v):
+        return math.sqrt( (int_x - x)**2 + (int_y - y)**2 ) 
+        # t = distance/(v + 1e-10)  # mm/(m/s) = ms
+        # return t
+
     @classmethod
     def start_threads(cls):
         Lidar.start_stop(1)

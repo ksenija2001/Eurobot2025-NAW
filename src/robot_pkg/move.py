@@ -5,6 +5,7 @@ import time
 
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
+from robot_pkg.consts import Variables
 
 class MoveType(Enum):
     RESET = 0
@@ -18,15 +19,17 @@ class MoveType(Enum):
     STOP = 8
 
 class Position:
-    def __init__(self, x:float=0, y:float=0, theta:float=0):
+    def __init__(self, x:float=0, y:float=0, theta:float=0, speed:float=0):
         self.x = x
         self.y = y
         self.theta = theta
+        self.speed = speed
     
     def reset(self, x, y, theta):
         self.x = x
         self.y = y
         self.theta = theta
+        self.speed = 0
     
     def __le__(self, other):
         return self.x <= other.x and self.y <= other.y
@@ -61,6 +64,8 @@ class Move:
 
                 if success:
                     Move.move_done.set()
+                    if Variables.processing_detection:
+                        Variables.processing_detection.clear()
                     Move._logger.info(f"Movement done")
                 else:
                     # Movement unssuccsesful
@@ -73,6 +78,7 @@ class Move:
                 Move.pose.x = x
                 Move.pose.y = y
                 Move.pose.theta = theta
+                Move.pose.speed = trans
 
                 Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}")
             
@@ -155,6 +161,19 @@ class Move:
         move._type = MoveType.DISTANCE.name
 
         return move
+
+    @classmethod
+    def Detection(cls, distance:float):
+        '''
+            Starts a backing sequence.
+        '''
+        move = cls()
+        move.data = struct.pack('f', distance)
+        move.send_queue = can_handler.msg_send_queues[IDs.SET_DETECTION.value]
+        move._type = MoveType.DISTANCE.name
+
+        return move
+
 
     @classmethod
     def To(cls, x_coor:float, y_coor:float, direction:bool, v:float, a:float, w:float, alpha:float):
