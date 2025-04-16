@@ -10,6 +10,7 @@ class Lidar:
     _logger = log_handler.get_logger("lidar")
     _thread:Thread = None
     last_detection_time = 0
+    beacon_points:list = []
     running:Event = Event()
         
     @classmethod
@@ -17,6 +18,7 @@ class Lidar:
         s = cls()
         lidar_queue = can_handler.msg_receive_queues[IDs.GET_OPPONENT.value]
         detection_queue = can_handler.msg_receive_queues[IDs.GET_DETECTION.value]
+        # beacon_queue = can_handler.msg_receive_queues[IDs.GET_BEACON.value]
 
         while running.is_set():
             if len(lidar_queue) > 0:
@@ -27,6 +29,22 @@ class Lidar:
                 if speed > 150/1000 and abs(Move.pose.speed) > 150:
                     s.get_intersection(x, y, theta, speed)
                 Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
+
+            # if len(beacon_queue) > 0:
+            #     lidar_msg = beacon_queue.pop()
+
+            #     length = len(lidar_msg.data)
+            #     length /= 4
+
+            #     xyd = struct.unpack(f'{length}f', lidar_msg.data)
+            #     print(xyd)
+
+            #     Lidar.beacon_points((x,y))
+
+            #     if len(Lidar.beacon_points) > 2:
+            #         # TODO find position based on beacon positions
+
+            #         Lidar.beacon_points.clear()
 
             if len(detection_queue) > 0:
                 lidar_msg = detection_queue.pop()

@@ -65,7 +65,7 @@ class Move:
                 if success:
                     Move.move_done.set()
                     if Variables.processing_detection:
-                        Variables.processing_detection.clear()
+                        Variables.processing_detection = False
                     Move._logger.info(f"Movement done")
                 else:
                     # Movement unssuccsesful

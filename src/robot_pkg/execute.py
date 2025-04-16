@@ -72,28 +72,28 @@ class Execute:
 
                 # TODO check if it will always enter this condition
                 # front or back detection wouldn't be enabled if the robot wasn't moving forward or backward
-                if step.movement is not None and not cinch and not Variables.processing_detection.is_set() \
-                   (Variables.front_detection.is_set() or Variables.back_detection.is_set()): 
-                    self._logger.info("\n*********\nDETECION\n*********\n")
+                # if step.movement is not None and not cinch and not Variables.processing_detection \
+                #    (Variables.front_detection.is_set() or Variables.back_detection.is_set()): 
+                #     self._logger.info("\n*********\nDETECION\n*********\n")
 
-                    Variables.front_detection.clear()
-                    Variables.back_detection.clear()
+                #     Variables.front_detection.clear()
+                #     Variables.back_detection.clear()
 
-                    # if there was a detection condition and the attempts ran out in current step a skip to a new step happens
-                    detection_cond = [c for c in step.conditions if c._type == ConditionType.DETECTION] 
+                #     # if there was a detection condition and the attempts ran out in current step a skip to a new step happens
+                #     detection_cond = [c for c in step.conditions if c._type == ConditionType.DETECTION] 
                     
-                    if len(detection_cond) > 0 and detection_cond[0].attempts == 0:
-                        next_step_id = detection_cond[0].ID
-                        break
-                    elif len(detection_cond) > 0 and detection_cond[0].attempts > 0:                            
-                        detection_cond[0].attempts -= 1
+                #     if len(detection_cond) > 0 and detection_cond[0].attempts == 0:
+                #         next_step_id = detection_cond[0].ID
+                #         break
+                #     elif len(detection_cond) > 0 and detection_cond[0].attempts > 0:                            
+                #         detection_cond[0].attempts -= 1
 
-                    # if a condition wasn't set, it will attemp indefinetly
-                    self.steps.insert(0, Move.Detection(100))
-                    Variables.processing_detection.set()
-                    self.steps.insert(1, step)
+                #     # if a condition wasn't set, it will attemp indefinetly
+                #     self.steps.insert(0, Move.Detection(100))
+                #     Variables.processing_detection = True
+                #     self.steps.insert(1, step)
 
-                    break
+                #     break
 
                 args = [start_time, time.time(), move_done, cinch, servo_in_pos, None, None] 
                 checked = {cond._type : cond.check(args) for cond in step.conditions}

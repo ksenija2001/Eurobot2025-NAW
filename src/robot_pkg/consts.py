@@ -14,7 +14,7 @@ class Variables:
     points = 0
     front_detection = Event()
     back_detection = Event()
-    processing_detection = Event()
+    processing_detection = False
     
 class LIDAR_FOV:
     FRONT_DEPLOY = 500 
@@ -61,6 +61,7 @@ class IDs(Enum):
 
     GET_ODOM = 0x6FF
 
+    GET_BEACON     = 0x4CD
     GET_OPPONENT   = 0x4CE
     GET_DETECTION  = 0x4CF
 

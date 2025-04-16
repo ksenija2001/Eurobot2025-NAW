@@ -76,7 +76,7 @@ def main_func():
         print("\n")
 
     if execute is not None and execute.thread.is_alive():
-        execute.is_active = False
+        execute.running = False
         execute.thread.join()
 
     Lidar.stop_threads()
