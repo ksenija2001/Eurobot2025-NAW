@@ -20,6 +20,86 @@ def init_front_servos():
 
     return s.steps
 
+def init_back_servos():
+    '''
+        Brings all back servos to their starting position
+    '''
+    s = Strategy()
+    s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
+         Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+         Servo.BackLift(BACK_LIFT_BANNER, 100)])
+
+    return s.steps
+
+def pickup_front_regular(x, y, yaw, offset_x, offset_y, offset_yaw):
+    '''
+        Given a location 15 cm from the stack, pickus up the stack with front grippers.
+    '''
+    s = Strategy()
+
+    s(m=Move.To(x + offset_x, y + offset_y, yaw + offset_yaw, 100, 500, FRONT))
+
+    s(m=Move.Distance(150, 100, 300))
+
+    s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100),
+         Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
+         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PICKUP, 100)]) # puts the vaccums on top of the planks to hold them while carrying
+    
+    # consider also lifting the cans a bit while carrying them
+    return s.steps
+
+def pickup_back_regular(x, y, yaw, offset_x, offset_y, offset_yaw):
+    '''
+        Given a location 15 cm from the stack, pickus up the stack with back grippers.
+    '''
+    s = Strategy()
+
+    s(m=Move.To(x + offset_x, y + offset_y, yaw + offset_yaw, 100, 500, BACK))
+
+    s(m=Move.Distance(150, 100, 300))
+
+    s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100),
+         Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100)])
+
+    return s.steps
+
+def pickup_front_two_level(x, y, yaw, offset_x, offset_y, offset_yaw):
+    '''
+        Given a location 15 cm from the stack, picks up a second stack with the front side, putting the first on top of it.
+        Rarely used, but you never know.
+    '''
+    s = Strategy()
+
+    s(m=Move.To(x + offset_x, y + offset_y, yaw + offset_yaw, 100, 500, FRONT))
+    s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100), 
+         Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100),
+         Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 20)]) # slowly lifting the stack so the planks wouldn't fall
+
+     # move to the stack with the first stack lifted above the targeted one
+    s(m=Move.Distance(150, 100, 300))
+
+     # open grippers, dropping them on the planks of the lower stack
+    s(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
+      Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
+    
+    # a little rikverc
+    s(m=Move.Distance(-150, 100, 300))
+
+     # lower the grippers for picking up the two-level stack, while moving towards it
+    s(s=Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100),
+      m=Move.Distance(150, 100, 300))
+    
+    # close the grippers and put the vacuum grippers on top to hold
+    s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100),
+          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
+      Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100)]) #
+    
+
+    
+
+
+    return s.steps
+
 def two_level():
     '''
         Build two levels from one material stock.
