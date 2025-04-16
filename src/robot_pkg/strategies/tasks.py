@@ -56,7 +56,7 @@ def pickup_back_regular(x, y, yaw, offset_x, offset_y, offset_yaw):
 
     s(m=Move.To(x + offset_x, y + offset_y, yaw + offset_yaw, 100, 500, BACK))
 
-    s(m=Move.Distance(150, 100, 300))
+    s(m=Move.Distance(-150, 100, 300))
 
     s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100),
          Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100)])
@@ -79,8 +79,8 @@ def pickup_front_two_level(x, y, yaw, offset_x, offset_y, offset_yaw):
     s(m=Move.Distance(150, 100, 300))
 
      # open grippers, dropping them on the planks of the lower stack
-    s(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
-      Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
+    s(s= [Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
+          Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
     
     # a little rikverc
     s(m=Move.Distance(-150, 100, 300))
@@ -90,14 +90,38 @@ def pickup_front_two_level(x, y, yaw, offset_x, offset_y, offset_yaw):
       m=Move.Distance(150, 100, 300))
     
     # close the grippers and put the vacuum grippers on top to hold
-    s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100),
+    s(s =[Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100),
           Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
-      Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100)]) #
+          Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100)]) # define the angle so that the outstretched vacuum holds the two level stack
+
+    return s.steps
+
+def pickup_back_two_level(x, y, yaw, offset_x, offset_y, offset_yaw):
+    '''
+        Given a location 15 cm from the stack, picks up a second stack with the back side, putting the first on top of it.
+        Even more rarely used, but you never know.
+    '''
+    s = Strategy()
+
+    s(m=Move.To(x + offset_x, y + offset_y, yaw + offset_yaw, 100, 500, BACK))
+    s(s=[Servo.BackLift(BACK_LIFT_UP, 100)])
+
+    s(m=Move.Distance(-150, 100, 300))
+
+    s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
+         Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100)])
+
+    s(m=Move.Distance(150, 100, 300))
+
+    s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
+         Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+         Servo.BackLift(BACK_LIFT_DOWN, 100)])
     
+    s(m=Move.Distance(-150, 100, 100))
 
+    s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100),
+         Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100)])
     
-
-
     return s.steps
 
 def two_level():
