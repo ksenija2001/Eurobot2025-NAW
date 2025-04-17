@@ -17,7 +17,7 @@ class Step:
 
     def move(self):
         if self.movement is not None and not self.movement.executed:
-            print(f"Executing movement {self.movement._type}")
+            log_handler.get_logger("move").info(f"Executing movement {self.movement._type}")
             self.movement._execute()
             
 

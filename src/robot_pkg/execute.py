@@ -1,21 +1,23 @@
-from threading import Thread
+from threading import Thread, Event
 import time
+from robot_pkg.step import Step
 from robot_pkg.strategy import Strategy 
 from robot_pkg.servo import Servo
 from robot_pkg.move import Move
 from robot_pkg.in_out import I_O, SensorType
 from robot_pkg.consts import Variables
-from robot_pkg.conditions import ConditionType 
+from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.main import log_handler
 
 
 class Execute:
 
-    def __init__(self, strategy:Strategy): 
+    def __init__(self, strategy:Strategy, main_running:Event): 
         self.steps = strategy.steps
         self.thread = Thread(target=self.loop, args=())
         self._logger = log_handler.get_logger("execute")
         self.running = False
+        self.main_running = main_running
         
     def start(self):
         self.running = True
@@ -61,6 +63,7 @@ class Execute:
 
             # Waiting for end of step and checking conditions
             while self.running:
+                time.sleep(0.01)
                 cinch = I_O.sensor_states[SensorType.CINCH.value]
                 move_done = Move.move_done.is_set()
                 curr_pose = Move.pose
@@ -72,28 +75,29 @@ class Execute:
 
                 # TODO check if it will always enter this condition
                 # front or back detection wouldn't be enabled if the robot wasn't moving forward or backward
-                # if step.movement is not None and not cinch and not Variables.processing_detection \
-                #    (Variables.front_detection.is_set() or Variables.back_detection.is_set()): 
-                #     self._logger.info("\n*********\nDETECION\n*********\n")
+                if (Variables.front_detection.is_set() or Variables.back_detection.is_set()): 
+                    self._logger.info("\n*********\nDETECTION\n*********\n")
 
-                #     Variables.front_detection.clear()
-                #     Variables.back_detection.clear()
+                    Variables.front_detection.clear()
+                    Variables.back_detection.clear()
 
-                #     # if there was a detection condition and the attempts ran out in current step a skip to a new step happens
-                #     detection_cond = [c for c in step.conditions if c._type == ConditionType.DETECTION] 
+                    # if there was a detection condition and the attempts ran out in current step a skip to a new step happens
+                    detection_cond = [c for c in step.conditions if c._type == ConditionType.DETECTION] 
                     
-                #     if len(detection_cond) > 0 and detection_cond[0].attempts == 0:
-                #         next_step_id = detection_cond[0].ID
-                #         break
-                #     elif len(detection_cond) > 0 and detection_cond[0].attempts > 0:                            
-                #         detection_cond[0].attempts -= 1
+                    if len(detection_cond) > 0 and detection_cond[0].attempts == 0:
+                        next_step_id = detection_cond[0].ID
+                        break
+                    elif len(detection_cond) > 0 and detection_cond[0].attempts > 0:                            
+                        detection_cond[0].attempts -= 1
 
-                #     # if a condition wasn't set, it will attemp indefinetly
-                #     self.steps.insert(0, Move.Detection(100))
-                #     Variables.processing_detection = True
-                #     self.steps.insert(1, step)
+                    # if a condition wasn't set, it will attemp indefinetly
+                    self.steps.insert(0, Step(None, Move.Detection(100), [], [], [Condition.InPosition(None), Condition.MatchTime(100, 96)], 0))
+                    step.movement.executed = False
+                    Variables.processing_detection.set()
 
-                #     break
+                    self.steps.insert(1, step)
+
+                    break
 
                 args = [start_time, time.time(), move_done, cinch, servo_in_pos, None, None] 
                 checked = {cond._type : cond.check(args) for cond in step.conditions}
@@ -133,13 +137,15 @@ class Execute:
                 Variables.points += step.points
                 #self.display.setNumber(Variables.points)
                 # self.nucleo.set_motor_speed(0, 0, 2000)
-                # time.sleep(0.1)
+                time.sleep(0.1)
                 print("-------------------------------")
 
                 if len(self.steps) == 0:
                     self.running = False
                     
                 break
+        
+        self.main_running.clear()
             
     def stop(self):
         # self.nucleo.set_motor_speed(0,0,5000)

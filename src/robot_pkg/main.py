@@ -35,6 +35,9 @@ def main_func():
     I_O.start_threads()
     Lidar.start_threads()
 
+    time.sleep(2)
+
+    running = Event()
     execute = None
     if len(sys.argv) > 1:
         strategy =  choose_strategy(sys.argv[1], sys.argv[2], sys.argv[3])
@@ -44,13 +47,14 @@ def main_func():
         main_log.info(f"------ Strategy -------\n{strategy}")
 
         Variables.match_start_time = time.time()
+        
+        running.set()
 
-        execute = Execute(strategy)
+        execute = Execute(strategy, running)
         execute.start()
 
     else:
         main_log.info("Debug mode active")
-
         # Allow user commands
         cmd_debug = Event()
         cmd_debug.set()    # Comment when not testing commands
@@ -58,10 +62,12 @@ def main_func():
         cmd_thread.daemon = True
         cmd_thread.start()
 
+        running.set()
+
 
     try:
         # pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
-        while 1:
+        while running.is_set():
         #     # Listen for pause flag on can
         #     if len(pause_queue) > 0:
         #         data = pause_queue.pop()

@@ -64,8 +64,7 @@ class Move:
 
                 if success:
                     Move.move_done.set()
-                    if Variables.processing_detection:
-                        Variables.processing_detection = False
+                    Variables.processing_detection.clear()
                     Move._logger.info(f"Movement done")
                 else:
                     # Movement unssuccsesful
@@ -176,13 +175,13 @@ class Move:
 
 
     @classmethod
-    def To(cls, x_coor:float, y_coor:float, direction:bool, v:float, a:float, w:float, alpha:float):
+    def To(cls, x_coor:float, y_coor:float, direction:str, v:float, a:float, w:float, alpha:float):
         '''
             Starts absolute movement to (x,y) coordinate of table with respect to 
             velocity and acceleration limits.
         '''
         move = cls()
-        move.data = struct.pack('ffiffff', x_coor, y_coor, direction, v, a, w, alpha)
+        move.data = struct.pack('<2fc4f', x_coor, y_coor, direction.encode('ascii'), v, a, w, alpha)
         move.send_queue = can_handler.msg_send_queues[IDs.SET_XY.value]
         move._type = MoveType.TO_XY.name
 
@@ -227,10 +226,9 @@ class Move:
         return move
     
     def _execute(self):
-        # Waits for previous move command to complete
-        Move.move_done.wait()
+        Move.move_done.clear()
 
+        # time.sleep(2)
         self.send_queue.append(self.data)
         self.executed = True
 
-        Move.move_done.clear()

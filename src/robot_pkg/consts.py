@@ -14,7 +14,7 @@ class Variables:
     points = 0
     front_detection = Event()
     back_detection = Event()
-    processing_detection = False
+    processing_detection = Event()
     
 class LIDAR_FOV:
     FRONT_DEPLOY = 500 

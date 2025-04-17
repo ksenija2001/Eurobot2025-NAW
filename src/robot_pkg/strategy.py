@@ -51,8 +51,8 @@ class Strategy:
                 if m != None and ConditionType.POSITION not in [cond._type for cond in c]:
                     c.append(Condition.InPosition(None))
 
-                    if m._type == MoveType.RESET.name:
-                        c.clear()
+                    # if m._type == MoveType.RESET.name:
+                    #     c.clear()
                 
             servos = []
             for servo in s:
