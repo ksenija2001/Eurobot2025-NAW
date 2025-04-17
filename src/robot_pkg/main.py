@@ -35,6 +35,9 @@ def main_func():
     I_O.start_threads()
     Lidar.start_threads()
 
+    reset_odom = Move.ResetOdom(1500 , 125, 1.57)
+    reset_odom._execute()
+
     time.sleep(2)
 
     running = Event()

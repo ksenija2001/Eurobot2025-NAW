@@ -26,6 +26,7 @@ class Area(EnumDict):
     BLUE_RIGHT_SMALL  = Position(2000+225,       75,  -90)
     BLUE_RIGHT_BIG    = Position(2000-225,      225,  -90)
 
+
 class MaterialStock(EnumDict):
     YELLOW_RESERVED = Position( 825, 1725,  90)
     BLUE_RESERVED   = Position(2175, 1725,  90)

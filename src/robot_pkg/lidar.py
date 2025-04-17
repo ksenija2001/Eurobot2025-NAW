@@ -18,7 +18,7 @@ class Lidar:
         s = cls()
         lidar_queue = can_handler.msg_receive_queues[IDs.GET_OPPONENT.value]
         detection_queue = can_handler.msg_receive_queues[IDs.GET_DETECTION.value]
-        # beacon_queue = can_handler.msg_receive_queues[IDs.GET_BEACON.value]
+        beacon_queue = can_handler.msg_receive_queues[IDs.GET_BEACON.value]
 
         while running.is_set():
             if len(lidar_queue) > 0:
@@ -26,26 +26,22 @@ class Lidar:
 
                 [x, y, theta, speed] = struct.unpack('4f', lidar_msg.data)
 
-                # if speed > 150/1000 and abs(Move.pose.speed) > 150:
-                #     s.get_intersection(x, y, theta, speed)
-                # Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
+                if speed > 150/1000 and abs(Move.pose.speed) > 150:
+                    s.get_intersection(x, y, theta, speed)
+                Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
 
-            # if len(beacon_queue) > 0:
-            #     lidar_msg = beacon_queue.pop()
+            if len(beacon_queue) > 0:
+                lidar_msg = beacon_queue.pop()
+                
+                xyd = struct.unpack('12f', lidar_msg.data)
+                print(xyd)
+                Lidar._logger.info("Beacons:")
+                for i in range(0, 12, 3):
+                    if round(xyd[i],2) != 0 and round(xyd[i+1],2) != 0:
+                        Lidar._logger.info(f"{xyd[i]}, {xyd[i+1]}, {xyd[i+2]}")
 
-            #     length = len(lidar_msg.data)
-            #     length /= 4
 
-            #     xyd = struct.unpack(f'{length}f', lidar_msg.data)
-            #     print(xyd)
-
-            #     Lidar.beacon_points((x,y))
-
-            #     if len(Lidar.beacon_points) > 2:
-            #         # TODO find position based on beacon positions
-
-            #         Lidar.beacon_points.clear()
-
+             
             if len(detection_queue) > 0:
                 lidar_msg = detection_queue.pop()
 
