@@ -40,6 +40,7 @@
 #define LIDAR_FOV 120
 #define LIDAR_SIDE_DISTANCE 400
 
+
 typedef struct {
 	float x;
 	float y;
@@ -126,12 +127,15 @@ void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TI
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
 void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes);
 void Process_Distance(float distance, uint16_t angle);
-void Get_Opponent();
 void TIM6_IT(TIM_HandleTypeDef *tim);
 void TIM7_IT(TIM_HandleTypeDef *tim);
 
 void Point_Cloud_To_Bytes(sVector3_t pc[], uint16_t size, uint8_t* bytes);
 void Timer_Delay(uint16_t count);
+uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius);
+void Get_Beacons();
+void Get_Opponent();
+sVector3_t Choose_Beacon(sVector3_t position);
 
 
 extern uint8_t rx_buff[BUFFER_SIZE];

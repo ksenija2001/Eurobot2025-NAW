@@ -26,7 +26,9 @@ uint16_t last_angle;
 uint32_t last_timestamp;
 
 sVector3_t point_cloud[100];
+sVector3_t beacon_pc[100];
 uint16_t pc_index = 0;
+uint16_t b_pc_index = 0;
 
 // Odometry data
 sOdom_t opponent;
@@ -526,7 +528,10 @@ void Process_Distance(float distance, uint16_t angle){
 
 	if (last_angle > 357 && last_angle < 360){
 		if (pc_index >= 1 ) Get_Opponent();
+		if (b_pc_index >= 1) Get_Beacons();
 
+		memset(beacon_pc, 0, sizeof(beacon_pc));
+		b_pc_index = 0;
 		memset(point_cloud, 0, sizeof(point_cloud));
 		pc_index = 0;
 	}
@@ -546,14 +551,39 @@ void Process_Distance(float distance, uint16_t angle){
 			}
 
 			point_cloud[pc_index++] = point;
-
 			if (pc_index >= 100) pc_index = 0;
-			// TODO how to save points to be able to search them easiliy for
-
-		} else if ((point.vector[0] > 2950 && point.vector[0] <= 3050) &&
-				   (point.vector[1] > 1950 && point.vector[1] <= 2050)) {
-			// Point in region of beacons
 		}
+		else {
+			// Point in some beacon region
+			sVector3_t beacon = Choose_Beacon(point);
+
+			if (beacon.vector[0] != 0){
+				beacon.vector[0] = point.vector[0];
+				beacon.vector[1] = point.vector[1];
+				beacon.vector[2] = distance;
+
+				beacon_pc[b_pc_index++] = beacon;
+				if (b_pc_index > 300) b_pc_index = 0;
+			}
+//
+//				convert_x.f = point.vector[0];
+//				convert_y.f = point.vector[1];
+//				convert_z.f = distance;
+//
+//				uint8_t bytes[13];
+//				for(j=0; j<4; ++j){
+//					bytes[j]    = convert_x.u[j];
+//					bytes[j+4]  = convert_y.u[j];
+//					bytes[j+8]  = convert_z.u[j];
+//				}
+//
+//				bytes[12] = beacon;
+//
+//				FDCAN_Send_Data(0x4CD, FDCAN_DLC_BYTES_12, 9, bytes);
+//			}
+
+		}
+
 	}
 
 	last_angle = angle;
@@ -564,48 +594,120 @@ float norm(sVector3_t a, sVector3_t b){
 	return sqrt((a.vector[0] - b.vector[0])*(a.vector[0] - b.vector[0]) + (a.vector[1] - b.vector[1])*(a.vector[1] - b.vector[1]));
 }
 
-
-void Get_Opponent(){
+uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius){
 	// Segment point cloud into groups of points
 	uint8_t i=0, j=0, k=0;
 	float sum_x=0, sum_y=0;
 
-	while (i < pc_index-1) {
-
+	while (i < ind-1) {
 		// Average close points
-		for (j=i+1; j < pc_index; ++j){
-			if (norm(point_cloud[i], point_cloud[j]) > BEACON_SUPPORT_DIAMETER){
+		for (j=i+1; j < ind; ++j){
+			if (norm(pc[i], pc[j]) > radius){
 				break;
-//				pivot.vector[0] = (pivot.vector[0] + point_cloud[j].vector[0])/2.0;
-//				pivot.vector[1] = (pivot.vector[1] + point_cloud[j].vector[1])/2.0;
 			}
 		}
 
+		// Average all points
 		sum_x = sum_y = 0;
 		for (k=i; k<j; ++k){
-			sum_x += point_cloud[k].vector[0];
-			sum_y += point_cloud[k].vector[1];
+			sum_x += pc[k].vector[0];
+			sum_y += pc[k].vector[1];
 		}
 
-		// Shift point cloud to the left to get rid of averaged points
-		point_cloud[i].vector[0] = sum_x/(j-i);
-		point_cloud[i].vector[1] = sum_y/(j-i);
+		pc[i].vector[0] = sum_x/(j-i);
+		pc[i].vector[1] = sum_y/(j-i);
 
-		pc_index -= j-i-1;
-		for (k=i+1; k < pc_index; ++k){
-			point_cloud[k] = point_cloud[k+(j-i-1)];
+		// Shift point cloud to the left to get rid of averaged points
+		ind -= j-i-1;
+		for (k=i+1; k < ind; ++k){
+			pc[k] = pc[k+(j-i-1)];
 		}
 
 		++i;
 	}
 
 	// Average first and last group if they are close enough
-	if (pc_index > 1 && norm(point_cloud[0], point_cloud[pc_index-1]) <= BEACON_SUPPORT_DIAMETER){
-		point_cloud[0].vector[0] = (point_cloud[0].vector[0] + point_cloud[pc_index-1].vector[0])/2.0;
-		point_cloud[0].vector[1] = (point_cloud[0].vector[1] + point_cloud[pc_index-1].vector[1])/2.0;
+	if (ind > 1 && norm(pc[0], pc[ind-1]) <= BEACON_SUPPORT_DIAMETER){
+		pc[0].vector[0] = (pc[0].vector[0] + pc[ind-1].vector[0])/2.0;
+		pc[0].vector[1] = (pc[0].vector[1] + pc[ind-1].vector[1])/2.0;
 
-		pc_index -= 1;
+		ind -= 1;
 	}
+
+	return ind;
+}
+
+sVector3_t Choose_Beacon(sVector3_t position){
+	sVector3_t point;
+	// upper left beacon
+	if ((position.vector[0] > -150 && position.vector[0] <= 0) &&
+	    (position.vector[1] > 1850 && position.vector[1] <= 2000)){
+		point.vector[0] = -40 - 50;
+		point.vector[1] = 2000 - 55;
+	} // middle left beacon
+	else if ((position.vector[0] > -150 && position.vector[0] <= 0) &&
+			  (position.vector[1] > 925  && position.vector[1] <= 1075)){
+		point.vector[0] = -40 - 50;
+		point.vector[1] = 1000;
+	} // lower left beacon
+	else if ((position.vector[0] > -150 && position.vector[0] <= 0) &&
+			  (position.vector[1] > 0    && position.vector[1] <= 150)){
+		point.vector[0] = -40 - 50;
+		point.vector[1] = 55;
+	} // upper right beacon
+	else if ((position.vector[0] > 3000 && position.vector[0] <= 3150) &&
+			  (position.vector[1] > 1850 && position.vector[1] <= 2000)){
+		point.vector[0] = 3000 + 40 + 50;
+		point.vector[1] = 2000 - 55;
+	} // middle right beacon
+	else if ((position.vector[0] > 3000 && position.vector[0] <= 3150) &&
+			  (position.vector[1] > 925  && position.vector[1] <= 1075)){
+		point.vector[0] = 3000 + 40 + 50;
+		point.vector[1] = 1000;
+	} // lower right beacon
+	else if ((position.vector[0] > 3000 && position.vector[0] <= 3150) &&
+			  (position.vector[1] > 0    && position.vector[1] <= 150)){
+		point.vector[0] = 3000 + 40 + 50;
+		point.vector[1] = 55;
+	}
+
+	point.vector[2] = position.vector[2];
+	return point;
+}
+
+void Get_Beacons(){
+	uint8_t i=0, j=0;
+
+	b_pc_index = Segment_PC(beacon_pc, b_pc_index, 100);
+
+	uint8_t bytes[48];
+	// At least two beacons
+	if (b_pc_index > 1){
+		for (i=0; i<b_pc_index; i++){
+			sVector3_t point = Choose_Beacon(beacon_pc[i]);
+			// If the point can fall in one of the beacon regions send it
+			if (point.vector[0] != 0 && point.vector[1] != 0){
+				convert_x.f = point.vector[0];
+				convert_y.f = point.vector[1];
+				convert_z.f = point.vector[2];
+
+				for(j=0; j<4; ++j){
+					bytes[j]    = convert_x.u[j];
+					bytes[j+4]  = convert_y.u[j];
+					bytes[j+8]  = convert_z.u[j];
+				}
+
+			}
+ 		}
+
+		FDCAN_Send_Data(0x4CD, FDCAN_DLC_BYTES_48, 48, bytes);
+	}
+}
+
+void Get_Opponent(){
+	uint8_t i=0;
+
+	pc_index = Segment_PC(point_cloud, pc_index, BEACON_SUPPORT_DIAMETER);
 
 	sVector3_t new_op = point_cloud[0];
 	sVector3_t last_op = {.vector= {opponent.x, opponent.y, 400.0} };
@@ -619,7 +721,6 @@ void Get_Opponent(){
 		}
 	}
 
-//	float theta = atan2((new_op.vector[1] - self.y),(new_op.vector[0] - self.x));
 	float op_x = opponent.x, op_y=opponent.y;
 
 	// Filter last known opponent position and new estimate
@@ -627,7 +728,6 @@ void Get_Opponent(){
 	opponent.y = 0.5*op_y + 0.5*(new_op.vector[1]); // + sin(theta)*42.5);
 	opponent.theta = atan2((opponent.y - op_y),(opponent.x - op_x));
 
-	//opponent.theta = 0.5*opponent.theta + 0.5*theta; // TODO get actual direction from last position
 	uint32_t timestamp = HAL_GetTick();
 
 	opponent.speed = (sqrt( (op_x - opponent.x)*(op_x - opponent.x) + (op_y - opponent.y)*(op_y - opponent.y)))/(timestamp - last_timestamp);
