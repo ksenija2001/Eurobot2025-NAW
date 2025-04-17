@@ -135,13 +135,14 @@ void Timer_Delay(uint16_t count);
 uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius);
 void Get_Beacons();
 void Get_Opponent();
-sVector3_t Choose_Beacon(sVector3_t position);
-
+void Choose_Beacon(sVector3_t* position, sVector3_t* point);
 
 extern uint8_t rx_buff[BUFFER_SIZE];
 extern sDescriptor_t response_desc;
 extern sOdom_t self;
 extern sDetection_t detection;
+extern uint8_t process_beacon;
+extern uint8_t process_opponent;
 
 
 #endif /* INC_LIDAR_H_ */

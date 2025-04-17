@@ -117,7 +117,10 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
+//  HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
+//  HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
   FDCAN_Init(&hfdcan1);
+
 
 //  SVD_Init_Matrices();
 //  PC_Init_Matrices();
@@ -126,6 +129,14 @@ int main(void)
   HAL_UART_DMAStop(&huart2);
   HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(USART2_IRQn);
+
+//  HAL_NVIC_SetPriority(TIM7_IRQn, 2, 0);
+//  HAL_NVIC_EnableIRQ(TIM7_IRQn);
+//
+//  HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 3, 0);
+//  HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
+
+
 
   Start_DMA(&huart2, 84);
   /* USER CODE END 2 */
@@ -142,6 +153,16 @@ int main(void)
 	  } else if ( !start_lidar && started){
 		  started = 0;
 		  Lidar_Stop_All(&htim3, &htim6, &htim7, &huart2);
+	  }
+
+	  if (process_opponent == 1){
+	  		Get_Opponent();
+	  		process_opponent = 2;
+	  }
+
+	  if (process_beacon == 1){
+		   Get_Beacons();
+		   process_beacon = 2;
 	  }
 
 	  if (send_status == HAL_OK)
@@ -241,7 +262,7 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
   hfdcan1.Init.FrameFormat = FDCAN_FRAME_FD_NO_BRS;
   hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
-  hfdcan1.Init.AutoRetransmission = ENABLE;
+  hfdcan1.Init.AutoRetransmission = DISABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
   hfdcan1.Init.NominalPrescaler = 1;

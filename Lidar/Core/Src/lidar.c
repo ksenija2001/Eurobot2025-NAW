@@ -60,8 +60,8 @@ sDetection_t detection = {
 		.front = 500, .back = 500
 };
 
-uint8_t express_scan_status = 0;
-uint8_t proccessing_status = 0;
+uint8_t process_beacon = 0;
+uint8_t process_opponent = 0;
 
 
 // Since Sensitivity utilizes ultra capsulated data format - which is hard to decode, scan mode 1 will be used
@@ -113,7 +113,7 @@ void Lidar_Start(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TI
 	  HAL_TIM_Base_Start_IT(parse_htim);   /* Timer for parsing LIDAR data*/
 
 	  Lidar_Get_Health(huart);
-	  Lidar_Motor_Speed(motor_htim, TIM_CHANNEL_1, 660, ramp_htim);
+	  Lidar_Motor_Speed(motor_htim, TIM_CHANNEL_1, 400, ramp_htim);
 	  Lidar_Stop(huart);
 	  Lidar_Get_Info(huart);
 	  Lidar_Get_Lidar_Conf(huart, 0x01, 0x04, 0x00);
@@ -390,8 +390,6 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 
 				break;
 			case 0x82:  // Express scan in scan mode 1
-				express_scan_status = 1;
-
 				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
 				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
 				response.start_angle = (float)((((uint16_t)(rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64);
@@ -526,21 +524,29 @@ void Process_Distance(float distance, uint16_t angle){
 	angle += 353;
 	angle %= 360;
 
-	if (last_angle > 357 && last_angle < 360){
-		if (pc_index >= 1 ) Get_Opponent();
-		if (b_pc_index >= 1) Get_Beacons();
-
-		memset(beacon_pc, 0, sizeof(beacon_pc));
-		b_pc_index = 0;
+	if (last_angle > 357 && last_angle < 360 && pc_index > 1){
+		process_opponent = 1;
+	} else if ((last_angle > 357 && last_angle < 360) || process_opponent == 2){
 		memset(point_cloud, 0, sizeof(point_cloud));
 		pc_index = 0;
+
+		process_opponent = 0;
 	}
 
-	if (distance > 0 ) {
+	if (b_pc_index > 50){
+		process_beacon = 1;
+	} else if (process_beacon == 2){
+		memset(beacon_pc, 0, sizeof(beacon_pc));
+		b_pc_index = 0;
+
+		process_beacon = 0;
+	}
+
+	if (distance > 0) {
 		Polar2Cartesian(distance, angle, &point);
 
-		if ((point.vector[0] <= 1000 && point.vector[0] >= 0) &&
-			(point.vector[1] <= 1000 && point.vector[1] >= 0)) {
+		if ((point.vector[0] <= 2900 && point.vector[0] >= 100) &&
+			(point.vector[1] <= 1900 && point.vector[1] >= 100)) {
 			// Point in bounds of table
 
 			uint8_t det = Process_Detection(distance, angle);
@@ -550,12 +556,14 @@ void Process_Distance(float distance, uint16_t angle){
 				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
 			}
 
+			// Opponent point cloud
 			point_cloud[pc_index++] = point;
 			if (pc_index >= 100) pc_index = 0;
 		}
 		else {
 			// Point in some beacon region
-			sVector3_t beacon = Choose_Beacon(point);
+			sVector3_t beacon = {.vector={0,0,0}};
+			Choose_Beacon(&point, &beacon);
 
 			if (beacon.vector[0] != 0){
 				beacon.vector[0] = point.vector[0];
@@ -563,24 +571,8 @@ void Process_Distance(float distance, uint16_t angle){
 				beacon.vector[2] = distance;
 
 				beacon_pc[b_pc_index++] = beacon;
-				if (b_pc_index > 300) b_pc_index = 0;
+				if (b_pc_index > 100) b_pc_index = 0;
 			}
-//
-//				convert_x.f = point.vector[0];
-//				convert_y.f = point.vector[1];
-//				convert_z.f = distance;
-//
-//				uint8_t bytes[13];
-//				for(j=0; j<4; ++j){
-//					bytes[j]    = convert_x.u[j];
-//					bytes[j+4]  = convert_y.u[j];
-//					bytes[j+8]  = convert_z.u[j];
-//				}
-//
-//				bytes[12] = beacon;
-//
-//				FDCAN_Send_Data(0x4CD, FDCAN_DLC_BYTES_12, 9, bytes);
-//			}
 
 		}
 
@@ -597,106 +589,132 @@ float norm(sVector3_t a, sVector3_t b){
 uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius){
 	// Segment point cloud into groups of points
 	uint8_t i=0, j=0, k=0;
-	float sum_x=0, sum_y=0;
+	float sum_x=0, sum_y=0, sum_z=0;
 
-	while (i < ind-1) {
-		// Average close points
-		for (j=i+1; j < ind; ++j){
-			if (norm(pc[i], pc[j]) > radius){
-				break;
+	while(i < ind-1){
+		sum_x = pc[i].vector[0];
+		sum_y = pc[i].vector[1];
+		sum_z = pc[i].vector[2];
+
+		for(j=i+1, k=0; j<ind; ++j){
+			pc[j-k] = pc[j];
+			if (norm(pc[i], pc[j-k]) <= radius){
+				sum_x += pc[j-k].vector[0];
+				sum_y += pc[j-k].vector[1];
+				sum_z += pc[j-k].vector[2];
+
+				++k;
 			}
 		}
 
-		// Average all points
-		sum_x = sum_y = 0;
-		for (k=i; k<j; ++k){
-			sum_x += pc[k].vector[0];
-			sum_y += pc[k].vector[1];
-		}
+		pc[i].vector[0] = sum_x/(k+1);
+		pc[i].vector[1] = sum_y/(k+1);
+		pc[i].vector[2] = sum_z/(k+1);
 
-		pc[i].vector[0] = sum_x/(j-i);
-		pc[i].vector[1] = sum_y/(j-i);
-
-		// Shift point cloud to the left to get rid of averaged points
-		ind -= j-i-1;
-		for (k=i+1; k < ind; ++k){
-			pc[k] = pc[k+(j-i-1)];
-		}
-
+		ind -= k;
 		++i;
 	}
 
-	// Average first and last group if they are close enough
-	if (ind > 1 && norm(pc[0], pc[ind-1]) <= BEACON_SUPPORT_DIAMETER){
-		pc[0].vector[0] = (pc[0].vector[0] + pc[ind-1].vector[0])/2.0;
-		pc[0].vector[1] = (pc[0].vector[1] + pc[ind-1].vector[1])/2.0;
 
-		ind -= 1;
-	}
+//	while (i < ind-1) {
+//		// Average close points
+//		for (j=i+1; j < ind; ++j){
+//			if (norm(pc[i], pc[j]) > radius){
+//				break;
+//			}
+//		}
+//
+//		// Average all points
+//		sum_x = sum_y = sum_z = 0;
+//		for (k=i; k<j; ++k){
+//			sum_x += pc[k].vector[0];
+//			sum_y += pc[k].vector[1];
+//			sum_z += pc[k].vector[2];
+//		}
+//
+//		pc[i].vector[0] = sum_x/(j-i);
+//		pc[i].vector[1] = sum_y/(j-i);
+//		pc[i].vector[2] = sum_z/(j-i);
+//
+//		// Shift point cloud to the left to get rid of averaged points
+//		ind -= j-i-1;
+//		for (k=i+1; k < ind; ++k){
+//			pc[k] = pc[k+(j-i-1)];
+//		}
+//
+//		++i;
+//	}
+//
+//	// Average first and last group if they are close enough
+//	if (ind > 1 && norm(pc[0], pc[ind-1]) <= BEACON_SUPPORT_DIAMETER){
+//		pc[0].vector[0] = (pc[0].vector[0] + pc[ind-1].vector[0])/2.0;
+//		pc[0].vector[1] = (pc[0].vector[1] + pc[ind-1].vector[1])/2.0;
+//		pc[0].vector[2] = (pc[0].vector[2] + pc[ind-1].vector[2])/2.0;
+//
+//		ind -= 1;
+//	}
 
 	return ind;
 }
 
-sVector3_t Choose_Beacon(sVector3_t position){
-	sVector3_t point;
+void Choose_Beacon(sVector3_t* position, sVector3_t* point){
 	// upper left beacon
-	if ((position.vector[0] > -150 && position.vector[0] <= 0) &&
-	    (position.vector[1] > 1850 && position.vector[1] <= 2000)){
-		point.vector[0] = -40 - 50;
-		point.vector[1] = 2000 - 55;
+	if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
+	    (position->vector[1] > 1850 && position->vector[1] <= 2050)){
+		point->vector[0] = -90;
+		point->vector[1] = 1950;
 	} // middle left beacon
-	else if ((position.vector[0] > -150 && position.vector[0] <= 0) &&
-			  (position.vector[1] > 925  && position.vector[1] <= 1075)){
-		point.vector[0] = -40 - 50;
-		point.vector[1] = 1000;
+	else if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
+			 (position->vector[1] > 900  && position->vector[1] <= 1100)){
+		point->vector[0] = -90;
+		point->vector[1] = 1000;
 	} // lower left beacon
-	else if ((position.vector[0] > -150 && position.vector[0] <= 0) &&
-			  (position.vector[1] > 0    && position.vector[1] <= 150)){
-		point.vector[0] = -40 - 50;
-		point.vector[1] = 55;
+	else if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
+			  (position->vector[1] > -50 && position->vector[1] <= 150)){
+		point->vector[0] = -90;
+		point->vector[1] = 50;
 	} // upper right beacon
-	else if ((position.vector[0] > 3000 && position.vector[0] <= 3150) &&
-			  (position.vector[1] > 1850 && position.vector[1] <= 2000)){
-		point.vector[0] = 3000 + 40 + 50;
-		point.vector[1] = 2000 - 55;
+	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
+			 (position->vector[1] > 1850 && position->vector[1] <= 2050)){
+		point->vector[0] = 3090;
+		point->vector[1] = 1950;
 	} // middle right beacon
-	else if ((position.vector[0] > 3000 && position.vector[0] <= 3150) &&
-			  (position.vector[1] > 925  && position.vector[1] <= 1075)){
-		point.vector[0] = 3000 + 40 + 50;
-		point.vector[1] = 1000;
+	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
+			  (position->vector[1] > 900 && position->vector[1] <= 1100)){
+		point->vector[0] = 3090;
+		point->vector[1] = 1000;
 	} // lower right beacon
-	else if ((position.vector[0] > 3000 && position.vector[0] <= 3150) &&
-			  (position.vector[1] > 0    && position.vector[1] <= 150)){
-		point.vector[0] = 3000 + 40 + 50;
-		point.vector[1] = 55;
+	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
+			  (position->vector[1] > -50 && position->vector[1] <= 150)){
+		point->vector[0] = 3090;
+		point->vector[1] = 50;
 	}
 
-	point.vector[2] = position.vector[2];
-	return point;
+	point->vector[2] = position->vector[2];
 }
 
 void Get_Beacons(){
 	uint8_t i=0, j=0;
 
-	b_pc_index = Segment_PC(beacon_pc, b_pc_index, 100);
+	b_pc_index = Segment_PC(beacon_pc, b_pc_index, 200);
 
 	uint8_t bytes[48];
 	// At least two beacons
 	if (b_pc_index > 1){
 		for (i=0; i<b_pc_index; i++){
-			sVector3_t point = Choose_Beacon(beacon_pc[i]);
+			sVector3_t beacon = {.vector={0,0,0}};
+			Choose_Beacon(&beacon_pc[i], &beacon);
 			// If the point can fall in one of the beacon regions send it
-			if (point.vector[0] != 0 && point.vector[1] != 0){
-				convert_x.f = point.vector[0];
-				convert_y.f = point.vector[1];
-				convert_z.f = point.vector[2];
+			if (beacon.vector[0] != 0 && beacon.vector[1] != 0){
+				convert_x.f = beacon.vector[0];
+				convert_y.f = beacon.vector[1];
+				convert_z.f = beacon.vector[2];
 
 				for(j=0; j<4; ++j){
-					bytes[j]    = convert_x.u[j];
-					bytes[j+4]  = convert_y.u[j];
-					bytes[j+8]  = convert_z.u[j];
+					bytes[j+i*12]    = convert_x.u[j];
+					bytes[j+4+i*12]  = convert_y.u[j];
+					bytes[j+8+i*12]  = convert_z.u[j];
 				}
-
 			}
  		}
 
