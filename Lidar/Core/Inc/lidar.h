@@ -14,7 +14,7 @@
 #include "fdcan.h"
 
 
-#define BUFFER_SIZE 84
+#define BUFFER_SIZE 132
 #define PWM_ARR 5759
 #define PWM_SENS 0.0735294117647
 #define PWM_SENS_OFFSET 6.176470588235
@@ -40,6 +40,28 @@
 #define LIDAR_FOV 120
 #define LIDAR_SIDE_DISTANCE 400
 
+#define MAX_ULTRA_CABINS 32
+#define RPLIDAR_VARBITSCALE_X2_SRC_BIT 9
+#define RPLIDAR_VARBITSCALE_X4_SRC_BIT 11
+#define RPLIDAR_VARBITSCALE_X8_SRC_BIT 12
+#define RPLIDAR_VARBITSCALE_X16_SRC_BIT 14
+
+#define RPLIDAR_VARBITSCALE_X2_DEST_VAL 512
+#define RPLIDAR_VARBITSCALE_X4_DEST_VAL 1280
+#define RPLIDAR_VARBITSCALE_X8_DEST_VAL 1792
+#define RPLIDAR_VARBITSCALE_X16_DEST_VAL 3328
+
+typedef struct {
+    int32_t major;
+    int32_t predict1;
+    int32_t predict2;
+} RPlidarUltraCabin;
+
+typedef struct {
+    uint8_t sync_bit;
+    uint16_t angle_q6;
+    uint32_t dist_q2;
+} RPlidarMeasurementHQ;
 
 typedef struct {
 	float x;
@@ -83,8 +105,9 @@ typedef struct{
 typedef struct{
 	uint8_t sync;          // identifies the start of a new response packet - 0xA5
 	uint8_t checksum;      // XOR of all data bytes in response packet
-	float start_angle;  // reference value for the angle data in current response packet
+    uint16_t start_angle_q6;  // reference value for the angle data in current response packet
 	uint8_t S;             // start flag of new scan
+	RPlidarUltraCabin ultra_cabins[MAX_ULTRA_CABINS];
 } sResponse_t;
 
 typedef struct{
@@ -125,17 +148,15 @@ void Lidar_Express_Scan(UART_HandleTypeDef *huart, uint8_t scan_mode_id);
 void Lidar_Motor_Stop(TIM_HandleTypeDef *tim, uint8_t channel);
 void Lidar_Motor_Speed(TIM_HandleTypeDef *tim, uint8_t channel, uint16_t rpm, TIM_HandleTypeDef *tim_rpm);
 uint8_t Lidar_CRC(uint8_t msg[], uint8_t length, uint8_t start);
-void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes);
-void Process_Distance(float distance, uint16_t angle);
+void Process_Distance(float distance, float angle, uint8_t new_scan);
 void TIM6_IT(TIM_HandleTypeDef *tim);
 void TIM7_IT(TIM_HandleTypeDef *tim);
 
-void Point_Cloud_To_Bytes(sVector3_t pc[], uint16_t size, uint8_t* bytes);
-void Timer_Delay(uint16_t count);
 uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius);
 void Get_Beacons();
 void Get_Opponent();
 void Choose_Beacon(sVector3_t* position, sVector3_t* point);
+uint8_t VarbitScale_Decode(int32_t scaled, uint32_t *decoded);
 
 extern uint8_t rx_buff[BUFFER_SIZE];
 extern sDescriptor_t response_desc;

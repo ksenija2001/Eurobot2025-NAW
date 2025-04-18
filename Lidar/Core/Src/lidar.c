@@ -12,9 +12,25 @@ sDescriptor_t response_desc = {
 	.packet_num = 0
 };
 
+uint32_t VBS_SCALED_BASE[5] = {RPLIDAR_VARBITSCALE_X16_DEST_VAL,
+                   RPLIDAR_VARBITSCALE_X8_DEST_VAL,
+                   RPLIDAR_VARBITSCALE_X4_DEST_VAL,
+                   RPLIDAR_VARBITSCALE_X2_DEST_VAL,
+                   0
+};
+
+uint32_t VBS_SCALED_LVL[5] = {4, 3, 2, 1, 0};
+
+uint32_t VBS_TARGET_BASE[5] = {(0x1 << RPLIDAR_VARBITSCALE_X16_SRC_BIT),
+                   (0x1 << RPLIDAR_VARBITSCALE_X8_SRC_BIT),
+                   (0x1 << RPLIDAR_VARBITSCALE_X4_SRC_BIT),
+                   (0x1 << RPLIDAR_VARBITSCALE_X2_SRC_BIT),
+                   0
+};
+
 // Variables for parsing lidar express scan data
-sResponse_t response;
 sResponse_t last_response = {0};
+uint16_t counter = 0;
 
 // Variables for lidar PWM control
 sPWM_t lidar_pwm = {
@@ -26,13 +42,17 @@ uint16_t last_angle;
 uint32_t last_timestamp;
 
 sVector3_t point_cloud[100];
-sVector3_t beacon_pc[100];
+sVector3_t beacon_pc[200];
 uint16_t pc_index = 0;
 uint16_t b_pc_index = 0;
 
 // Odometry data
 sOdom_t opponent;
 sOdom_t self;
+
+float test_dist[700];
+float test_angle[700];
+uint16_t test_cnt = 0;
 
 
 // Debug variables
@@ -91,24 +111,6 @@ uint8_t process_opponent = 0;
 // 				 max_distance = 0x10m = 16m
 //               name = Stability
 
-void Timer_Delay(uint16_t count){
-	uint16_t i=0;
-
-	// 1ms interrupt
-	HAL_TIM_Base_Start_IT(&htim17);
-
-	while(i < count){
-		if((TIM17->SR & 0x02) >> 1){
-			TIM17->SR &= ~(0x02);
-			TIM17->CNT = 0;
-			++i;
-
-		}
-	}
-
-	HAL_TIM_Base_Stop_IT(&htim17);
-}
-
 void Lidar_Start(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim, UART_HandleTypeDef* huart){
 	  HAL_TIM_Base_Start_IT(parse_htim);   /* Timer for parsing LIDAR data*/
 
@@ -117,7 +119,7 @@ void Lidar_Start(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TI
 	  Lidar_Stop(huart);
 	  Lidar_Get_Info(huart);
 	  Lidar_Get_Lidar_Conf(huart, 0x01, 0x04, 0x00);
-	  Lidar_Express_Scan(huart, 0x00); // Legacy Express Scan
+	  Lidar_Express_Scan(huart, typ_scan_mode); // Legacy Express Scan - 0x00
 }
 
 void Lidar_Stop_All(TIM_HandleTypeDef* motor_htim, TIM_HandleTypeDef* ramp_htim, TIM_HandleTypeDef* parse_htim,  UART_HandleTypeDef* huart){
@@ -389,69 +391,134 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				}
 
 				break;
-			case 0x82:  // Express scan in scan mode 1
+			case 0x84:  // Express scan in scan mode 1 - 0x82
+				sResponse_t response = {0};
 				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
 				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
-				response.start_angle = (float)((((uint16_t)(rx_buff[3] & 0x7F) << 8) | rx_buff[2]) / 64);
-				response.S           = rx_buff[3] & 0x80;
+				response.start_angle_q6 = ((((uint16_t)(rx_buff[3] & 0x7F)) << 8) | rx_buff[2]); // / 64);
+				response.S           = rx_buff[3] >> 7;
 				uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
 				if(response.checksum != crc){
 					// bad message
-//					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-//					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 					last_response = response;
-					memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
-
-//					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-
 					break;
+				}
+
+				RPlidarUltraCabin cabin = {0};
+				for(uint8_t i=4, k=0; i<response_desc.length; i+=4, ++k){
+					cabin.major = (((int32_t)(rx_buff[i+1] & 0x0F)) << 8) | rx_buff[i];
+					cabin.predict1 = (((int32_t)(rx_buff[i+2] & 0x3F)) << 4) | ((rx_buff[i+1] >> 4) & 0x0F);
+					cabin.predict2 = (((int32_t)(rx_buff[i+3] & 0xFF)) << 2) | ((rx_buff[i+2] >> 6) & 0x03);
+
+					// Sign extension for 10-bit signed values
+					if (cabin.predict1 & 0x200) cabin.predict1 |= 0xFFFFFC00;
+					if (cabin.predict2 & 0x200) cabin.predict2 |= 0xFFFFFC00;
+
+					response.ultra_cabins[k].major = cabin.major;
+					response.ultra_cabins[k].predict1 = cabin.predict1;
+					response.ultra_cabins[k].predict2 = cabin.predict2;
 				}
 
 				// information about the next start_angle is needed to calculate theta for this data response
 				if(last_response.sync != 0){
-					float angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
+					uint32_t curr_angle_q8 = ((uint32_t)response.start_angle_q6) << 2;
+					uint32_t prev_angle_q8 = ((uint32_t)last_response.start_angle_q6) << 2;
+					int32_t diff_angle_q8 = curr_angle_q8 - prev_angle_q8;
+					if (prev_angle_q8 > curr_angle_q8)
+						diff_angle_q8 += (((uint32_t)360) << 8);
 
-					// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
-					for(uint8_t i=4, k=1; i<response_desc.length; i=i+5, k=k+2){
+					uint32_t angle_inc_q16 = (diff_angle_q8 << 3)/3;
+					uint32_t current_angle_raw_q16 = prev_angle_q8 << 8;
 
-						// distance1 and theta1
-						u_distance = ( ((uint16_t)last_rx_buff[i+1] << 8) | (last_rx_buff[i] & 0xFC) ) >> 2;
-						distance = (float)u_distance;
+					for (uint8_t pos = 0; pos < MAX_ULTRA_CABINS; pos++) {
+						int32_t major = last_response.ultra_cabins[pos].major;
+						int32_t predict1 = last_response.ultra_cabins[pos].predict1;
+						int32_t predict2 = last_response.ultra_cabins[pos].predict2;
 
-						u_delta_theta = ((last_rx_buff[i] & 0x03) << 4) | (last_rx_buff[i+4] & 0x0F);
-						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
+						int32_t major2 = (pos == MAX_ULTRA_CABINS - 1) ? response.ultra_cabins[0].major : last_response.ultra_cabins[pos + 1].major;
 
-						theta = last_response.start_angle + ((angle_diff/32.0) * k) - (float)delta_theta / 8.0;
 
-						Process_Distance(distance, (uint16_t)theta);
+						uint32_t base1, base2;
+						uint8_t scale1 = VarbitScale_Decode(major, &base1);
+						uint8_t scale2 = VarbitScale_Decode(major2, &base2);
 
-						// distance2 and theta2
-						u_distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
-						distance = (float)u_distance;
+						if (!base1 && base2) {
+							base1 = base2;
+							scale1 = scale2;
+						}
 
-						u_delta_theta = ((last_rx_buff[i+2] & 0x03) << 4) | ((last_rx_buff[i+4] & 0xF0) >> 4);
-						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
+						uint32_t dist_q2[3] = {0};
+						dist_q2[0] = major << 2;
 
-						theta = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float)delta_theta / 8.0;
+						if ((uint32_t)predict1 == 0xFFFFFE00 || (uint32_t)predict1 == 0x1FF){
+							dist_q2[1] = 0;
+						} else {
+							predict1 = predict1 << scale1;
+							dist_q2[1] = (predict1 + base1) << 2;
+						}
 
-						Process_Distance(distance, (uint16_t)theta);
+						if ((uint32_t)predict2 == 0xFFFFFE00 || (uint32_t)predict2 == 0x1FF){
+							dist_q2[2] = 0;
+						} else {
+							predict2 = predict2 << scale2;
+							dist_q2[2] = (predict2 + base2) << 2;
+						}
+
+						for (uint8_t c = 0; c < 3; c++) {
+							uint8_t sync = (((current_angle_raw_q16 + angle_inc_q16) % (((uint32_t)360) << 16)) < angle_inc_q16) ? 1 : 0;
+
+							int32_t offset_q16 = (int32_t)(7.5f * 3.1415926535f * (((uint32_t)1) << 16) / 180.0f);
+
+							if (dist_q2[c] >= 200) {
+								int32_t k1 = 98361;
+								int32_t k2 = (int32_t)(k1 / dist_q2[c]);
+								offset_q16 = (int32_t)(8.0f * 3.1415926535f * (((uint32_t)1) << 16) / 180.0f) - (k2 << 6) - (int32_t)((k2 * k2 * k2)/98304.0);
+							}
+
+							int32_t angle_q6 = (int32_t)(current_angle_raw_q16 - (uint32_t)(offset_q16 * 180 / 3.14159265f)) >> 10;
+							current_angle_raw_q16 += angle_inc_q16;
+
+							if (angle_q6 < 0) angle_q6 += (((int32_t)360) << 6);
+							if (angle_q6 >= (((uint32_t)360) << 6)) angle_q6 -= (((int32_t)360) << 6);
+
+							sync = sync | ((!sync) << 1);
+
+							int32_t angle_q14 = (int32_t)((angle_q6 << 8)/90);
+
+							Process_Distance((float)(dist_q2[c]/4.0), (float)(((angle_q14 * 90) >> 8)/64.0), sync);
+						}
 					}
+
+//					float angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
+//
+//					// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
+//					for(uint8_t i=4, k=1; i<response_desc.length; i=i+5, k=k+2){
+//
+//						// distance1 and theta1
+//						u_distance = ( ((uint16_t)last_rx_buff[i+1] << 8) | (last_rx_buff[i] & 0xFC) ) >> 2;
+//						distance = (float)u_distance;
+//
+//						u_delta_theta = ((last_rx_buff[i] & 0x03) << 4) | (last_rx_buff[i+4] & 0x0F);
+//						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
+//
+//						theta = last_response.start_angle + ((angle_diff/32.0) * k) - (float)delta_theta / 8.0;
+//
+//						Process_Distance(distance, (uint16_t)theta);
+//
+//						// distance2 and theta2
+//						u_distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
+//						distance = (float)u_distance;
+//
+//						u_delta_theta = ((last_rx_buff[i+2] & 0x03) << 4) | ((last_rx_buff[i+4] & 0xF0) >> 4);
+//						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
+//
+//						theta = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float)delta_theta / 8.0;
+//
+//						Process_Distance(distance, (uint16_t)theta);
+//					}
 				}
 
-//				if(front){
-//					  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, 1);
-//				}
-//				else{
-//					  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, 0);
-//				}
-//
-//				if(HAL_GetTick() > last_detection + 150){
-//					front = 0;
-//				}
-
 				last_response = response;
-				memcpy(last_rx_buff, rx_buff, sizeof(rx_buff));
-
 				break;
 			default:
 				break;
@@ -460,37 +527,18 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 	}
 }
 
-void Point_Cloud_To_Bytes(sVector3_t pc[], uint16_t size, uint8_t* bytes){
-	bytes[0] = START;
-	for (uint16_t i=0; i<size; ++i){
-		convert_x.f = pc[i].vector[0];
-		convert_y.f = pc[i].vector[1];
-		convert_z.f = pc[i].vector[2];
-
-		for (uint8_t j=i*12+1; j<i+1+4; ++j){
-			bytes[j] = convert_x.u[j];
-			bytes[j+4] = convert_y.u[j];
-			bytes[j+8] = convert_z.u[j];
-		}
-
-	}
-}
-
-void Cabin_To_Bytes(sCabin_t cabin, uint8_t* cabin_bytes){
-	cabin_bytes[0] = START;
-
-	convert_theta1.f = cabin.theta1;
-	convert_theta2.f = cabin.theta2;
-	convert_distance1.f = cabin.distance1;
-	convert_distance2.f = cabin.distance2;
-
-	for(int j=0; j<4; ++j){
-		cabin_bytes[j+1]    = convert_theta1.u[j];
-		cabin_bytes[j+1+4]  = convert_distance1.u[j];
-		cabin_bytes[j+1+8]  = convert_theta2.u[j];
-		cabin_bytes[j+1+12] = convert_distance2.u[j];
-	}
-
+uint8_t VarbitScale_Decode(int32_t scaled, uint32_t *decoded) {
+	uint8_t scale_level = 0;
+    for (uint8_t i = 0; i < 5; i++) {
+        int32_t remain = scaled - VBS_SCALED_BASE[i];
+        if (remain >= 0) {
+            scale_level = VBS_SCALED_LVL[i];
+            *decoded = VBS_TARGET_BASE[i] + (remain << scale_level);
+            return scale_level;
+        }
+    }
+    *decoded = 0;
+    return 0;
 }
 
 void Polar2Cartesian(float distance, uint16_t angle, sVector3_t* point){
@@ -517,14 +565,17 @@ uint8_t Process_Detection(float distance, uint16_t angle){
 	}
 }
 
-void Process_Distance(float distance, uint16_t angle){
+void Process_Distance(float distance, float angle, uint8_t new_scan){
 	sVector3_t point;
+//	counter++;
 
 	// Normalize angle
-	angle += 353;
-	angle %= 360;
+//	angle += 353;
+//	angle %= 360;
+	if (angle > 360) angle -= 360;
 
-	if (last_angle > 357 && last_angle < 360 && pc_index > 1){
+//	if (last_angle > 357 && last_angle < 360) counter = 0;
+	if (last_angle > 357 && last_angle < 360 && pc_index > 3){
 		process_opponent = 1;
 	} else if ((last_angle > 357 && last_angle < 360) || process_opponent == 2){
 		memset(point_cloud, 0, sizeof(point_cloud));
@@ -533,21 +584,24 @@ void Process_Distance(float distance, uint16_t angle){
 		process_opponent = 0;
 	}
 
-	if (b_pc_index > 50){
-		process_beacon = 1;
-	} else if (process_beacon == 2){
-		memset(beacon_pc, 0, sizeof(beacon_pc));
-		b_pc_index = 0;
-
-		process_beacon = 0;
-	}
+//	if (b_pc_index > 100){
+//		process_beacon = 1;
+//	} else if (process_beacon == 2){
+//		memset(beacon_pc, 0, sizeof(beacon_pc));
+//		b_pc_index = 0;
+//
+//		process_beacon = 0;
+//	}
 
 	if (distance > 0) {
+
 		Polar2Cartesian(distance, angle, &point);
 
 		if ((point.vector[0] <= 2900 && point.vector[0] >= 100) &&
 			(point.vector[1] <= 1900 && point.vector[1] >= 100)) {
 			// Point in bounds of table
+
+			test_dist[(uint16_t)angle] = distance;
 
 			uint8_t det = Process_Detection(distance, angle);
 
@@ -560,21 +614,21 @@ void Process_Distance(float distance, uint16_t angle){
 			point_cloud[pc_index++] = point;
 			if (pc_index >= 100) pc_index = 0;
 		}
-		else {
-			// Point in some beacon region
-			sVector3_t beacon = {.vector={0,0,0}};
-			Choose_Beacon(&point, &beacon);
-
-			if (beacon.vector[0] != 0){
-				beacon.vector[0] = point.vector[0];
-				beacon.vector[1] = point.vector[1];
-				beacon.vector[2] = distance;
-
-				beacon_pc[b_pc_index++] = beacon;
-				if (b_pc_index > 100) b_pc_index = 0;
-			}
-
-		}
+//		else {
+//			// Point in some beacon region
+//			sVector3_t beacon = {.vector={0,0,0}};
+//			Choose_Beacon(&point, &beacon);
+//
+//			if (beacon.vector[0] != 0){
+//				beacon.vector[0] = point.vector[0];
+//				beacon.vector[1] = point.vector[1];
+//				beacon.vector[2] = distance;
+//
+//				beacon_pc[b_pc_index++] = beacon;
+//				if (b_pc_index > 200) b_pc_index = 0;
+//			}
+//
+//		}
 
 	}
 
@@ -698,7 +752,7 @@ void Get_Beacons(){
 
 	b_pc_index = Segment_PC(beacon_pc, b_pc_index, 200);
 
-	uint8_t bytes[48];
+	uint8_t bytes[300] = {0};
 	// At least two beacons
 	if (b_pc_index > 1){
 		for (i=0; i<b_pc_index; i++){

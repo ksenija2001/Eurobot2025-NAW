@@ -11,7 +11,7 @@
 #include "main.h"
 #include "stm32g4xx_hal.h"
 
-#define DMA_BUF_SIZE   84
+#define DMA_BUF_SIZE   132
 #define DMA_TIMEOUT_MS 10
 
 typedef struct{

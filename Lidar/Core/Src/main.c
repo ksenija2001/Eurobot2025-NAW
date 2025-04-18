@@ -138,7 +138,7 @@ int main(void)
 
 
 
-  Start_DMA(&huart2, 84);
+  Start_DMA(&huart2, 132);
   /* USER CODE END 2 */
 
   /* Infinite loop */
