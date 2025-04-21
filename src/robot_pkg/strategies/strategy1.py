@@ -8,7 +8,7 @@ from robot_pkg.strategies.tasks import *
 
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
-strategy1(m=Move.ResetOdom(0, 0, 1.57))
+strategy1(m=Move.ResetOdom(2700, 835, 3.14))
 # strategy1(m=SetPosition(316, 305, 0), 
 #             s=[Servo.Fork(ForkUp), 
 #                   Servo.ForkLift(ForkLiftDown),
@@ -37,12 +37,72 @@ strategy1(m=Move.ResetOdom(0, 0, 1.57))
 
 # strategy1(m=Move.Distance(1000, 1000, 1000))
 
-strategy1(m=Move.To(0, 500, 'r', 1000, 1000, 10, 10))
-strategy1(m=Move.To(500, 500, 'r', 1000, 1000, 10, 10),
-        c=[Condition.Detection(2, 2)])
-strategy1(m=Move.To(500, 0, 'r', 1000, 1000, 10, 10))
-strategy1(ID=2, m=Move.To(0, 0, 'r', 1000, 1000, 10, 10))
-strategy1(m=Move.RotateTo(1.57, 10, 10))
+# KOCKA
+# strategy1(m=Move.To(0, 500, 'r', 1000, 1000, 10, 10))
+# strategy1(m=Move.To(500, 500, 'r', 1000, 1000, 10, 10),
+#         c=[Condition.Detection(2, 2)])
+# strategy1(m=Move.To(500, 0, 'r', 1000, 1000, 10, 10))
+# strategy1(ID=2, m=Move.To(0, 0, 'r', 1000, 1000, 10, 10))
+# strategy1(m=Move.RotateTo(1.57, 10, 10))
+
+strategy1(task_steps=init_front_servos())
+strategy1(task_steps=init_back_servos())
+
+## TEST
+# strategy1(m=Move.To(2600, 1330, 'f', 1000, 1500, 15, 10))
+strategy1(m=Move.Spline([2600], [1350], [0], 700, 'f'))
+strategy1(m=Move.RotateTo(0, 15, 10))
+
+strategy1(m=Move.Distance(240, 300, 300),
+      s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100),
+         Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
+
+strategy1(task_steps=two_level())
+
+strategy1(m=Move.Distance(-240, 300, 300))
+
+strategy1(m=Move.To(3000-780, 2000-600, 'r', 1000, 1000, 15, 10))
+# strategy1(m=Move.Spline([3000-825], [2000-400-200], [-1.57], 500, 'r'))
+strategy1(m=Move.RotateTo(-1.57, 15, 10))
+
+strategy1(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+             Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
+             Servo.BackLift(BACK_LIFT_DOWN, 30)])
+
+strategy1(m=Move.Distance(-240, 100, 100))
+strategy1(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100),
+         Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
+
+strategy1(s=[Servo.BackLift(50, 30)])
+
+strategy1(m=Move.To(3000-780, 1000, 'f', 1000, 1000, 15, 3))
+strategy1(m=Move.To(1750, 400, 'r', 1000, 1000, 15, 3))
+strategy1(m=Move.RotateTo(1.57, 15, 10))
+
+strategy1(s=[Servo.BackLift(BACK_LIFT_DOWN, 30)])
+
+strategy1(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+         Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
+
+strategy1(m=Move.Distance(250, 300, 300))
+
+strategy1(m=Move.RotateTo(-1.57, 15, 3))
+
+strategy1(s=[Servo.FrontVacuumLift(50, 100), Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100)])
+strategy1(s=[Servo.FrontGripLift(300, 100), 
+            Servo.CenterLift(300, 100), 
+            Servo.FrontVacuumLift(300, 100)])
+          
+strategy1(m=Move.Distance(250, 300, 300))
+
+strategy1(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
+            Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
+
+strategy1(m=Move.Distance(-350, 300, 300))
+
+
+
+  #    a=[I_O.Pump(1), I_O.Valve(1)])
 
 
 

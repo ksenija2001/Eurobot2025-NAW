@@ -48,7 +48,7 @@ class Servo:
         self._type = None
     
     def _execute(self):
-        while not Servo.servo_in_position[self.id]:
+        while self.id <= 10 and not Servo.servo_in_position[self.id]:
             pass
         
         self.executed = True
@@ -68,7 +68,7 @@ class Servo:
 
     @classmethod
     def check_in_positions(cls):
-        return all([in_position for servo, in_position in Servo.servo_in_position.items()])
+        return all([in_position for servo, in_position in Servo.servo_in_position.items() if servo <= 10])
     
     @classmethod
     def check_position(cls, id:int):
@@ -170,13 +170,13 @@ class Servo:
         servo2 = cls()
 
         servo1.id = ServoType.RIGHT_VACUUM.value
-        servo1.position = position
+        servo1.position = 300 - position
         servo1.speed = speed
         servo1.activate_pose = activate_pose
         servo1._type = ServoType.RIGHT_VACUUM.name
 
         servo2.id = ServoType.LEFT_VACUUM.value
-        servo2.position = 300 - position
+        servo2.position = position
         servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.LEFT_VACUUM.name

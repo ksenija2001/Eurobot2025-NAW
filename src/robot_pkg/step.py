@@ -29,6 +29,7 @@ class Step:
             if x <= 3 or y <= 3:  # if x or y is less than 3mm - activate
                 print(f"Executing actuator {output._type}")
                 output._execute()
+                time.sleep(0.01)
 
     def servo(self, curr_pose:Position=Position()):
         not_moving = [servo for servo in self.servos if not servo.executed]
@@ -43,6 +44,8 @@ class Step:
                 # Only tracking AX servos, RC servos are sent individually
                 if servo.id <= 10:
                     moved += 1
+
+                time.sleep(0.01)
 
         if moved > 0:
             Servo.send_positions()

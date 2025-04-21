@@ -1,19 +1,7 @@
 from enum import EnumDict
+from move import Position
 
-class Position:
-    x: float                           # x coordinate 
-    y: float                           # y coordinate
-    h: float                           # default heading
-
-    def __init__(self, x, y, heading):
-        self.x = x
-        self.y = y
-        self.h = heading
-
-    def __call__(self) -> tuple[float, float]:
-        return self.x, self.y
-
-class Area(EnumDict):
+class Area:
     YELLOW_CHARGING   = Position(150 +225, 2000-225, -90)
     YELLOW_LEFT_SMALL = Position(550 +225,       75, -90)
     YELLOW_LEFT_BIG   = Position(1000+225,      225, -90)

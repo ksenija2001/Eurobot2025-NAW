@@ -214,12 +214,13 @@ class Move:
         return move
 
     @classmethod
-    def Spline(cls, x:list, y:list, theta:list, speed:int, size:int):
+    def Spline(cls, x:list, y:list, theta:list, v:float, direction:str):
         '''
             Points (x,y,theta) define a curve the robot will follow with designated speed.
         '''
         move = cls()
-        move.data = struct.pack('>B'+'f'*3*size+'H', *[el for tup in list(zip(x, y, theta)) for el in tup])
+        size = len(x)
+        move.data = struct.pack('<Bcf'+'f'*3*size, size, direction.encode('ascii'), v, *[el for tup in list(zip(x, y, theta)) for el in tup])
         move.send_queue = can_handler.msg_send_queues[IDs.SET_SPLINE.value]
         move._type = MoveType.SPLINE.name
 

@@ -10,15 +10,25 @@ def init_front_servos():
         Brings all front servos to their starting position
     '''
     s = Strategy()
-    s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100),
-         Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
+    s(s=[Servo.FrontSideGrip(90, 100),
+         Servo.FrontCenterGrip(90, 100),
          Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100),
          Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100),
          Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD, 100),
          Servo.CenterSwing(CENTER_SWING_DOWN, 100),
-         Servo.CenterLift(CENTER_LIFT_DOWN, 100)])
+         Servo.CenterLift(CENTER_LIFT_DOWN, 100)],
+       a=[I_O.Pump(0), I_O.Valve(0)])
+
 
     return s.steps
+
+def init_back_servos():
+     s = Strategy()
+     s(s=[Servo.BackSideGrip(90, 100),
+         Servo.BackCenterGrip(90, 100),
+         Servo.BackLift(BACK_LIFT_DOWN, 100)])
+
+     return s.steps
 
 def two_level():
     '''
@@ -26,7 +36,7 @@ def two_level():
     '''
     s = Strategy()
 
-    s(m=Move.Distance(150, 100, 300))
+#     s(m=Move.Distance(150, 100, 300))
 
     s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100),
          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
@@ -36,23 +46,23 @@ def two_level():
     s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PLANKS, 100)])
     s(s=[Servo.FrontVacuum(FRONT_VACUUM_UPWARD_HOLDING, 100)])
 
-    s(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 100), 
+    s(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 100),
          Servo.CenterSwing(CENTER_SWING_UP, 10)])
     s(s=[Servo.CenterLift(CENTER_LIFT_LEVEL2, 100),
-         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100)])
+         Servo.FrontGripLift(FRONT_GRIP_LIFT_HOLD, 100)])
 
-    s(s=[Servo.CenterSwing(CENTER_SWING_DOWN, 100),
+    s(s=[Servo.CenterSwing(CENTER_SWING_LEVEL3, 100),
          Servo.CenterLift(CENTER_LIFT_POSITIONING_CANS, 100)])
 
     s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_DOWN, 100), 
          Servo.FrontVacuum(FRONT_VACUUM_UPWARD_PLACING, 10)],
       a=[I_O.Pump(0), I_O.Valve(0)])
 
-    s(m=Move.Distance(-150, 100, 100),
-      s=[Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100), 
-         Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100),
-         Servo.CenterLift(CENTER_LIFT_DROPPING_CANS, 10),
-         Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
+#     s(m=Move.Distance(-150, 100, 100),
+#       s=[Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100), 
+#          Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100),
+#          Servo.CenterLift(CENTER_LIFT_DROPPING_CANS, 10),
+#          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
     
     return s.steps
 

@@ -61,6 +61,7 @@ class Execute:
             step.servo()  
             step.output() 
 
+            # time.sleep(0.5)
             # Waiting for end of step and checking conditions
             while self.running:
                 time.sleep(0.01)
