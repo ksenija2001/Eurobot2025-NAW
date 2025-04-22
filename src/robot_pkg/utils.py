@@ -1,11 +1,13 @@
 import time, datetime
 import os, glob, subprocess, argparse, sys
 from threading import Event
+import struct
 
 from robot_pkg.servo import Servo, ServoType
 from robot_pkg.move import Move
 from robot_pkg.consts import LOG_PATH, STRATEGIES_PATH
 from robot_pkg.consts import IDs
+from robot_pkg.in_out import I_O
 
 # Command line auto complete for commands debugging
 def completer(text, state):
@@ -108,7 +110,11 @@ def user_cmd(running:Event):
             elif msg_type == IDs.GET_SERVO_POSITIONS.name:
                 id = input("ID: ")
                 Servo.check_position((int)(id))
-
+            elif msg_type == IDs.SET_IO.name:
+                pin = input("Pin: ")
+                state = input("State: ")
+                data = struct.pack('2B', int(pin), int(state))
+                I_O.send_queue.append(data)
             else:
                 print("Message ID is not of sending type")
                 continue                    
