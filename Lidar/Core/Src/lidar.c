@@ -407,16 +407,16 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				RPlidarUltraCabin cabin = {0};
 				for(uint8_t i=4, k=0; i<response_desc.length; i+=4, ++k){
 					cabin.major = (((int32_t)(rx_buff[i+1] & 0x0F)) << 8) | rx_buff[i];
-					cabin.predict1 = (((int32_t)(rx_buff[i+2] & 0x3F)) << 4) | ((rx_buff[i+1] >> 4) & 0x0F);
-					cabin.predict2 = (((int32_t)(rx_buff[i+3] & 0xFF)) << 2) | ((rx_buff[i+2] >> 6) & 0x03);
+					cabin.predict1 = (((uint32_t)(rx_buff[i+2] & 0x3F)) << 4) | ((rx_buff[i+1] >> 4) & 0x0F);
+					cabin.predict2 = (((uint32_t)(rx_buff[i+3] & 0xFF)) << 2) | ((rx_buff[i+2] >> 6) & 0x03);
 
 					// Sign extension for 10-bit signed values
-					if (cabin.predict1 & 0x200) cabin.predict1 |= 0xFFFFFC00;
-					if (cabin.predict2 & 0x200) cabin.predict2 |= 0xFFFFFC00;
+//					if (cabin.predict1 & 0x200) cabin.predict1 |= 0xFFFFFC00;
+//					if (cabin.predict2 & 0x200) cabin.predict2 |= 0xFFFFFC00;
 
 					response.ultra_cabins[k].major = cabin.major;
-					response.ultra_cabins[k].predict1 = cabin.predict1;
-					response.ultra_cabins[k].predict2 = cabin.predict2;
+					response.ultra_cabins[k].predict1 = (int32_t)((cabin.predict1 << 10) >> 22);
+					response.ultra_cabins[k].predict2 = (int32_t)(cabin.predict2 >> 22);
 				}
 
 				// information about the next start_angle is needed to calculate theta for this data response
@@ -448,7 +448,7 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 						}
 
 						uint32_t dist_q2[3] = {0};
-						dist_q2[0] = major << 2;
+						dist_q2[0] = base1 << 2;
 
 						if ((uint32_t)predict1 == 0xFFFFFE00 || (uint32_t)predict1 == 0x1FF){
 							dist_q2[1] = 0;
@@ -584,14 +584,14 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 		process_opponent = 0;
 	}
 
-//	if (b_pc_index > 100){
-//		process_beacon = 1;
-//	} else if (process_beacon == 2){
-//		memset(beacon_pc, 0, sizeof(beacon_pc));
-//		b_pc_index = 0;
-//
-//		process_beacon = 0;
-//	}
+	if (b_pc_index > 100){
+		process_beacon = 1;
+	} else if (process_beacon == 2){
+		memset(beacon_pc, 0, sizeof(beacon_pc));
+		b_pc_index = 0;
+
+		process_beacon = 0;
+	}
 
 	if (distance > 0) {
 
@@ -601,7 +601,11 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 			(point.vector[1] <= 1900 && point.vector[1] >= 100)) {
 			// Point in bounds of table
 
-			test_dist[(uint16_t)angle] = distance;
+//			test_dist[(uint16_t)angle] = distance;
+//			if ((uint16_t)angle == 0){
+//				test_dist[(uint16_t)angle] = distance;
+//
+//			}
 
 			uint8_t det = Process_Detection(distance, angle);
 
@@ -614,21 +618,21 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 			point_cloud[pc_index++] = point;
 			if (pc_index >= 100) pc_index = 0;
 		}
-//		else {
-//			// Point in some beacon region
-//			sVector3_t beacon = {.vector={0,0,0}};
-//			Choose_Beacon(&point, &beacon);
-//
-//			if (beacon.vector[0] != 0){
-//				beacon.vector[0] = point.vector[0];
-//				beacon.vector[1] = point.vector[1];
-//				beacon.vector[2] = distance;
-//
-//				beacon_pc[b_pc_index++] = beacon;
-//				if (b_pc_index > 200) b_pc_index = 0;
-//			}
-//
-//		}
+		else {
+			// Point in some beacon region
+			sVector3_t beacon = {.vector={0,0,0}};
+			Choose_Beacon(&point, &beacon);
+
+			if (beacon.vector[0] != 0){
+				beacon.vector[0] = point.vector[0];
+				beacon.vector[1] = point.vector[1];
+				beacon.vector[2] = distance;
+
+				beacon_pc[b_pc_index++] = beacon;
+				if (b_pc_index > 200) b_pc_index = 0;
+			}
+
+		}
 
 	}
 
