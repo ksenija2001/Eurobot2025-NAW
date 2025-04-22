@@ -138,7 +138,7 @@ class Execute:
                 Variables.points += step.points
                 #self.display.setNumber(Variables.points)
                 # self.nucleo.set_motor_speed(0, 0, 2000)
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 print("-------------------------------")
 
                 if len(self.steps) == 0:

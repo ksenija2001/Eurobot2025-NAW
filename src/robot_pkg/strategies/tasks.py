@@ -5,13 +5,32 @@ from robot_pkg.in_out import I_O
 from robot_pkg.conditions import ConditionType
 from robot_pkg.misc import *
 
+def init_all_servos():
+    '''
+        Brings all servos to their starting position
+    '''
+    s = Strategy()
+    s(s=[Servo.FrontSideGrip(Gripper.CLOSED),
+         Servo.FrontCenterGrip(Gripper.CLOSED),
+         Servo.BackSideGrip(Gripper.CLOSED),
+         Servo.BackCenterGrip(Gripper.CLOSED),
+         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100),
+         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100),
+         Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD, 100),
+         Servo.CenterSwing(CENTER_SWING_DOWN, 100),
+         Servo.CenterLift(CENTER_LIFT_DOWN, 100),
+         Servo.BackLift(BACK_LIFT_DOWN, 100)],
+       a=[I_O.Pump(0), I_O.Valve(0)])
+    
+    return s.steps
+
 def init_front_servos():
     '''
         Brings all front servos to their starting position
     '''
     s = Strategy()
-    s(s=[Servo.FrontSideGrip(90, 100),
-         Servo.FrontCenterGrip(90, 100),
+    s(s=[Servo.FrontSideGrip(Gripper.CLOSED, 100),
+         Servo.FrontCenterGrip(Gripper.CLOSED, 100),
          Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100),
          Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100),
          Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD, 100),
@@ -24,47 +43,122 @@ def init_front_servos():
 
 def init_back_servos():
      s = Strategy()
-     s(s=[Servo.BackSideGrip(90, 100),
-         Servo.BackCenterGrip(90, 100),
+     s(s=[Servo.BackSideGrip(Gripper.CLOSED, 100),
+         Servo.BackCenterGrip(Gripper.CLOSED, 100),
          Servo.BackLift(BACK_LIFT_DOWN, 100)])
 
      return s.steps
 
+def pickup_front_full_stack():
+    '''
+        Picks-up and holds one stack
+    '''
+    s = Strategy()
+    s(m=Move.Distance(250, 300, 500),
+      s=[Servo.FrontCenterGrip(Gripper.OPEN),
+         Servo.FrontSideGrip(Gripper.OPEN),
+         Servo.FrontVacuum(Vacuum.DOWN)])
+
+    s(s=[Servo.FrontCenterGrip(Gripper.GRIP),
+         Servo.FrontSideGrip(Gripper.GRIP),
+         Servo.FrontVacuumLift(VacuumLift.PICKUP2)],
+      a=[I_O.Pump(1), I_O.Valve(1)])
+    
+    s(s=[Servo.FrontGripLift(FrontGripLift.HOVER),
+         Servo.FrontVacuumLift(VacuumLift.HOVER),
+         Servo.CenterLift(CenterLift.HOVER)])
+
+    return s.steps
+
 def two_level():
     '''
-        Build two levels from one material stock.
+        Build two levels from one material stock in air.
     '''
     s = Strategy()
 
-#     s(m=Move.Distance(150, 100, 300))
+    s(s=[Servo.FrontVacuumLift(VacuumLift.HOLD)])
 
-    s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100),
-         Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
-         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PICKUP, 100)],
-      a=[I_O.Pump(1), I_O.Valve(1)])
+    s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
+         Servo.FrontGripLift(FrontGripLift.HOLD),
+         Servo.CenterSwing(CenterSwing.UP, 20)])
 
-    s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PLANKS, 100)])
-    s(s=[Servo.FrontVacuum(FRONT_VACUUM_UPWARD_HOLDING, 100)])
+    s(s=[Servo.CenterLift(CenterLift.HOLD2),
+         Servo.FrontGripLift(FrontGripLift.HOVER, 30)])
 
-    s(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 100),
-         Servo.CenterSwing(CENTER_SWING_UP, 10)])
-    s(s=[Servo.CenterLift(CENTER_LIFT_LEVEL2, 100),
-         Servo.FrontGripLift(FRONT_GRIP_LIFT_HOLD, 100)])
+    s(s=[Servo.CenterSwing(CenterSwing.DOWN),
+         Servo.CenterLift(CenterLift.POSITION2),
+         Servo.FrontVacuum(Vacuum.UP),
+         Servo.FrontVacuumLift(VacuumLift.POSITION2)])
 
-    s(s=[Servo.CenterSwing(CENTER_SWING_LEVEL3, 100),
-         Servo.CenterLift(CENTER_LIFT_POSITIONING_CANS, 100)])
+    return s.steps
 
-    s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_DOWN, 100), 
-         Servo.FrontVacuum(FRONT_VACUUM_UPWARD_PLACING, 10)],
+def drop_two_level():
+    s = Strategy()
+
+    s(s=[Servo.CenterLift(CenterLift.POSITION2+10),
+         Servo.FrontVacuumLift(VacuumLift.DOWN),
+         Servo.FrontGripLift(FrontGripLift.DOWN)],
       a=[I_O.Pump(0), I_O.Valve(0)])
-
-#     s(m=Move.Distance(-150, 100, 100),
-#       s=[Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100), 
-#          Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100),
-#          Servo.CenterLift(CENTER_LIFT_DROPPING_CANS, 10),
-#          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
+        
+    s(s=[Servo.FrontVacuum(Vacuum.MIDDLE)])
+    s(m=Move.Distance(-250, 300, 500),
+      s=[Servo.CenterLift(CenterLift.DROP2),
+         Servo.FrontCenterGrip(Gripper.OPEN),
+         Servo.FrontSideGrip(Gripper.OPEN)])
     
     return s.steps
+
+def lift_two_on_one():
+    s = Strategy()
+
+    s(s=[Servo.CenterLift(CenterLift.UP),
+         Servo.FrontVacuumLift(VacuumLift.UP),
+         Servo.FrontGripLift(FrontGripLift.UP)],
+      a=[I_O.Pump(0), I_O.Valve(0)])
+        
+    s(s=[Servo.FrontVacuum(Vacuum.MIDDLE)])
+    s(m=Move.Distance(150, 300, 500))
+    s(m=Move.Distance(-250, 300, 500),
+      s=[Servo.FrontCenterGrip(Gripper.OPEN),
+         Servo.FrontSideGrip(Gripper.OPEN)])
+    
+    return s.steps
+
+# def two_level():
+#     '''
+#         Build two levels from one material stock.
+#     '''
+#     s = Strategy()
+
+# #     s(m=Move.Distance(150, 100, 300))
+
+#     s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100),
+#          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
+#          Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PICKUP, 100)],
+#       a=[I_O.Pump(1), I_O.Valve(1)])
+
+#     s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PLANKS, 100)])
+#     s(s=[Servo.FrontVacuum(FRONT_VACUUM_UPWARD_HOLDING, 100)])
+
+#     s(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 100),
+#          Servo.CenterSwing(CENTER_SWING_UP, 10)])
+#     s(s=[Servo.CenterLift(CENTER_LIFT_LEVEL2, 100),
+#          Servo.FrontGripLift(FRONT_GRIP_LIFT_HOLD, 100)])
+
+#     s(s=[Servo.CenterSwing(CENTER_SWING_LEVEL3, 100),
+#          Servo.CenterLift(CENTER_LIFT_POSITIONING_CANS, 100)])
+
+#     s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_DOWN, 100), 
+#          Servo.FrontVacuum(FRONT_VACUUM_UPWARD_PLACING, 10)],
+#       a=[I_O.Pump(0), I_O.Valve(0)])
+
+# #     s(m=Move.Distance(-150, 100, 100),
+# #       s=[Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100), 
+# #          Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100),
+# #          Servo.CenterLift(CENTER_LIFT_DROPPING_CANS, 10),
+# #          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
+    
+#     return s.steps
 
 
 def three_and_one_level():

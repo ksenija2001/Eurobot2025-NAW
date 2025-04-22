@@ -1,3 +1,5 @@
+
+
 # Temporary
 STARTING_X, STARTING_Y, STARTING_THETA = 0.0, 0.0, 90.0
 CONSTRUCTION2_X, CONSTRUCTION2_Y, CONSTRUCTION2_THETA = 0.0, 0.0, 0.0
@@ -8,6 +10,43 @@ STACK1_X, STACK1_Y, STACK1_THETA = 0.0, 0.0, -90.0
 STACK3_X, STACK3_Y, STACK3_THETA = 0.0, 0.0, 90.0
 STACK4_X, STACK4_Y, STACK4_THETA = 0.0, 0.0, -90.0
 STACK9_X, STACK9_Y, STACK9_THETA = 0.0, 0.0, 90.0
+
+class Gripper:
+    OPEN = 30
+    GRIP = 50
+    CLOSED = 110
+
+class VacuumLift:
+    UP = 250
+    HOLD = 220  # 50 more than HOVER
+    HOVER = 120 # 20 more than PICKUP2
+    PICKUP2 = 100
+    POSITION2 = 40
+    DROP2 = 10
+    DOWN = 0
+
+class CenterLift:
+    UP = 260
+    POSITION2 = 150
+    DROP2 = 140
+    HOLD2 = 90
+    HOVER = 15
+    DOWN = 0
+
+class CenterSwing:
+    UP = 240
+    DOWN = 150
+
+class Vacuum:
+    UP = 240
+    MIDDLE = 150
+    DOWN = 60
+
+class FrontGripLift:
+    UP = 290
+    HOLD = 190
+    HOVER = 20
+    DOWN = 0
 
 BACK_LIFT_BANNER, BACK_LIFT_DOWN, BACK_LIFT_UP = 0, 0, 300
 BACK_CENTER_GRIP_OPEN, BACK_CENTER_GRIP_CLOSED = 30, 50
