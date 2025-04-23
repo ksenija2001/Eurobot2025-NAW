@@ -1,48 +1,73 @@
-#ifndef TOF_H
-#define TOF_H
+/*
+ * custom_tof.h
+ *
+ *  Created on: Feb 6, 2025
+ *      Author: xenia
+ */
+
+#ifndef TARGET_INC_CUSTOM_TOF_H_
+#define TARGET_INC_CUSTOM_TOF_H_
+
+#include "tof_api.h"
+#include "../utils/vector.h"
+
+#include "tof_i2c.h"
+#include "../gpio/gpio.h"
+
+#include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
+
+#include "esp_log.h"
 
 #define DEBUG_TOF
 
-#include <string.h>
+typedef struct {
+	//GPIO_TypeDef* LPn_port;
+	//uint16_t LPn_pin;
+	gpio_num_t LPn_pin;
 
-#include "freertos/FreeRTOS.h"
-#include "esp_system.h"
+	// GPIO_TypeDef* RST_port;
+	// uint16_t RST_pin;
+	gpio_num_t RST_pin;
 
-#include "../gpio/gpio.h"
-#include "../i2c/i2c.h"
 
-#include "tof_buffer.h"
+	// GPIO_TypeDef* PWR_EN_port;
+	// uint16_t PWR_EN_pin;
+	gpio_num_t PWR_EN_pin;
+} VL53LMZ_IO;
 
-#define TOF_TAG_MAX 32
+typedef struct
+{
+  uint32_t Distance; /*!< millimeters */
+  uint32_t Status;   /*!< OK: 0, NOK: !0 */
+  float Ambient;   /*!< kcps / spad */
+  float Signal;    /*!< kcps / spad */
+} VL53LMZ_ZoneResult_t;
 
-typedef struct{
-    char tag[TOF_TAG_MAX];
+typedef struct
+{
+  uint32_t NumberOfZones;
+  VL53LMZ_ZoneResult_t ZoneResult[VL53LMZ_RESOLUTION_8X8];
+} VL53LMZ_Result_t;
 
-    I2C_Bus* bus;
-    I2C_Device device;
+typedef struct {
+	VL53LMZ_Configuration conf;
+	VL53LMZ_IO io;
+	sVector3_t trans_offset;
+	sVector3_t orient_offset;
+	sVector3_t point_cloud[64];
+} VL53LMZ_Object;
 
-    uint8_t address;
-    uint32_t speed;
+uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, I2C_Bus* bus, uint16_t address);
+void VL53LMZ_Reset(VL53LMZ_IO* io);
+uint8_t VL53LMZ_Config(VL53LMZ_Configuration* conf, uint8_t resolution, uint8_t ranging_mode, uint32_t integration_time, uint8_t ranging_frequency, uint8_t sharpener);
+uint8_t VL53LMZ_Start_Ranging(VL53LMZ_Configuration* conf);
+uint8_t VL53LMZ_Get_Distance(VL53LMZ_Configuration* conf, VL53LMZ_Result_t* result);
 
-    uint8_t i2c_rst_pin;
+uint8_t VL53LMZ_Get_Distance_IT(VL53LMZ_Configuration* conf, VL53LMZ_ResultsData* data);
+void VL53LMZ_Get_Result(VL53LMZ_ResultsData raw, uint8_t resolution, VL53LMZ_Result_t* data);
 
-    uint8_t temp_buffer[(uint16_t)(-1)];
-    uint8_t offset_data[(uint16_t)(-1)];
 
-    uint8_t* default_xtalk;
-    uint8_t xtalk_data[776];
 
-    uint8_t* default_configuration;
-} TOF;
 
-void init_tof(TOF* tof, I2C_Bus* bus, uint8_t address, uint8_t rst);
-void tof_is_alive(TOF* tof);
-
-void tof_sendByte(TOF* tof, uint16_t address, uint8_t data);
-void tof_send(TOF* tof, uint16_t address, uint8_t* data, uint16_t size);
-
-void tof_receive(TOF* tof, uint16_t address, uint8_t* data, uint16_t size);
-
-void tof_firmware(TOF* tof);
-
-#endif //TOF_H
+#endif /* TARGET_INC_CUSTOM_TOF_H_ */

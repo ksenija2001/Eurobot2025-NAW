@@ -1,5 +1,9 @@
 #include "i2c.h"
 
+#include "esp_log.h"
+
+uint8_t buffer[40000];
+
 void init_i2c_bus(I2C_Bus* bus, uint8_t SDA_PIN, uint8_t SCL_PIN, uint8_t glitch_ignore_cnt){
     if(glitch_ignore_cnt != 7 && glitch_ignore_cnt != 10) return;
     
@@ -47,4 +51,28 @@ void i2c_receiveByte(I2C_Device* dev, uint8_t* buff){
 
 void i2c_receiveWord(I2C_Device* dev, uint8_t* buff){
     i2c_master_receive(dev->dev_handle, buff, 2, 100);
+}
+
+int32_t i2c_send_RS16(I2C_Device* dev, uint16_t reg, uint8_t* data, uint32_t len){   
+    buffer[1] = reg;
+    buffer[0] = reg >> 8;
+    memcpy(&(buffer[2]), data, len);
+
+    #ifdef DEBUG_I2C
+        ESP_LOGI("I2C", "Sending to device %x, register %x, data len %lu", dev->dev_config.device_address, reg, len);
+    #endif
+
+    i2c_master_transmit(dev->dev_handle, buffer, 2, 100);
+    i2c_master_transmit(dev->dev_handle, &buffer[2], len, 100);
+
+    return 0;
+}
+
+
+int32_t i2c_receive_RS16(I2C_Device* dev, uint16_t reg, uint8_t* buff, uint16_t len){
+    uint8_t new_buff[2];
+    new_buff[0] = reg >> 8;
+    new_buff[1] = reg;
+    i2c_master_transmit_receive(dev->dev_handle, new_buff, 2, buff, len, 100);
+    return 0;
 }
