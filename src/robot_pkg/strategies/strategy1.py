@@ -8,7 +8,7 @@ from robot_pkg.strategies.tasks import *
 
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
-strategy1(m=Move.ResetOdom(2700, 835, 3.14))
+# strategy1(m=Move.ResetOdom(1780, 230, 1.57))
 # strategy1(m=SetPosition(316, 305, 0), 
 #             s=[Servo.Fork(ForkUp), 
 #                   Servo.ForkLift(ForkLiftDown),
@@ -45,10 +45,16 @@ strategy1(m=Move.ResetOdom(2700, 835, 3.14))
 # strategy1(ID=2, m=Move.To(0, 0, 'r', 1000, 1000, 10, 10))
 # strategy1(m=Move.RotateTo(1.57, 10, 10))
 
-strategy1(task_steps=init_all_servos())
-strategy1(task_steps=pickup_front_full_stack())
-strategy1(task_steps=two_level())
-strategy1(task_steps=lift_two_on_one())
+
+# strategy1(m=Move.Rotate(3.14, 15, 5))
+# strategy1(task_steps=pickup_back_full_stack())
+# strategy1(m=Move.Distance(150, 300, 500))
+# strategy1(m=Move.Rotate(3.14, 15, 5))
+
+# strategy1(task_steps=lift_one_on_two())
+# strategy1(task_steps=lift_two_on_one())
+
+# strategy1(task_steps=drop_two_level())
 # strategy1(task_steps=init_back_servos())
 
 
@@ -118,3 +124,12 @@ strategy1(task_steps=lift_two_on_one())
 
 
 
+# MOVEMENT TEST
+strategy1(m=Move.ResetOdom(230, 880, 0))
+strategy1(task_steps=init_all_servos())
+
+strategy1(m=Move.Spline([800, 1900, 2400, 2160], 
+                        [650, 650, 1000, 1500], 
+                        [0, 0, 1.57, 1.57], 
+                        1000, 
+                        'f'))

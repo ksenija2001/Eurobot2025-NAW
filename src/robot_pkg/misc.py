@@ -13,12 +13,13 @@ STACK9_X, STACK9_Y, STACK9_THETA = 0.0, 0.0, 90.0
 
 class Gripper:
     OPEN = 30
-    GRIP = 50
+    GRIP = 49
     CLOSED = 110
 
 class VacuumLift:
-    UP = 250
-    HOLD = 220  # 50 more than HOVER
+    UP = 270
+
+    HOLD = 230  # 50 more than HOVER
     HOVER = 120 # 20 more than PICKUP2
     PICKUP2 = 100
     POSITION2 = 40
@@ -26,7 +27,8 @@ class VacuumLift:
     DOWN = 0
 
 class CenterLift:
-    UP = 260
+    UP = 265
+    LIFT2 = 200
     POSITION2 = 150
     DROP2 = 140
     HOLD2 = 90
@@ -37,6 +39,7 @@ class CenterSwing:
     UP = 240
     DOWN = 150
 
+
 class Vacuum:
     UP = 240
     MIDDLE = 150
@@ -44,8 +47,13 @@ class Vacuum:
 
 class FrontGripLift:
     UP = 290
-    HOLD = 190
+    HOLD = 210
     HOVER = 20
+    DOWN = 0
+
+class BackGripLift:
+    UP = 300
+    HOVER = 40
     DOWN = 0
 
 BACK_LIFT_BANNER, BACK_LIFT_DOWN, BACK_LIFT_UP = 0, 0, 300

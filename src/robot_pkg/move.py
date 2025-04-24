@@ -37,6 +37,8 @@ class Position:
     def __ge__(self, other):
         return self.x >= other.x and self.y >= other.y
 
+    def __repr__(self):
+        return f"{self.x}, {self.y}"
 
 class Move:
     _logger = log_handler.get_logger("move")
@@ -229,7 +231,6 @@ class Move:
     def _execute(self):
         Move.move_done.clear()
 
-        # time.sleep(2)
         self.send_queue.append(self.data)
         self.executed = True
 

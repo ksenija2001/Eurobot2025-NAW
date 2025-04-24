@@ -101,9 +101,12 @@ def user_cmd(running:Event):
 
                     servos = servo_dict[(int)(id)]((int)(position), (int)(speed))
 
-                    for servo in servos:
-                        if servo is not None:
-                            servo._execute()
+                    if type(servos) is tuple:
+                        for servo in servos:
+                            if servo is not None:
+                                servo._execute()
+                    else:
+                        servos._execute()
                 
                 Servo.send_positions()
 

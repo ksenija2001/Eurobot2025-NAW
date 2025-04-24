@@ -1,38 +1,34 @@
-from enum import EnumDict
-from move import Position
+from robot_pkg.move import Position
 
 class Area:
-    YELLOW_CHARGING   = Position(150 +225, 2000-225, -90)
-    YELLOW_LEFT_SMALL = Position(550 +225,       75, -90)
-    YELLOW_LEFT_BIG   = Position(1000+225,      225, -90)
-    YELLOW_RIGHT_SMALL= Position(3000-225,       75, -90)
-    YELLOW_RIGHT_BIG  = Position(3000-225, 1100-225,   0)
+    YELLOW_HOME = Position(150 +225, 2000-225,  1.57)
+    YELLOW_4    = Position(550 +225,       75, -1.57)
+    YELLOW_2    = Position(1000+225,      225, -1.57)
+    YELLOW_5    = Position(3000-225,       75, -1.57)
+    YELLOW_3    = Position(3000-225, 1100-225,     0)
 
-    BLUE_CHARGING     = Position(2850-225, 2000-225,  -90)
-    BLUE_LEFT_SMALL   = Position(     225,       75,  -90)
-    BLUE_LEFT_BIG     = Position(     225, 1100-225, -180)
-    BLUE_RIGHT_SMALL  = Position(2000+225,       75,  -90)
-    BLUE_RIGHT_BIG    = Position(2000-225,      225,  -90)
+    BLUE_HOME  = Position(2850-225, 2000-225,  1.57)
+    BLUE_5     = Position(     225,       75, -1.57)
+    BLUE_3     = Position(     225, 1100-225,  3.14)
+    BLUE_4     = Position(2000+225,       75, -1.57)
+    BLUE_2     = Position(2000-225,      225, -1.57)
 
 
-class MaterialStock(EnumDict):
-    YELLOW_RESERVED = Position( 825, 1725,  90)
-    BLUE_RESERVED   = Position(2175, 1725,  90)
+class MaterialStack:
+    STACK1  = Position(2175, 1725,  1.57)
+    STACK2  = Position( 825, 1725,  1.57)
 
-    LEFT_UPPER      = Position(  75, 1325, 180)
-    LEFT_LOWER      = Position(  75,  400, 180)
-    LEFT_MIDDLE     = Position( 775,  250, -90)
-    LEFT_CENTER     = Position(1100,  950,  90)
+    STACK3  = Position(  75, 1325,  3.14)
+    STACK4  = Position(  75,  400,  3.14)
+    STACK5  = Position( 775,  250, -1.57)
+    STACK9  = Position(1100,  950,  1.57)
 
-    RIGHT_UPPER      = Position(2925, 1325,   0)
-    RIGHT_LOWER      = Position(2925,  400,   0)
-    RIGHT_MIDDLE     = Position(2225,  250, -90)
-    RIGHT_CENTER     = Position(1900,  950,  90)
-
+    STACK8  = Position( 3000-75, 1325,     0)
+    STACK7  = Position( 3000-75,  400,     0)
+    STACK6  = Position(3000-775,  250, -1.57)
+    STACK10 = Position(    1900,  950,  1.57)
 
 if __name__ == "__main__":
-    c = Position(5, 5, 5)
-    print(c())
 
-    print(Area.YELLOW_CHARGING())
-    print(MaterialStock.BLUE_RESERVED())
+    print(Area.YELLOW_HOME)
+    print(MaterialStack.STACK1)
