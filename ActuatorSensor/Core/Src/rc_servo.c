@@ -8,6 +8,7 @@
 #include "rc_servo.h"
 
 sRC_Servo_t rc_servos[CHANNEL_NUM];
+uint8_t init_angles[] = {30 ,150, 30, 150, 40 ,30, 150, 140};
 uint32_t adc_output;
 uint8_t adc_channel = 0;
 uint8_t adc_sample_num = 0;
@@ -18,19 +19,14 @@ void Init_RC_Servo(uint8_t index, TIM_HandleTypeDef* htim, uint16_t tim_channel)
 	rc_servos[index].TIM.channel = tim_channel;
 
 	HAL_TIM_PWM_Start(htim, tim_channel);
-	Set_Angle(index, 90);
-//	Set_Target_Angle(index, 90);
-	rc_servos[index].curr_angle = 90;
-	rc_servos[index].target_angle = 90;
+	Set_Angle(index, init_angles[index]);
+	rc_servos[index].curr_angle = init_angles[index];
+	rc_servos[index].target_angle = init_angles[index];
 }
 
 void Set_Angle(uint8_t index, uint8_t angle){
 	float duty = (ARR_MAX - ARR_MIN)/180.0 * angle + ARR_MIN;
 	__HAL_TIM_SET_COMPARE(rc_servos[index].TIM.tim, rc_servos[index].TIM.channel, duty);
-}
-
-uint16_t Get_Current_Angle(uint8_t index){
-	return rc_servos[index].curr_angle;
 }
 
 void Set_Target_Angle(uint8_t index, uint8_t angle){

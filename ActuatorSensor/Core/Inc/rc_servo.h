@@ -41,7 +41,6 @@ void Init_RC_Servo(uint8_t index, TIM_HandleTypeDef* htim, uint16_t tim_channel)
 void Set_Angle(uint8_t index, uint8_t angle);
 void Set_Target_Angle(uint8_t index, uint8_t angle);
 void Set_ADC_Channel(uint8_t index);
-uint16_t Get_Current_Angle(uint8_t angle);
 
 extern uint32_t adc_output;
 

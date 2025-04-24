@@ -176,6 +176,14 @@ int main(void)
   Init_RC_Servo(5, &htim8, TIM_CHANNEL_2);
   Init_RC_Servo(6, &htim8, TIM_CHANNEL_3);
   Init_RC_Servo(7, &htim8, TIM_CHANNEL_4);
+
+//  Set_Output(3, 1);
+//  Set_Output(4, 1);
+//
+//  HAL_Delay(1000);
+//
+//  Set_Output(3, 0);
+//  Set_Output(4, 0);
 //
 //  HAL_Delay(2000);
 //

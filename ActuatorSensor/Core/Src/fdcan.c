@@ -75,13 +75,13 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 			case 0x531: // Get servo position
 				servo_id = RxData[0];
 
-				if (servo_id <= 10)
-					Get_Present_Position(&huart1, servo_id);
-				else {
-					uint16_t angle = Get_Current_Angle(servo_id-11);
-					uint8_t msg[] = {servo_id, (uint8_t)((angle & 0xFF00) >> 8), (angle & 0x00FF)};
-					FDCAN_Send_Data(0x531, FDCAN_DLC_BYTES_3, 3, msg);
-				}
+//				if (servo_id <= 10)
+				Get_Present_Position(&huart1, servo_id);
+//				else {
+//					uint16_t angle = Get_Current_Angle(servo_id-11);
+//					uint8_t msg[] = {servo_id, (uint8_t)((angle & 0xFF00) >> 8), (angle & 0x00FF)};
+//					FDCAN_Send_Data(0x531, FDCAN_DLC_BYTES_3, 3, msg);
+//				}
 
 				break;
 			case 0x532: // Set position for RC servos
