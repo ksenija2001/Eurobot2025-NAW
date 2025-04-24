@@ -18,6 +18,8 @@ class SIMA:
         except:
             self.s.close()
             self.s.bind((IP, 9999))
+        
+        self._logger.info("Opened port")
 
         self.connections = {1: None, 2:None, 3:None, 4:None}
         self.addresses   = {1: None, 2:None, 3:None, 4:None}
@@ -34,39 +36,52 @@ class SIMA:
         self._thread.start()
 
         self._logger.info("Started listening for sima")
+    
+    # def send_start(self):
+    #     for id, connection in self.connections:
+
 
     def send_command(self, sima_ID:int, coordinates:list[Position]):
         size = len(coordinates)
         packed = [size]
         for position in coordinates:
             packed.extend([position.x, position.y, position.theta])
+       
+        try:
+            data = struct.pack('<B'+'f'*(size*3), *packed)
+            self.connections[sima_ID].send(data)
+        except Exception as e:
+            print(e)
+            pass
 
-        data = struct.pack('f'*size*3, *packed)
-        self.connections[sima_ID].send(data)
-
-        self._logger.info(f"Sending coordinates to SIMA {sima_ID}")
+        self._logger.info(f"Sending coordinates to SIMA {sima_ID}: {data}")
 
     def accept_connections(self):
-        while self.running and any(self.connections) is None:
-            for connection in self.connections:
-                if connection is None:
-                    try:
-                        conn, address = self.s.accept()
-                        # blocks until one byte that contains the ID of the connected SIMA is received
-                        ID = self.s.recv(1) 
-                        self.addresses[ID] = address
-                        self.connections[ID] = conn
+        while self.running and any([True for _, connection in self.connections.items() if connection is None]):
+            # for _, connection in self.connections.items():
+            #     if connection is None:
+            try:
+                conn, address = self.s.accept()
+                # blocks until one byte that contains the ID of the connected SIMA is received
+                ID = int(conn.recv(1)) 
+                self.addresses[ID] = address
+                self.connections[ID] = conn
 
-                        self._logger.info(f"SIMA {ID} CONNECTED")
-                    except:
-                        pass
+                self._logger.info(f"SIMA {ID} CONNECTED")
+
+                self.send_command(1, [Position(550, 1000, 1.57)])
+            except Exception as e:
+                # print(e)
+                pass
         
-    def stop(self):
+            # time.sleep(0.1)
+        
+    def stop_threads(self):
         self.running = False
-        if self.thread.is_alive():
-            self.thread.join()
+        if self._thread.is_alive():
+            self._thread.join()
 
-        for connection in self.connections:
+        for _, connection in self.connections.items():
             if connection is not None:
                 connection.close()
       

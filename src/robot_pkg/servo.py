@@ -116,7 +116,7 @@ class Servo:
                 Servo.servo_positions[id] = angle
                 Servo.logger.info(f"Servo {id} position: {angle}")
 
-            time.sleep(0.01)  # 10ms
+            time.sleep(0.001)  # 1ms
     
     @classmethod
     def start_threads(cls):

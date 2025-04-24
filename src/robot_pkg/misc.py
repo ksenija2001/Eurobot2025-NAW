@@ -13,14 +13,18 @@ STACK9_X, STACK9_Y, STACK9_THETA = 0.0, 0.0, 90.0
 
 class Gripper:
     OPEN = 30
-    GRIP = 49
+    GRIP = 51
+    NEUTRAL = 90
     CLOSED = 110
+
+class SideGripper(Gripper):
+    OPEN = 35
 
 class VacuumLift:
     UP = 270
     HOLD = 230  
     HOVER = 120 
-    PICKUP2 = 100
+    PICKUP2 = 95
     POSITION2 = 40
     DROP2 = 10
     DOWN = 0
@@ -36,6 +40,7 @@ class CenterLift:
 
 class CenterSwing:
     UP = 240
+    INIT = 195
     DOWN = 150
 
 

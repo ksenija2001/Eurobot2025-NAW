@@ -37,7 +37,7 @@ class Step:
         for servo in not_moving:
             x = abs(curr_pose.x - servo.activate_pose.x)
             y = abs(curr_pose.y - servo.activate_pose.y)
-            if x <= 3 or y <= 3:  # if x or y is less than 3mm - activate
+            if x <= 50 or y <= 50:  # if x or y is less than 3mm - activate
                 print(f"Executing servo {servo._type}")
                 servo._execute()
 

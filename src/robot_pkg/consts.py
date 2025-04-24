@@ -9,7 +9,7 @@ LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 CONFIG_PATH = os.path.join(ROOT_PATH, 'config')
 STRATEGIES_PATH = os.path.join(ROOT_PATH, 'strategies')
 
-IP = "192.168.31.54"
+IP = "10.242.113.144"
 
 class Variables:
     match_start_time = float('inf')

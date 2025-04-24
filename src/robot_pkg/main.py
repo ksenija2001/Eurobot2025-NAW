@@ -19,6 +19,7 @@ from robot_pkg.utils import user_cmd,choose_strategy
 from robot_pkg.execute import Execute
 from robot_pkg.battery import Battery
 from robot_pkg.consts import Variables
+from robot_pkg.sima_communication import SIMA
 
 def main_func():
     main_log = log_handler.get_logger("main")
@@ -34,6 +35,8 @@ def main_func():
     Move.start_threads()
     I_O.start_threads()
     Lidar.start_threads()
+    sima = SIMA()
+    sima.start_threads()
 
     reset_odom = Move.ResetOdom(125, 1000, 0)#1500 , 125, 1.57)
     reset_odom._execute()
@@ -84,6 +87,7 @@ def main_func():
         print("Cancelling")
         print("\n")
 
+    running.clear()
     if execute is not None and execute.thread.is_alive():
         execute.running = False
         execute.thread.join()
@@ -92,6 +96,7 @@ def main_func():
     Servo.stop_threads()
     Move.stop_threads()
     I_O.stop_threads()
+    sima.stop_threads()
 
     can_handler.stop_threads()
 

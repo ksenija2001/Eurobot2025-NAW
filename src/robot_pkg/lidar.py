@@ -24,10 +24,10 @@ class Lidar:
             if len(lidar_queue) > 0:
                 lidar_msg = lidar_queue.pop()
 
-                [x, y, theta, speed] = struct.unpack('4f', lidar_msg.data)
+                # [x, y, theta, speed] = struct.unpack('4f', lidar_msg.data)
 
-                if speed > 150/1000 and abs(Move.pose.speed) > 150:
-                    s.get_intersection(x, y, theta, speed)
+                # if speed > 150/1000 and abs(Move.pose.speed) > 150:
+                #     s.get_intersection(x, y, theta, speed)
                 # Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
 
             if len(beacon_queue) > 0:

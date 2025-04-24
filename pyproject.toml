@@ -12,7 +12,7 @@ dependencies = [
     'python-can',
     'pigpio',
     'smbus',
-    'tm1637'
+    'raspberrypi-tm1637'
 ]
 
 

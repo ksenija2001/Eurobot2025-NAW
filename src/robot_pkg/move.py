@@ -83,7 +83,7 @@ class Move:
 
                 Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}")
             
-            time.sleep(0.01)  # 10ms
+            time.sleep(0.001)  # 1ms
     
     @classmethod
     def start_threads(cls):
