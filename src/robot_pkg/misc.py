@@ -18,9 +18,8 @@ class Gripper:
 
 class VacuumLift:
     UP = 270
-
-    HOLD = 230  # 50 more than HOVER
-    HOVER = 120 # 20 more than PICKUP2
+    HOLD = 230  
+    HOVER = 120 
     PICKUP2 = 100
     POSITION2 = 40
     DROP2 = 10

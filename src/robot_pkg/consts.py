@@ -16,7 +16,8 @@ class Variables:
     front_detection = Event()
     back_detection = Event()
     processing_detection = Event()
-    
+    points = 0
+
 class LIDAR_FOV:
     FRONT_DEPLOY = 500 
     FRONT_UNDEPLOY = 500
@@ -30,6 +31,12 @@ class ODOM_DATA:
     wheel_diameter = 74
     wheel_track = 150
 
+class Points:
+    LEVEL1 = 4
+    LEVEL2 = 8
+    LEVEL3 = 16
+    BANNER = 20
+    HOME = 10
 
 class IDs(Enum):
     SET_LIDAR = 0x4C0

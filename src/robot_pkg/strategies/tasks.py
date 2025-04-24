@@ -5,55 +5,64 @@ from robot_pkg.in_out import I_O
 from robot_pkg.conditions import ConditionType
 from robot_pkg.misc import *
 from robot_pkg.play_elements import *
+from robot_pkg.consts import Points
 
 def init_all_servos():
     '''
-        Brings all servos to their starting position
+        Brings all servos to their starting position.
+        The starting position takes up the least amount of space.
     '''
+
     s = Strategy()
     s(s=[Servo.FrontSideGrip(Gripper.CLOSED),
          Servo.FrontCenterGrip(Gripper.CLOSED),
          Servo.BackSideGrip(Gripper.CLOSED),
          Servo.BackCenterGrip(Gripper.CLOSED),
-         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100),
-         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100),
-         Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD, 100),
-         Servo.CenterSwing(CENTER_SWING_DOWN, 100),
-         Servo.CenterLift(CENTER_LIFT_DOWN, 100),
-         Servo.BackLift(BACK_LIFT_DOWN, 100)],
+         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN),
+         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP),
+         Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD),
+         Servo.CenterSwing(CENTER_SWING_DOWN),
+         Servo.CenterLift(CENTER_LIFT_DOWN),
+         Servo.BackLift(BACK_LIFT_DOWN)],
        a=[I_O.Pump(0), I_O.Valve(0)])
     
     return s.steps
 
 def init_front_servos():
     '''
-        Brings all front servos to their starting position
+        Brings all front servos to their starting position.
     '''
-    s = Strategy()
-    s(s=[Servo.FrontSideGrip(Gripper.CLOSED, 100),
-         Servo.FrontCenterGrip(Gripper.CLOSED, 100),
-         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100),
-         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP, 100),
-         Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD, 100),
-         Servo.CenterSwing(CENTER_SWING_DOWN, 100),
-         Servo.CenterLift(CENTER_LIFT_DOWN, 100)],
-       a=[I_O.Pump(0), I_O.Valve(0)])
 
+    s = Strategy()
+    s(s=[Servo.FrontSideGrip(Gripper.CLOSED),
+         Servo.FrontCenterGrip(Gripper.CLOSED),
+         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN),
+         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP),
+         Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD),
+         Servo.CenterSwing(CENTER_SWING_DOWN),
+         Servo.CenterLift(CENTER_LIFT_DOWN)],
+       a=[I_O.Pump(0), I_O.Valve(0)])
 
     return s.steps
 
 def init_back_servos():
+     '''
+          Brings all back servos to their starting position.
+     '''
+
      s = Strategy()
-     s(s=[Servo.BackSideGrip(Gripper.CLOSED, 100),
-         Servo.BackCenterGrip(Gripper.CLOSED, 100),
-         Servo.BackLift(BACK_LIFT_DOWN, 100)])
+     s(s=[Servo.BackSideGrip(Gripper.CLOSED),
+          Servo.BackCenterGrip(Gripper.CLOSED),
+          Servo.BackLift(BACK_LIFT_DOWN)])
 
      return s.steps
 
 def pickup_back_full_stack():
      '''
-        Picks-up and holds one stack with the back
+        Picks-up and holds one stack with back servos.
+        Backing out is not included.
      '''
+
      s = Strategy()
 
      s(m=Move.Distance(-250, 300, 300),
@@ -70,8 +79,11 @@ def pickup_back_full_stack():
 
 def pickup_front_full_stack():
     '''
-        Picks-up and holds one stack with the front
+        Picks-up and holds one stack with front servos.
+        Separating is not included.
+        Backing out is not included.
     '''
+
     s = Strategy()
     s(m=Move.Distance(250, 300, 300),
       s=[Servo.FrontCenterGrip(Gripper.OPEN),
@@ -91,8 +103,10 @@ def pickup_front_full_stack():
 
 def two_level():
     '''
-        Build two levels from one material stock in air.
+        Separates one stack in two mid air. 
+        No moving included.
     '''
+
     s = Strategy()
 
     s(s=[Servo.FrontVacuumLift(VacuumLift.HOLD + 40),
@@ -114,52 +128,78 @@ def two_level():
     return s.steps
 
 def drop_two_level():
-     # TODO works pretty bad
-    s = Strategy()
+     '''
+        Leaves a two level construction in place and backs out. 
+        Backs out.
+        Points: 12
+     '''
 
-    s(s=[Servo.CenterLift(CenterLift.POSITION2+20)],
-      a=[I_O.Pump(0), I_O.Valve(0)])
-    
-    s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
-         Servo.FrontVacuumLift(VacuumLift.DOWN)])
-    s(s=[Servo.CenterLift(CenterLift.DROP2),
-         Servo.FrontGripLift(FrontGripLift.DOWN)])
+     # TODO works pretty bad
+     s = Strategy()
+
+     s(s=[Servo.CenterLift(CenterLift.POSITION2+20)],
+          a=[I_O.Pump(0), I_O.Valve(0)])
      
-    s(m=Move.Distance(-250, 300, 500),
-       s=[Servo.FrontCenterGrip(Gripper.OPEN),
-         Servo.FrontSideGrip(Gripper.OPEN)])
-    
-    return s.steps
+     s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
+          Servo.FrontVacuumLift(VacuumLift.DOWN)])
+     s(s=[Servo.CenterLift(CenterLift.DROP2),
+          Servo.FrontGripLift(FrontGripLift.DOWN)])
+          
+     s(m=Move.Distance(-250, 300, 500),
+          s=[Servo.FrontCenterGrip(Gripper.OPEN),
+          Servo.FrontSideGrip(Gripper.OPEN)],
+          p = Points.LEVEL1+Points.LEVEL2)
+     
+     return s.steps
 
 def drop_one_level():
+     '''
+        Leaves a one level construction in place and backs out. 
+        Backs out.
+        Points: 4
+     '''
+
      s = Strategy()
         
      s(m=Move.Distance(-150, 300, 500),
       s=[Servo.FrontGripLift(FrontGripLift.DOWN),
-         Servo.FrontSideGrip(Gripper.OPEN)])
+         Servo.FrontSideGrip(Gripper.OPEN)],
+      p = Points.LEVEL1)
     
      return s.steps
 
-
 def lift_two_on_one():
-    s = Strategy()
+     '''
+        Places two levels on a one level high construction on the ground.
+        Backs out.
+        Points: 25
+     '''
 
-    s(s=[Servo.CenterLift(CenterLift.LIFT2, 50)],
-      a=[I_O.Pump(0), I_O.Valve(0)])
+     s = Strategy()
 
-    s(s=[Servo.CenterLift(CenterLift.UP, 60),
-         Servo.FrontVacuumLift(VacuumLift.UP, 60),
-         Servo.FrontGripLift(FrontGripLift.UP, 60),
-         Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
-        
-    s(m=Move.Distance(150, 300, 500))
-    s(m=Move.Distance(-250, 300, 500),
-      s=[Servo.FrontCenterGrip(Gripper.OPEN),
-         Servo.FrontSideGrip(Gripper.OPEN)])
-    
-    return s.steps
+     s(s=[Servo.CenterLift(CenterLift.LIFT2, 50)],
+          a=[I_O.Pump(0), I_O.Valve(0)])
+
+     s(s=[Servo.CenterLift(CenterLift.UP, 60),
+          Servo.FrontVacuumLift(VacuumLift.UP, 60),
+          Servo.FrontGripLift(FrontGripLift.UP, 60),
+          Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
+          
+     s(m=Move.Distance(150, 300, 500))
+     s(m=Move.Distance(-250, 300, 500),
+          s=[Servo.FrontCenterGrip(Gripper.OPEN),
+          Servo.FrontSideGrip(Gripper.OPEN)],
+          p = Points.LEVEL2+Points.LEVEL3)
+     
+     return s.steps
 
 def lift_one_on_two():
+     '''
+        Places one level on a two level high construction on the ground.
+        Backs out.
+        Points: 16
+     '''
+
      s = Strategy()
 
      s(s=[Servo.CenterLift(CenterLift.UP),
@@ -167,7 +207,6 @@ def lift_one_on_two():
           Servo.FrontVacuumLift(VacuumLift.HOLD)],
           a=[I_O.Pump(0), I_O.Valve(0)])
 
-  
      s(m=Move.Distance(200, 300, 500),
        s=[Servo.FrontVacuumLift(VacuumLift.UP, 50),
           Servo.FrontSideGrip(Gripper.OPEN),
@@ -177,137 +216,107 @@ def lift_one_on_two():
      s(m=Move.Distance(-250, 300, 500),
        s=[Servo.CenterSwing(CenterSwing.DOWN),
           Servo.FrontCenterGrip(Gripper.OPEN),
-          Servo.FrontSideGrip(Gripper.OPEN)])
+          Servo.FrontSideGrip(Gripper.OPEN)],
+       p = Points.LEVEL3)
      
      return s.steps
 
+def back_lift_one_on_one():
+     '''
+        Places one level on a one level high construction on the ground.
+        Backs out.
+        Points: 8
+     '''
+     
+     pass
 
-def three_and_one_level():
-    '''
-        Separates one material stock into a third level and first level.
-        The third level is lifted on top of a two level, and the first is in the back grippers.
-    '''
-    s = Strategy()
+def back_lift_one_on_stack():
+     '''
+        Places one level on an untouched stack (with four cans and two planks) 
+        on the ground.
+        Pushes the untouched stack into an area.
+        Points: 12
+     '''
 
-    s(m=Move.Distance(150, 100, 300))
-
-    s(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
-         Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100)])
-
-    s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PICKUP, 100)],
-      a=[I_O.Pump(1), I_O.Valve(1)])
-
-    s(s=[Servo.FrontVacuumLift(250, 100), 
-         Servo.FrontVacuum(240, 40)])
-
-    s(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 100), 
-         Servo.CenterSwing(CENTER_SWING_UP, 10)])
-    s(s=[Servo.CenterLift(CENTER_LIFT_LEVEL2, 100),
-         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100)])
-    s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
-
-    s(m=Move.Distance(-150, 100, 100))
-    s(m=Move.Rotate(3.14, 1, 1), 
-      s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
-    s(m=Move.Distance(-170, 100, 100))
-    s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
-    s(m=Move.Distance(150, 100, 100))
-    s(m=Move.Rotate(3.14, 1, 1))
-
-    s(s=[Servo.CenterSwing(CENTER_SWING_LEVEL3, 100),
-         Servo.CenterLift(CENTER_LIFT_LEVEL3, 100)],
-      a=[I_O.Pump(0), I_O.Valve(0)])
-
-    s(s=[Servo.FrontVacuumLift(180, 100)])
-
-    s(s=[Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100),
-         Servo.FrontVacuumLift(250, 100)])
-
-    s(m=Move.Distance(350, 100, 100))
-
-    s(s=[Servo.CenterSwing(CENTER_SWING_DOWN, 50), 
-         Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
-
-    s(m=Move.Distance(-300, 100, 100))
-
-    return s.steps
+     pass
 
 
-def level_lift():
-    '''
-        Lifts one or two levels on top of a one level.
-    '''
-    s= Strategy()
 
-    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
-             Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
-             Servo.BackLift(BACK_LIFT_DOWN, 50)])
+# def three_and_one_level():
+#     '''
+#         Separates one material stock into a third level and first level.
+#         The third level is lifted on top of a two level, and the first is in the back grippers.
+#     '''
+#     s = Strategy()
 
-    s(m=Move.Distance(-170, 100, 100))
-    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100),
-         Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
+#     s(m=Move.Distance(150, 100, 300))
 
-    s(s=[Servo.BackLift(BACK_LIFT_UP, 50)])
+#     s(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
+#          Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100)])
 
-    s(m=Move.Distance(-200, 100, 100))
-    s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
-         Servo.BackSideGrip(BACK_CENTER_GRIP_OPEN, 100),
-         Servo.BackLift(BACK_LIFT_UP-50, 50)])  # ZAGLAVICE SE NA KABEL OD SENZORA AKO SE NE STAVI -50
+#     s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PICKUP, 100)],
+#       a=[I_O.Pump(1), I_O.Valve(1)])
 
-    s(m=Move.Distance(200, 100, 100))
+#     s(s=[Servo.FrontVacuumLift(250, 100), 
+#          Servo.FrontVacuum(240, 40)])
 
-    return s.steps
+#     s(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 100), 
+#          Servo.CenterSwing(CENTER_SWING_UP, 10)])
+#     s(s=[Servo.CenterLift(CENTER_LIFT_LEVEL2, 100),
+#          Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100)])
+#     s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
 
-def all_grip():
-    s = Strategy()
+#     s(m=Move.Distance(-150, 100, 100))
+#     s(m=Move.Rotate(3.14, 1, 1), 
+#       s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
+#     s(m=Move.Distance(-170, 100, 100))
+#     s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
+#     s(m=Move.Distance(150, 100, 100))
+#     s(m=Move.Rotate(3.14, 1, 1))
 
-    s(s=[Servo.FrontSideGrip(50, 100),
-         Servo.FrontCenterGrip(50, 100),
-         Servo.BackCenterGrip(50, 100),
-         Servo.BackSideGrip(50, 100)])
+#     s(s=[Servo.CenterSwing(CENTER_SWING_LEVEL3, 100),
+#          Servo.CenterLift(CENTER_LIFT_LEVEL3, 100)],
+#       a=[I_O.Pump(0), I_O.Valve(0)])
 
-    return s.steps
+#     s(s=[Servo.FrontVacuumLift(180, 100)])
 
-def grip_front():
-    s = Strategy()
+#     s(s=[Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100),
+#          Servo.FrontVacuumLift(250, 100)])
 
-    s(s=[Servo.FrontSideGrip(50, 100),
-         Servo.FrontCenterGrip(130, 100)])
+#     s(m=Move.Distance(350, 100, 100))
 
-    return s.steps
+#     s(s=[Servo.CenterSwing(CENTER_SWING_DOWN, 50), 
+#          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
 
-def grip_back():
-    s = Strategy()
+#     s(m=Move.Distance(-300, 100, 100))
 
-    s(s=[Servo.BackCenterGrip(50, 100),
-         Servo.BackSideGrip(50, 100)])
+#     return s.steps
 
-    return s.steps
 
-def all_open():
-    s = Strategy()
+# def level_lift():
+#     '''
+#         Lifts one or two levels on top of a one level.
+#     '''
+#     s= Strategy()
 
-    s(s=[Servo.FrontSideGrip(30, 100),
-         Servo.FrontCenterGrip(30, 100),
-         Servo.BackCenterGrip(30, 100),
-         Servo.BackSideGrip(40, 100)])
+#     s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+#              Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
+#              Servo.BackLift(BACK_LIFT_DOWN, 50)])
 
-    return s.steps
+#     s(m=Move.Distance(-170, 100, 100))
+#     s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100),
+#          Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
 
-def ungrip_back():
-    s = Strategy()
+#     s(s=[Servo.BackLift(BACK_LIFT_UP, 50)])
 
-    s(s=[Servo.BackCenterGrip(30, 100),
-         Servo.BackSideGrip(40, 100)])
+#     s(m=Move.Distance(-200, 100, 100))
+#     s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+#          Servo.BackSideGrip(BACK_CENTER_GRIP_OPEN, 100),
+#          Servo.BackLift(BACK_LIFT_UP-50, 50)])  # ZAGLAVICE SE NA KABEL OD SENZORA AKO SE NE STAVI -50
 
-    return s.steps
+#     s(m=Move.Distance(200, 100, 100))
 
-def ungrip_front():
-    s = Strategy()
+#     return s.steps
 
-    s(s=[Servo.FrontSideGrip(30, 100),
-         Servo.FrontCenterGrip(150, 100)])
-
-    return s.steps
 
 

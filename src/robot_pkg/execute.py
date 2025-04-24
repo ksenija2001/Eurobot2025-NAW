@@ -136,6 +136,7 @@ class Execute:
                 else:
                     continue
                 
+                Variables.points += step.points
                 self.display.add_points(step.points)       
 
                 time.sleep(0.05)
