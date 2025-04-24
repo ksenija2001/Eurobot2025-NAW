@@ -1,5 +1,6 @@
 from threading import Thread, Event
 import time
+from robot_pkg.display import Display
 from robot_pkg.step import Step
 from robot_pkg.strategy import Strategy 
 from robot_pkg.servo import Servo
@@ -18,10 +19,12 @@ class Execute:
         self._logger = log_handler.get_logger("execute")
         self.running = False
         self.main_running = main_running
+        self.display = Display()
         
     def start(self):
         self.running = True
         self.thread.start()
+        self.display.start()
 
     def loop(self):
         next_step_id = None
@@ -118,8 +121,6 @@ class Execute:
                 elif ConditionType.CINCH in checked and checked[ConditionType.CINCH] != False:
                     print(f"Condition met TYPE: {ConditionType.CINCH}")
                     next_step_id = checked[ConditionType.CINCH]
-                # elif (ConditionType.FRONT in checked and checked[ConditionType.FRONT] != False) or \
-                #      (ConditionType.BACK in checked and checked[ConditionType.BACK] != False):
                 elif ConditionType.POSITION in checked and ConditionType.SERVO in checked:
                     if checked[ConditionType.POSITION] != False and checked[ConditionType.SERVO] != False:
                         print(f"Condition met TYPE: {ConditionType.POSITION} and {ConditionType.SERVO}")
@@ -135,9 +136,8 @@ class Execute:
                 else:
                     continue
                 
-                Variables.points += step.points
-                #self.display.setNumber(Variables.points)
-                # self.nucleo.set_motor_speed(0, 0, 2000)
+                self.display.add_points(step.points)       
+
                 time.sleep(0.05)
                 print("-------------------------------")
 

@@ -11,7 +11,8 @@ dependencies = [
     'py_trees',
     'python-can',
     'pigpio',
-    'smbus'
+    'smbus',
+    'tm1637'
 ]
 
 

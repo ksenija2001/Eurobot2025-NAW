@@ -9,9 +9,10 @@ LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 CONFIG_PATH = os.path.join(ROOT_PATH, 'config')
 STRATEGIES_PATH = os.path.join(ROOT_PATH, 'strategies')
 
+IP = "192.168.31.54"
+
 class Variables:
     match_start_time = float('inf')
-    points = 0
     front_detection = Event()
     back_detection = Event()
     processing_detection = Event()
