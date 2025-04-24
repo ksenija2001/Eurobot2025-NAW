@@ -83,6 +83,9 @@ sDetection_t detection = {
 uint8_t process_beacon = 0;
 uint8_t process_opponent = 0;
 
+sVector3_t new_robot = {0};
+
+
 
 // Since Sensitivity utilizes ultra capsulated data format - which is hard to decode, scan mode 1 will be used
 
@@ -329,6 +332,8 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 		} else {
 			// Every time a packet with data is received it's counted so as to know when to stop listening for new packets
 			//response_desc.packet_num++;
+			sResponse_t response = {0};
+			uint8_t crc;
 
 			switch(response_desc.data_type){
 			case 0x04: // GET_INFO
@@ -391,13 +396,56 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 				}
 
 				break;
-			case 0x84:  // Express scan in scan mode 1 - 0x82
-				sResponse_t response = {0};
+			case 0x82:  // Express scan in scan mode 1 - 0x82
+				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
+				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
+				response.start_angle = (float)(((((uint16_t)(rx_buff[3] & 0x7F)) << 8) | rx_buff[2])/64.0);
+				response.S           = rx_buff[3] >> 7;
+				crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
+				if(response.checksum != crc){
+					// bad message
+					last_response = response;
+					break;
+				}
+
+				if(last_response.sync != 0){
+					float angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
+
+					// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
+					for(uint8_t i=4, k=1; i<response_desc.length; i=i+5, k=k+2){
+
+						// distance1 and theta1
+						u_distance = ( ((uint16_t)last_rx_buff[i+1] << 8) | (last_rx_buff[i] & 0xFC) ) >> 2;
+						distance = (float)u_distance;
+
+						u_delta_theta = ((last_rx_buff[i] & 0x03) << 4) | (last_rx_buff[i+4] & 0x0F);
+						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
+
+						theta = last_response.start_angle + ((angle_diff/32.0) * k) - (float)delta_theta / 8.0;
+
+						Process_Distance(distance, (uint16_t)theta, response.S);
+
+						// distance2 and theta2
+						u_distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
+						distance = (float)u_distance;
+
+						u_delta_theta = ((last_rx_buff[i+2] & 0x03) << 4) | ((last_rx_buff[i+4] & 0xF0) >> 4);
+						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
+
+						theta = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float)delta_theta / 8.0;
+
+						Process_Distance(distance, (uint16_t)theta, response.S);
+					}
+				}
+
+				last_response = response;
+				break;
+			case 0x84:  // Express scan in scan mode 2 and 3 - 0x84
 				response.sync        = (rx_buff[1] & 0xF0) | ((rx_buff[0] & 0xF0) >> 4);     // should be 0x5A
 				response.checksum    = ((rx_buff[1] & 0x0F) << 4) | (rx_buff[0] & 0x0F);
 				response.start_angle_q6 = ((((uint16_t)(rx_buff[3] & 0x7F)) << 8) | rx_buff[2]); // / 64);
 				response.S           = rx_buff[3] >> 7;
-				uint8_t crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
+				crc = Lidar_CRC(rx_buff, response_desc.length, 2);  // excluding sync bytes
 				if(response.checksum != crc){
 					// bad message
 					last_response = response;
@@ -488,34 +536,6 @@ void TIM7_IT(TIM_HandleTypeDef *tim){
 							Process_Distance((float)(dist_q2[c]/4.0), (float)(((angle_q14 * 90) >> 8)/64.0), sync);
 						}
 					}
-
-//					float angle_diff = Angle_Diff(last_response.start_angle, response.start_angle);
-//
-//					// iterates through the rest of buffer, 80 bytes = 16 * 5 bytes(cabin)
-//					for(uint8_t i=4, k=1; i<response_desc.length; i=i+5, k=k+2){
-//
-//						// distance1 and theta1
-//						u_distance = ( ((uint16_t)last_rx_buff[i+1] << 8) | (last_rx_buff[i] & 0xFC) ) >> 2;
-//						distance = (float)u_distance;
-//
-//						u_delta_theta = ((last_rx_buff[i] & 0x03) << 4) | (last_rx_buff[i+4] & 0x0F);
-//						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
-//
-//						theta = last_response.start_angle + ((angle_diff/32.0) * k) - (float)delta_theta / 8.0;
-//
-//						Process_Distance(distance, (uint16_t)theta);
-//
-//						// distance2 and theta2
-//						u_distance = ( ((uint16_t)last_rx_buff[i+3] << 8) | (last_rx_buff[i+2] & 0xFC) ) >> 2;
-//						distance = (float)u_distance;
-//
-//						u_delta_theta = ((last_rx_buff[i+2] & 0x03) << 4) | ((last_rx_buff[i+4] & 0xF0) >> 4);
-//						delta_theta = (u_delta_theta ^ (1<<5)) - (1<<5);  // 2s complement
-//
-//						theta = last_response.start_angle + ((angle_diff/32.0) * (k+1)) - (float)delta_theta / 8.0;
-//
-//						Process_Distance(distance, (uint16_t)theta);
-//					}
 				}
 
 				last_response = response;
@@ -574,6 +594,7 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 //	angle %= 360;
 	if (angle > 360) angle -= 360;
 
+
 //	if (last_angle > 357 && last_angle < 360) counter = 0;
 	if (last_angle > 357 && last_angle < 360 && pc_index > 3){
 		process_opponent = 1;
@@ -626,7 +647,7 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 			if (beacon.vector[0] != 0){
 				beacon.vector[0] = point.vector[0];
 				beacon.vector[1] = point.vector[1];
-				beacon.vector[2] = distance;
+				beacon.vector[2] = (360 - angle) * M_PI/180.0; // was distance
 
 				beacon_pc[b_pc_index++] = beacon;
 				if (b_pc_index > 200) b_pc_index = 0;
@@ -644,7 +665,51 @@ float norm(sVector3_t a, sVector3_t b){
 	return sqrt((a.vector[0] - b.vector[0])*(a.vector[0] - b.vector[0]) + (a.vector[1] - b.vector[1])*(a.vector[1] - b.vector[1]));
 }
 
-uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius){
+float triangulationPierlot(sVector3_t *new_robot, sVector3_t beacon1, sVector3_t beacon2, sVector3_t beacon3){
+	// Three beacon cotangents
+	float cot_12 = Cot( beacon2.vector[2] - beacon1.vector[2]) ; // Changed for CW
+	float cot_23 = Cot( beacon3.vector[2] - beacon2.vector[2] ) ; // Changed for CW
+
+	// In practice, we have to avoid Inf or NaN values in the floating point computations.
+	// Limiting the cot(.) value to a minimumr maximum value, corresponding to a small angle that is far below the measurement precision.
+	cot_12 = adjust_value_to_bounds( cot_12 , COT_MAX ) ;
+	cot_23 = adjust_value_to_bounds( cot_23 , COT_MAX ) ;
+	float cot_31 = ( 1.0 - cot_12 * cot_23 ) / ( cot_12 + cot_23 ) ;
+	cot_31 = adjust_value_to_bounds( cot_31 , COT_MAX ) ;
+
+	// Modified beacon coordinates
+	float x1_ = beacon1.vector[0] - beacon2.vector[0] , y1_ = beacon1.vector[1] - beacon2.vector[1] , x3_ = beacon3.vector[0] - beacon2.vector[0] , y3_ = beacon3.vector[1] - beacon2.vector[1] ;
+
+	// Modified circle center coordinates
+	float c12x = x1_ + cot_12 * y1_ ;  // +
+	float c12y = y1_ - cot_12 * x1_ ;  // -
+
+	float c23x = x3_ - cot_23 * y3_ ;  // -
+	float c23y = y3_ + cot_23 * x3_ ;  // +
+
+	float c31x = (x3_ + x1_) + cot_31 * (y3_ - y1_) ;  // +
+	float c31y = (y3_ + y1_) - cot_31 * (x3_ - x1_) ;  // -
+
+	float k31 = (x3_ * x1_) + (y3_ * y1_) + cot_31 * ( (y3_ * x1_) - (x3_ * y1_) ) ;
+
+	// The denominator D is equal to 0 when the circle centers are collinear or coincide.
+	// For noncollinear beacons, this situation occurs when the beacons and the robot are concyclic; they all stand on the same circle.
+	float D = (c12x - c23x) * (c23y - c31y) - (c23x - c31x) * (c12y - c23y) ;
+	float invD = 1.0 / D ;
+	float K = k31 * invD ;
+
+	// New robot position based only on beacon coordinates and LIDAR angles
+	new_robot->vector[0] = K * (c12y - c23y) + beacon2.vector[0] ;
+	new_robot->vector[1] = K * (c23x - c12x) + beacon2.vector[1] ;
+
+	// Finally, it should be noted that the robot orientation θ_R may be determined by using any beacon B_i and its corresponding angle φ_i , once the robot position is known:
+	// θ_R = atan2(y i − y R , xi − xR ) − φ i
+	new_robot->vector[2] = atan2(beacon2.vector[1]-new_robot->vector[1], beacon2.vector[0]-new_robot->vector[0]) - beacon2.vector[2];
+
+	return invD ; // 1/|D| is a good approximation of the position error.
+}
+
+uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint16_t radius){
 	// Segment point cloud into groups of points
 	uint8_t i=0, j=0, k=0;
 	float sum_x=0, sum_y=0, sum_z=0;
@@ -673,45 +738,6 @@ uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius){
 		++i;
 	}
 
-
-//	while (i < ind-1) {
-//		// Average close points
-//		for (j=i+1; j < ind; ++j){
-//			if (norm(pc[i], pc[j]) > radius){
-//				break;
-//			}
-//		}
-//
-//		// Average all points
-//		sum_x = sum_y = sum_z = 0;
-//		for (k=i; k<j; ++k){
-//			sum_x += pc[k].vector[0];
-//			sum_y += pc[k].vector[1];
-//			sum_z += pc[k].vector[2];
-//		}
-//
-//		pc[i].vector[0] = sum_x/(j-i);
-//		pc[i].vector[1] = sum_y/(j-i);
-//		pc[i].vector[2] = sum_z/(j-i);
-//
-//		// Shift point cloud to the left to get rid of averaged points
-//		ind -= j-i-1;
-//		for (k=i+1; k < ind; ++k){
-//			pc[k] = pc[k+(j-i-1)];
-//		}
-//
-//		++i;
-//	}
-//
-//	// Average first and last group if they are close enough
-//	if (ind > 1 && norm(pc[0], pc[ind-1]) <= BEACON_SUPPORT_DIAMETER){
-//		pc[0].vector[0] = (pc[0].vector[0] + pc[ind-1].vector[0])/2.0;
-//		pc[0].vector[1] = (pc[0].vector[1] + pc[ind-1].vector[1])/2.0;
-//		pc[0].vector[2] = (pc[0].vector[2] + pc[ind-1].vector[2])/2.0;
-//
-//		ind -= 1;
-//	}
-
 	return ind;
 }
 
@@ -727,21 +753,21 @@ void Choose_Beacon(sVector3_t* position, sVector3_t* point){
 		point->vector[0] = -90;
 		point->vector[1] = 1000;
 	} // lower left beacon
-	else if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
-			  (position->vector[1] > -50 && position->vector[1] <= 150)){
-		point->vector[0] = -90;
-		point->vector[1] = 50;
-	} // upper right beacon
+//	else if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
+//			  (position->vector[1] > -50 && position->vector[1] <= 150)){
+//		point->vector[0] = -90;
+//		point->vector[1] = 50;
+//	} // upper right beacon
 	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
 			 (position->vector[1] > 1850 && position->vector[1] <= 2050)){
 		point->vector[0] = 3090;
 		point->vector[1] = 1950;
 	} // middle right beacon
-	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
-			  (position->vector[1] > 900 && position->vector[1] <= 1100)){
-		point->vector[0] = 3090;
-		point->vector[1] = 1000;
-	} // lower right beacon
+//	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
+//			  (position->vector[1] > 900 && position->vector[1] <= 1100)){
+//		point->vector[0] = 3090;
+//		point->vector[1] = 1000;
+//	} // lower right beacon
 	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
 			  (position->vector[1] > -50 && position->vector[1] <= 150)){
 		point->vector[0] = 3090;
@@ -752,32 +778,68 @@ void Choose_Beacon(sVector3_t* position, sVector3_t* point){
 }
 
 void Get_Beacons(){
-	uint8_t i=0, j=0;
+//	uint8_t i=0, j=0;
+	float reliability = 0;
 
 	b_pc_index = Segment_PC(beacon_pc, b_pc_index, 200);
 
-	uint8_t bytes[300] = {0};
-	// At least two beacons
-	if (b_pc_index > 1){
-		for (i=0; i<b_pc_index; i++){
-			sVector3_t beacon = {.vector={0,0,0}};
-			Choose_Beacon(&beacon_pc[i], &beacon);
-			// If the point can fall in one of the beacon regions send it
-			if (beacon.vector[0] != 0 && beacon.vector[1] != 0){
-				convert_x.f = beacon.vector[0];
-				convert_y.f = beacon.vector[1];
-				convert_z.f = beacon.vector[2];
+	// Three beacons
+	if (b_pc_index > 2){
+		reliability = triangulationPierlot(&new_robot, beacon_pc[0], beacon_pc[1], beacon_pc[2]);  // use first three beacons
+	} // Two beacons
+	else if (b_pc_index > 1){
+		// Correction of lidar angle
+		float fi1 = beacon_pc[0].vector[2] + self.theta;
+		float fi2 = beacon_pc[1].vector[2] + self.theta;
 
-				for(j=0; j<4; ++j){
-					bytes[j+i*12]    = convert_x.u[j];
-					bytes[j+4+i*12]  = convert_y.u[j];
-					bytes[j+8+i*12]  = convert_z.u[j];
-				}
-			}
- 		}
+		fi1 -= (fi1 > 6.28) ? 6.28 : 0;
+		fi2 -= (fi2 > 6.28) ? 6.28 : 0;
 
-		FDCAN_Send_Data(0x4CD, FDCAN_DLC_BYTES_48, 48, bytes);
+		float tan_fi1 = tan(fi1), tan_fi2 = tan(fi2);
+
+		float x1 = beacon_pc[0].vector[0], y1 = beacon_pc[0].vector[1];
+		float x2 = beacon_pc[1].vector[0], y2 = beacon_pc[1].vector[1];
+
+		new_robot.vector[0] = (tan_fi1*x1 - tan_fi2*x2 - (y1-y2))/(tan_fi1 - tan_fi2);
+		new_robot.vector[1] = tan_fi1*(new_robot.vector[0] - x1) + y1;
+		new_robot.vector[2] = self.theta;
+
+		// Take into account only if the new position is inside of table
+		if ((new_robot.vector[0] <= 2900 && new_robot.vector[0] >= 100) &&
+			(new_robot.vector[1] <= 1900 && new_robot.vector[1] >= 100)){
+			reliability = 1;
+		}
 	}
+
+	if (reliability > 0){
+		// TODO find experimental threshold for realiability
+		// TODO use position only if realiability larger than threshold
+	}
+
+//	uint8_t bytes[300] = {0};
+	// At least two beacons
+//	if (b_pc_index > 1){
+//		for (i=0; i<b_pc_index; i++){
+//			sVector3_t beacon = {.vector={0,0,0}};
+//			Choose_Beacon(&beacon_pc[i], &beacon);
+
+
+			// If the point can fall in one of the beacon regions send it
+//			if (beacon.vector[0] != 0 && beacon.vector[1] != 0){
+//				convert_x.f = beacon.vector[0];
+//				convert_y.f = beacon.vector[1];
+//				convert_z.f = beacon.vector[2];
+//
+//				for(j=0; j<4; ++j){
+//					bytes[j+i*12]    = convert_x.u[j];
+//					bytes[j+4+i*12]  = convert_y.u[j];
+//					bytes[j+8+i*12]  = convert_z.u[j];
+//				}
+//			}
+// 		}
+
+//		FDCAN_Send_Data(0x4CD, FDCAN_DLC_BYTES_48, 48, bytes);
+//	}
 }
 
 void Get_Opponent(){

@@ -40,6 +40,7 @@
 #define LIDAR_FOV 120
 #define LIDAR_SIDE_DISTANCE 400
 
+// Ultra Cabin parsing
 #define MAX_ULTRA_CABINS 32
 #define RPLIDAR_VARBITSCALE_X2_SRC_BIT 9
 #define RPLIDAR_VARBITSCALE_X4_SRC_BIT 11
@@ -50,6 +51,12 @@
 #define RPLIDAR_VARBITSCALE_X4_DEST_VAL 1280
 #define RPLIDAR_VARBITSCALE_X8_DEST_VAL 1792
 #define RPLIDAR_VARBITSCALE_X16_DEST_VAL 3328
+
+// Triangulation
+#define 	adjust_value_to_bounds(value, max)   ( ( value > max ) ? max : ( ( value < -max ) ? -max : value ) )
+#define 	cot(x)   ( 1 / tan(x) )
+#define 	Cot(x)   cot(x)
+#define 	COT_MAX   100000000
 
 typedef struct {
     int32_t major;
@@ -106,6 +113,7 @@ typedef struct{
 	uint8_t sync;          // identifies the start of a new response packet - 0xA5
 	uint8_t checksum;      // XOR of all data bytes in response packet
     uint16_t start_angle_q6;  // reference value for the angle data in current response packet
+    float start_angle;
 	uint8_t S;             // start flag of new scan
 	RPlidarUltraCabin ultra_cabins[MAX_ULTRA_CABINS];
 } sResponse_t;
@@ -152,11 +160,13 @@ void Process_Distance(float distance, float angle, uint8_t new_scan);
 void TIM6_IT(TIM_HandleTypeDef *tim);
 void TIM7_IT(TIM_HandleTypeDef *tim);
 
-uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint8_t radius);
+uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint16_t radius);
 void Get_Beacons();
 void Get_Opponent();
 void Choose_Beacon(sVector3_t* position, sVector3_t* point);
 uint8_t VarbitScale_Decode(int32_t scaled, uint32_t *decoded);
+
+float triangulationPierlot(sVector3_t *new_robot, sVector3_t beacon1, sVector3_t beacon2, sVector3_t beacon3);
 
 extern uint8_t rx_buff[BUFFER_SIZE];
 extern sDescriptor_t response_desc;
