@@ -9,6 +9,7 @@ from robot_pkg.in_out import I_O, SensorType
 from robot_pkg.consts import Variables
 from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.main import log_handler
+from robot_pkg.misc import Gripper
 
 
 class Execute:
@@ -150,13 +151,32 @@ class Execute:
         self.main_running.clear()
             
     def stop(self):
-        # self.nucleo.set_motor_speed(0,0,5000)
-        # time.sleep(0.1)
-        # self.nucleo.stop()
-        # self.actuators.stop()
-        # self.lidar.stop()
-        # self.sensors.stop()
-        # self.servo_moving.stop()
-        
         self.running = False
         self.thread.join()
+
+        self.main_running.clear()
+
+        stop_motors = Move.Stop()
+        stop_motors._execute()
+
+        actuators = [I_O.Pump(0), I_O.Valve(0)]
+        for actuator in actuators:
+            actuator._execute()
+            time.sleep(0.01)
+        
+        grippers = [Servo.FrontCenterGrip(Gripper.OPEN), 
+                    Servo.FrontSideGrip(Gripper.OPEN), 
+                    Servo.BackCenterGrip(Gripper.OPEN),
+                    Servo.BackSideGrip(Gripper.OPEN)]
+        
+        # for gripper in grippers:
+        #     if type(gripper) is tuple:
+        #         gripper[0]._execute()
+        #         time.sleep(0.01)
+        #         gripper[1]._execute()
+        #     else:
+        #         gripper._execute()
+        #     time.sleep(0.01)
+
+
+

@@ -7,6 +7,7 @@ from robot_pkg.misc import *
 from robot_pkg.play_elements import *
 from robot_pkg.consts import Points
 
+
 def init_all_servos():
     '''
         Brings all servos to their starting position.
@@ -17,7 +18,7 @@ def init_all_servos():
     s(s=[Servo.FrontSideGrip(SideGripper.CLOSED),
          Servo.FrontCenterGrip(Gripper.NEUTRAL),
          Servo.BackSideGrip(Gripper.CLOSED),
-         Servo.BackCenterGrip(Gripper.CLOSED),
+         Servo.BackCenterGrip(Gripper.OPEN),
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontVacuumLift(VacuumLift.UP),
          Servo.FrontVacuum(Vacuum.DOWN),
@@ -152,7 +153,7 @@ def drop_two_level():
      
      return s.steps
 
-def drop_one_level():
+def drop_one_level(distance=0):
      '''
         Leaves a one level construction in place and backs out. 
         Backs out.
@@ -161,7 +162,7 @@ def drop_one_level():
 
      s = Strategy()
         
-     s(m=Move.Distance(-150, 300, 500),
+     s(m=Move.Distance(-150+distance, 300, 500),
       s=[Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontSideGrip(SideGripper.OPEN)],
       p = Points.LEVEL1)
@@ -193,7 +194,7 @@ def lift_two_on_one():
      
      return s.steps
 
-def lift_one_on_two():
+def lift_one_on_two(distance=0):
      '''
         Places one level on a two level high construction on the ground.
         Backs out.
@@ -207,13 +208,13 @@ def lift_one_on_two():
           Servo.FrontVacuumLift(VacuumLift.HOLD)],
           a=[I_O.Pump(0), I_O.Valve(0)])
 
-     s(m=Move.Distance(200, 300, 500),
+     s(m=Move.Distance(200+distance, 500, 1500),
        s=[Servo.FrontVacuumLift(VacuumLift.UP, 50),
           Servo.FrontSideGrip(SideGripper.OPEN),
           Servo.FrontGripLift(FrontGripLift.DOWN),
           Servo.FrontVacuum(Vacuum.MIDDLE)])
 
-     s(m=Move.Distance(-250, 300, 500),
+     s(m=Move.Distance(-250-distance, 300, 500),
        s=[Servo.CenterSwing(CenterSwing.DOWN),
           Servo.FrontCenterGrip(Gripper.OPEN),
           Servo.FrontSideGrip(SideGripper.OPEN)],

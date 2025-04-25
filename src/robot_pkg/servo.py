@@ -87,6 +87,7 @@ class Servo:
             servo_msg = struct.pack(fmt, *Servo.servo_list)
             Servo.send_queue.append(servo_msg)
 
+
             Servo.servo_list.clear()
 
 
@@ -121,6 +122,8 @@ class Servo:
     @classmethod
     def start_threads(cls):
         Servo.running.set()
+        msg = struct.pack('B', 1)
+        can_handler.msg_send_queues[IDs.SET_SERVO_TORQUE.value].append(msg)
         if Servo.servo_thread is None:
             Servo.servo_thread = Thread(target=Servo._receive, args=(Servo.running, ))
             Servo.servo_thread.start()
@@ -129,6 +132,9 @@ class Servo:
     @classmethod
     def stop_threads(cls):
         Servo.running.clear()
+        msg = struct.pack('B', 0)
+        can_handler.msg_send_queues[IDs.SET_SERVO_TORQUE.value].append(msg)
+
         if Servo.servo_thread is not None and Servo.servo_thread.is_alive():
             Servo.servo_thread.join()
         Servo.servo_thread = None

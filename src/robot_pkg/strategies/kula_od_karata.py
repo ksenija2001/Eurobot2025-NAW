@@ -16,16 +16,22 @@ kula_od_karata(s=[Servo.FrontCenterGrip(Gripper.OPEN),
                   Servo.FrontSideGrip(SideGripper.OPEN),
                   Servo.CenterSwing(CenterSwing.DOWN)])
 
-kula_od_karata(m=Move.Spline([MaterialStack.STACK10.x, MaterialStack.STACK9.x-20], 
+pose = Position(1400, 2000)
+kula_od_karata(m=Move.Spline([MaterialStack.STACK10.x-20, MaterialStack.STACK9.x-20], 
                         [MaterialStack.STACK10.y-100, MaterialStack.STACK9.y+300], 
                         [1.57, 3.14], 
-                        400, 'f'))
+                        500, 'f'),
+               s=[Servo.FrontCenterGrip(Gripper.GRIP, activate_pose=pose),
+                  Servo.FrontSideGrip(SideGripper.GRIP, activate_pose=pose),
+                  Servo.FrontVacuumLift(VacuumLift.PICKUP2+30, activate_pose=pose),
+                  Servo.FrontGripLift(FrontGripLift.HOVER, activate_pose=pose),
+                  Servo.CenterLift(CenterLift.HOVER, activate_pose=pose)])
 
-kula_od_karata(s=[Servo.FrontCenterGrip(Gripper.GRIP),
-                  Servo.FrontSideGrip(SideGripper.GRIP),
-                  Servo.FrontVacuumLift(VacuumLift.PICKUP2+30),
-                  Servo.FrontGripLift(FrontGripLift.HOVER),
-                  Servo.CenterLift(CenterLift.HOVER)])
+# kula_od_karata(s=[Servo.FrontCenterGrip(Gripper.GRIP),
+#                   Servo.FrontSideGrip(SideGripper.GRIP),
+#                   Servo.FrontVacuumLift(VacuumLift.PICKUP2+30),
+#                   Servo.FrontGripLift(FrontGripLift.HOVER),
+#                   Servo.CenterLift(CenterLift.HOVER)])
 
 kula_od_karata(m=Move.RotateTo(1.57, 15, 5),
                s=[Servo.BackCenterGrip(Gripper.OPEN),
@@ -51,17 +57,28 @@ kula_od_karata(m=Move.RotateTo(1.57, 15, 5),
 kula_od_karata(s=[Servo.BackCenterGrip(Gripper.OPEN),
                   Servo.BackSideGrip(Gripper.OPEN)])
 
-kula_od_karata(m=Move.Distance(200, 300, 300))
+kula_od_karata(m=Move.Distance(200, 1000, 1000))
+kula_od_karata(m=Move.RotateTo(-1.57, 15, 15))
+kula_od_karata(task_steps=pickup_front_full_stack())
+kula_od_karata(task_steps=two_level())
+kula_od_karata(task_steps=drop_one_level(distance=-150))
+# kula_od_karata(m=Move.Distance(-100, 300, 300))
+
+kula_od_karata(m=Move.To(Area.BLUE_3.x+90, Area.BLUE_3.y+500, 'r', 1500, 1000, 15, 5))
+
 kula_od_karata(m=Move.RotateTo(-1.57, 15, 10))
+
+kula_od_karata(task_steps=lift_one_on_two(distance=50))
+
+kula_od_karata(m=Move.To(MaterialStack.STACK3.x+200, MaterialStack.STACK3.y, 'r', 500, 500, 15, 10))
+
+kula_od_karata(m=Move.RotateTo(3.14, 15, 10))
 kula_od_karata(task_steps=pickup_front_full_stack())
 kula_od_karata(task_steps=two_level())
 kula_od_karata(task_steps=drop_one_level())
 
-kula_od_karata(m=Move.To(Area.BLUE_3.x+200, Area.BLUE_3.y+500, 'r', 1500, 1000, 15, 5))
-
-kula_od_karata(m=Move.RotateTo(-1.57, 15, 10))
-
-# kula_od_karata(m=Move.Distance(150, 300, 300))
-kula_od_karata(task_steps=lift_one_on_two())
+kula_od_karata(m=Move.To(MaterialStack.STACK3.x+700, MaterialStack.STACK3.y, 'r', 1000, 500, 15, 10))
+kula_od_karata(m=Move.To(MaterialStack.STACK3.x+700, 500, 'r', 1500, 1000, 15, 10),
+         s=[Servo.BackSideGrip(Gripper.GRIP, activate_pose=Position(3000, 600))])
 
 

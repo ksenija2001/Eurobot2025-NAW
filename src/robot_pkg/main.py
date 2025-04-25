@@ -89,14 +89,15 @@ def main_func():
 
     running.clear()
     if execute is not None and execute.thread.is_alive():
-        execute.running = False
-        execute.thread.join()
+        execute.stop()
+        time.sleep(1)
 
     Lidar.stop_threads()
     Servo.stop_threads()
     Move.stop_threads()
     I_O.stop_threads()
     sima.stop_threads()
+    time.sleep(1)
 
     can_handler.stop_threads()
 

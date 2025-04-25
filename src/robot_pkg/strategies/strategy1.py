@@ -8,6 +8,12 @@ from robot_pkg.strategies.tasks import *
 
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
+strategy1(task_steps=init_all_servos())
+strategy1(m=Move.Distance(-150, 1000, 1500))
+
+strategy1(m=Move.Distance(200, 500, 500))
+strategy1(m=Move.Distance(200, 500, 500))
+
 # strategy1(m=Move.ResetOdom(1780, 230, 1.57))
 # strategy1(m=SetPosition(316, 305, 0), 
 #             s=[Servo.Fork(ForkUp), 
@@ -147,10 +153,10 @@ strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PA
 
 ## ALEKSA REKAO MORA - DIZANJE  JEDAN NA DVA POD UGLOM
 
-strategy1(task_steps=init_all_servos())
-strategy1(task_steps=pickup_front_full_stack())
-strategy1(task_steps=two_level())
-strategy1(task_steps=drop_two_level())
+# strategy1(task_steps=init_all_servos())
+# strategy1(task_steps=pickup_front_full_stack())
+# strategy1(task_steps=two_level())
+# strategy1(task_steps=drop_two_level())
 # strategy1(m=Move.Distance(-200, 300, 300))
 # strategy1(m=Move.Rotate(3.14, 15, 5))
 # strategy1(task_steps=pickup_back_full_stack())

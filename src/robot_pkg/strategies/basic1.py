@@ -12,101 +12,101 @@ BACK = False
 
 basic1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.AGGRESSIVE)  # return passive
 
-# Starting position DOWN, initialize servo motors, backLift in position for setting off the banner mechanism
-basic1(m=Move.ResetOdom(STARTING_X, STARTING_Y, STARTING_THETA),
-       s=[Servo.FrontSideGrip(30, 100),
-        Servo.FrontCenterGrip(150, 100),
-        Servo.FrontGripLift(0, 50),
-        Servo.FrontVacuumLift(0, 10),
-        Servo.FrontVacuum(60, 100),
-        Servo.CenterSwing(150, 10),
-        Servo.CenterLift(300, 10),
-        Servo.BackLift(BACK_LIFT_BANNER, 100)],
-        c = [(ConditionType.CINCH, 1)])
+# # Starting position DOWN, initialize servo motors, backLift in position for setting off the banner mechanism
+# basic1(m=Move.ResetOdom(STARTING_X, STARTING_Y, STARTING_THETA),
+#        s=[Servo.FrontSideGrip(30, 100),
+#         Servo.FrontCenterGrip(150, 100),
+#         Servo.FrontGripLift(0, 50),
+#         Servo.FrontVacuumLift(0, 10),
+#         Servo.FrontVacuum(60, 100),
+#         Servo.CenterSwing(150, 10),
+#         Servo.CenterLift(300, 10),
+#         Servo.BackLift(BACK_LIFT_BANNER, 100)],
+#         c = [(ConditionType.CINCH, 1)])
 
-# A little rikverc
-basic1(m=Move.Distance(-20.0, 100.0, 1000.0), ID=1)
+# # A little rikverc
+# basic1(m=Move.Distance(-20.0, 100.0, 1000.0), ID=1)
 
-# Can be removed if the back lift in the next step can be lowered later during the trajectory
-basic1(m=Move.Distance(40.0, 100.0, 1000.0))
+# # Can be removed if the back lift in the next step can be lowered later during the trajectory
+# basic1(m=Move.Distance(40.0, 100.0, 1000.0))
 
-# First stack pickup (position 9, center)
-basic1(m=Move.To(STACK9_X, STACK9_Y - 70.0, STACK9_THETA, 800, 1000, FRONT),
-       s=[Servo.BackLift(BACK_LIFT_DOWN, 100),
-       Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
-       Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
+# # First stack pickup (position 9, center)
+# basic1(m=Move.To(STACK9_X, STACK9_Y - 70.0, STACK9_THETA, 800, 1000, FRONT),
+#        s=[Servo.BackLift(BACK_LIFT_DOWN, 100),
+#        Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
+#        Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
 
-# Slowly move to pick up the stack
-basic1(m=Move.Distance(70.0, 100.0, 500.0))
+# # Slowly move to pick up the stack
+# basic1(m=Move.Distance(70.0, 100.0, 500.0))
 
-# Close the grippers
-basic1(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 50),
-          Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 50)])
+# # Close the grippers
+# basic1(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 50),
+#           Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 50)])
 
-# Put the center swing on top of the planks and hold them in place + perhaps lift it all up a bit
-basic1(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 50)])
+# # Put the center swing on top of the planks and hold them in place + perhaps lift it all up a bit
+# basic1(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 50)])
 
-# This is separate from the last step to prevent potential slipping of the plank
-# Move to the stack 4 position, open the gripper
-basic1(m = Move.To(STACK4_X, STACK4_Y + 70.0, STACK4_THETA, 800, 1000, BACK),
-       s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
-          Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
+# # This is separate from the last step to prevent potential slipping of the plank
+# # Move to the stack 4 position, open the gripper
+# basic1(m = Move.To(STACK4_X, STACK4_Y + 70.0, STACK4_THETA, 800, 1000, BACK),
+#        s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+#           Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
 
-# Slowly move to pick up the stack
-basic1(m=Move.Distance(-70.0, 100.0, 500.0))
+# # Slowly move to pick up the stack
+# basic1(m=Move.Distance(-70.0, 100.0, 500.0))
 
-# Close the grippers
-basic1(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 50),
-          Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 50)])
+# # Close the grippers
+# basic1(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 50),
+#           Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 50)])
 
-# Move to the construction 2 position
-basic1(m=Move.To(CONSTRUCTION2_X, CONSTRUCTION2_Y, CONSTRUCTION2_THETA, 100.0, 500.0, BACK))
+# # Move to the construction 2 position
+# basic1(m=Move.To(CONSTRUCTION2_X, CONSTRUCTION2_Y, CONSTRUCTION2_THETA, 100.0, 500.0, BACK))
 
-# Open the grippers, leave the stack
-basic1(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 50), 
-        Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 50)])
+# # Open the grippers, leave the stack
+# basic1(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 50), 
+#         Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 50)])
 
-# Slowly rikverc a bit
-basic1(m=Move.Distance(70.0, 100.0, 500.0))
+# # Slowly rikverc a bit
+# basic1(m=Move.Distance(70.0, 100.0, 500.0))
 
-# Move to the construction 3 position
-basic1(m=Move.To(CONSTRUCTION3_X, CONSTRUCTION3_Y, CONSTRUCTION3_THETA, 100.0, 500.0, FRONT))
+# # Move to the construction 3 position
+# basic1(m=Move.To(CONSTRUCTION3_X, CONSTRUCTION3_Y, CONSTRUCTION3_THETA, 100.0, 500.0, FRONT))
 
-# basic1() SEQUENCE FOR CONSTRUCTING LEVEL 2 TRIBUNE
+# # basic1() SEQUENCE FOR CONSTRUCTING LEVEL 2 TRIBUNE
 
-# Return to position 2 (the sequence finished with front grippers open)
-basic1(m=Move.To(CONSTRUCTION2_X, CONSTRUCTION2_Y + 70.0, CONSTRUCTION2_THETA, 100.0, 500.0, FRONT))
+# # Return to position 2 (the sequence finished with front grippers open)
+# basic1(m=Move.To(CONSTRUCTION2_X, CONSTRUCTION2_Y + 70.0, CONSTRUCTION2_THETA, 100.0, 500.0, FRONT))
 
-# Go to the stack in position 2
-basic1(m=Move.Distance(70.0, 100.0, 500.0))
+# # Go to the stack in position 2
+# basic1(m=Move.Distance(70.0, 100.0, 500.0))
 
-# basic1() SEQUENCE FOR CONSTRUCTING LEVEL 2 TRIBUNE
+# # basic1() SEQUENCE FOR CONSTRUCTING LEVEL 2 TRIBUNE
 
-# Go to stack 1
-basic1(m=Move.To(STACK1_X, STACK1_Y - 70.0, STACK1_THETA, 800.0, 1000.0, FRONT),
-       s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
-          Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
+# # Go to stack 1
+# basic1(m=Move.To(STACK1_X, STACK1_Y - 70.0, STACK1_THETA, 800.0, 1000.0, FRONT),
+#        s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100),
+#           Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
 
-# Slowly move to pick up the stack
-basic1(m=Move.Distance(70.0, 100.0, 500.0))
+# # Slowly move to pick up the stack
+# basic1(m=Move.Distance(70.0, 100.0, 500.0))
 
-# Press the stack with vacuum grippers
-basic1(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 50),
-          Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 50),
-          Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 50),
-          Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD, 50)])
+# # Press the stack with vacuum grippers
+# basic1(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 50),
+#           Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 50),
+#           Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 50),
+#           Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD, 50)])
 
-# Go to stack 3
-basic1(m=Move.To(STACK3_X + 70.0, STACK3_Y, STACK3_THETA, 800, 1000, BACK),
-       s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
-          Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
+# # Go to stack 3
+# basic1(m=Move.To(STACK3_X + 70.0, STACK3_Y, STACK3_THETA, 800, 1000, BACK),
+#        s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
+#           Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
 
-# Slowly move to pick up the stack
-basic1(m=Move.Distance(-70.0, 100.0, 500.0))
+# # Slowly move to pick up the stack
+# basic1(m=Move.Distance(-70.0, 100.0, 500.0))
 
-basic1(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 50),
-          Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 50)])
+# basic1(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 50),
+#           Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 50)])
 
-# Slowly moving to construction 3 because the back grippers with planks aren't secured, 
-basic1(m=Move.To(CONSTRUCTION3_X, CONSTRUCTION3_Y, CONSTRUCTION3_THETA, 400.0, 200.0, FRONT))
+# # Slowly moving to construction 3 because the back grippers with planks aren't secured, 
+# basic1(m=Move.To(CONSTRUCTION3_X, CONSTRUCTION3_Y, CONSTRUCTION3_THETA, 400.0, 200.0, FRONT))
 
