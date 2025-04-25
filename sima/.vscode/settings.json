@@ -21,6 +21,7 @@
         "ostream": "c",
         "sstream": "c",
         "system_error": "c",
-        "i2c_master.h": "c"
+        "i2c_master.h": "c",
+        "esp_log.h": "c"
     }
 }

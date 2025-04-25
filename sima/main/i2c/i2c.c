@@ -1,78 +1,248 @@
 #include "i2c.h"
 
-#include "esp_log.h"
+static int32_t status = 0;
 
-uint8_t buffer[40000];
+void init_i2c0(gpio_num_t SCL_PIN, gpio_num_t SDA_PIN){
+    i2c_config_t conf = {
+        .mode = I2C_MODE_MASTER,
+        
+        .sda_io_num = SDA_PIN,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
 
-void init_i2c_bus(I2C_Bus* bus, uint8_t SDA_PIN, uint8_t SCL_PIN, uint8_t glitch_ignore_cnt){
-    if(glitch_ignore_cnt != 7 && glitch_ignore_cnt != 10) return;
-    
-    bus->bus_config.i2c_port = 0;
-    bus->bus_config.sda_io_num = SDA_PIN;
-    bus->bus_config.scl_io_num = SCL_PIN;
-    bus->bus_config.clk_source = I2C_CLK_SRC_DEFAULT;
-    bus->bus_config.glitch_ignore_cnt = glitch_ignore_cnt;
-    bus->bus_config.flags.enable_internal_pullup = true;
+        .scl_io_num = SCL_PIN,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
 
-    ESP_ERROR_CHECK(i2c_new_master_bus(&bus->bus_config, &bus->bus_handle));
-}
+        .master.clk_speed = 400000
+    };
 
-void init_i2c_device(I2C_Bus* bus, I2C_Device* dev, uint8_t dev_address, uint32_t speed){
-    dev->dev_config.dev_addr_length = I2C_ADDR_BIT_LEN_7;
-    dev->dev_config.device_address = dev_address;
-    dev->dev_config.scl_speed_hz = speed;
+    status = i2c_param_config(I2C_NUM_0, &conf);
 
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus->bus_handle, &dev->dev_config, &dev->dev_handle));
-}
-
-esp_err_t i2c_device_alive(I2C_Bus* bus, uint16_t address){
-    return i2c_master_probe(bus->bus_handle, address, 1000);
-}
-
-void i2c_send(I2C_Device* dev, uint16_t address, uint8_t* data, uint16_t len){
-    i2c_master_transmit(dev->dev_handle, data, len, 100);
-}
-
-void i2c_sendByte(I2C_Device* dev, uint8_t* data){
-    i2c_master_transmit(dev->dev_handle, data, 1, 100);
-}
-
-void i2c_sendWord(I2C_Device* dev, uint8_t* data){
-    i2c_master_transmit(dev->dev_handle, data, 2, 100);
-}
-
-void i2c_receive(I2C_Device* dev, uint16_t address, uint8_t* data, uint16_t len){
-
-}
-
-void i2c_receiveByte(I2C_Device* dev, uint8_t* buff){
-    i2c_master_receive(dev->dev_handle, buff, 1, 100);
-}
-
-void i2c_receiveWord(I2C_Device* dev, uint8_t* buff){
-    i2c_master_receive(dev->dev_handle, buff, 2, 100);
-}
-
-int32_t i2c_send_RS16(I2C_Device* dev, uint16_t reg, uint8_t* data, uint32_t len){   
-    buffer[1] = reg;
-    buffer[0] = reg >> 8;
-    memcpy(&(buffer[2]), data, len);
-
-    #ifdef DEBUG_I2C
-        ESP_LOGI("I2C", "Sending to device %x, register %x, data len %lu", dev->dev_config.device_address, reg, len);
+    #if defined(DEBUG_I2C)
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "Param config ok");
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR PARAM CONFIGURATION");
+        }
     #endif
 
-    i2c_master_transmit(dev->dev_handle, buffer, 2, 100);
-    i2c_master_transmit(dev->dev_handle, &buffer[2], len, 100);
-
-    return 0;
+    status = i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
+    
+    #if defined(DEBUG_I2C)
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "Install ok");
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR INSTALLING DRIVER");
+        }
+    #endif
 }
 
+uint32_t i2c0_send(uint16_t dev_addr, uint16_t reg_addr, uint8_t* data, uint32_t data_len){
 
-int32_t i2c_receive_RS16(I2C_Device* dev, uint16_t reg, uint8_t* buff, uint16_t len){
-    uint8_t new_buff[2];
-    new_buff[0] = reg >> 8;
-    new_buff[1] = reg;
-    i2c_master_transmit_receive(dev->dev_handle, new_buff, 2, buff, len, 100);
-    return 0;
+    uint8_t reg_addr_buff[2] = {0};
+
+    reg_addr_buff[1] = reg_addr & 0xFF;
+    reg_addr_buff[0] = (reg_addr >> 8) & 0xFF;
+
+    #if defined(DEBUG_I2C)
+        ESP_LOGI(I2C_TAG, "Starting I2C send...");
+    #endif
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    
+    status = i2c_master_start(cmd);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", START_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_write_byte(cmd, dev_addr | I2C_MASTER_WRITE, ACK_EN);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", WRITE_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_write(cmd, reg_addr_buff, sizeof(reg_addr_buff), ACK_EN);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", WRITE_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_write(cmd, data, data_len, ACK_EN);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", WRITE_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_stop(cmd);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", STOP_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+     status = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100);
+    #if defined(DEBUG_I2C)
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", COMMAND_BEGIN_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else if(status == ESP_FAIL){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_FAIL_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    i2c_cmd_link_delete(cmd);
+
+    return data_len;
+}
+
+uint32_t i2c0_receive(uint16_t dev_addr, uint16_t reg_addr, uint8_t* buff, uint32_t buff_len){
+
+    uint8_t reg_addr_buff[2] = {0};
+
+    reg_addr_buff[1] = reg_addr & 0xFF;
+    reg_addr_buff[0] = (reg_addr >> 8) & 0xFF;
+
+    ESP_LOGW("Raw", "0x%x", reg_addr);
+    ESP_LOGW("Test", "0x%x 0x%x", reg_addr_buff[0], reg_addr_buff[1]);
+
+    #if defined(DEBUG_I2C)
+        ESP_LOGI(I2C_TAG, "Starting I2C read...");
+    #endif
+
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    
+    status = i2c_master_start(cmd);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", START_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_write_byte(cmd, dev_addr | I2C_MASTER_WRITE, ACK_EN);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", WRITE_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_write(cmd, reg_addr_buff, sizeof(reg_addr_buff), ACK_EN);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", WRITE_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_stop(cmd);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", STOP_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    i2c_cmd_link_delete(cmd);
+    cmd = i2c_cmd_link_create();
+
+    status = i2c_master_start(cmd);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", STOP_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_write_byte(cmd, dev_addr | I2C_MASTER_READ, ACK_EN);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", WRITE_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_read_byte(cmd, buff, ACK_EN);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", READ_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    status = i2c_master_stop(cmd);
+    #if defined(DEBUG_I2C) && DEBUG_I2C_LEVEL == 0
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", STOP_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+    
+    status = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100);
+    #if defined(DEBUG_I2C)
+        if(status == ESP_OK){
+            ESP_LOGI(I2C_TAG, "%s", COMMAND_BEGIN_OK_STRING);
+        }else if(status == ESP_ERR_INVALID_ARG){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_INVALID_ARG_STRING);
+        }else if(status == ESP_FAIL){
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_FAIL_STRING);
+        }else{
+            ESP_LOGE(I2C_TAG, "ERROR %s", ESP_ERR_STRING);
+        }
+    #endif
+
+    i2c_cmd_link_delete(cmd);
+
+    return 1;
 }

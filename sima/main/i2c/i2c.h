@@ -4,35 +4,43 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "esp_log.h"
-#include "driver/i2c_master.h"
-//#define DEBUG_I2C
+#include "driver/i2c.h"
 
-typedef struct {
-    i2c_master_bus_config_t bus_config;
-    i2c_master_bus_handle_t bus_handle;
-} I2C_Bus;
+#define DEBUG_I2C
+#define DEBUG_I2C_LEVEL 1
 
-typedef struct {
-    i2c_device_config_t     dev_config;
-    i2c_master_dev_handle_t dev_handle;
-} I2C_Device;
+#if defined(DEBUG_I2C)
+    #define I2C_TAG "I2C"
+    
+    #include "esp_log.h"
+#endif
 
-void init_i2c_bus(I2C_Bus* bus, uint8_t SDA_PIN, uint8_t SCL_PIN, uint8_t glitch_ignore_cnt);
+#if !defined(DEBUG_I2C_LEVEL)
+    #define DEBUG_I2C_LEVEL 1
+#endif
 
-void init_i2c_device(I2C_Bus* bus, I2C_Device* dev, uint8_t dev_address, uint32_t speed);
+#define ACK_EN 1
+#define ACK_DIS 0
 
-esp_err_t i2c_device_alive(I2C_Bus* bus, uint16_t address);
+#define START_BIT_EN 0b01
+#define START_BIT_DIS 0b00
 
-void i2c_send(I2C_Device* dev, uint16_t address, uint8_t* data, uint16_t len);
-void i2c_sendByte(I2C_Device* dev, uint8_t* data);
-void i2c_sendWord(I2C_Device* dev, uint8_t* data);
+#define STOP_BIT_EN 0b10
+#define STOP_BIT_DIS 0b00
 
-void i2c_receive(I2C_Device* dev, uint16_t address, uint8_t* buff, uint16_t len);
-void i2c_receiveByte(I2C_Device* dev, uint8_t* buff);
-void i2c_receiveWord(I2C_Device* dev, uint8_t* buff);
+#define START_OK_STRING "Command start ok"
+#define WRITE_OK_STRING "Command write ok"
+#define READ_OK_STRING "Command read ok"
+#define STOP_OK_STRING "Command stop ok"
+#define COMMAND_BEGIN_OK_STRING "Command begin ok"
 
-int32_t i2c_send_RS16(I2C_Device* dev, uint16_t reg, uint8_t* data, uint32_t len);
-int32_t i2c_receive_RS16(I2C_Device* dev, uint16_t reg, uint8_t* buff, uint16_t len);
+#define ESP_ERR_STRING "ESP_ERR"
+#define ESP_FAIL_STRING "ESP_FAIL | ACK NOT RECEIVED"
+#define ESP_ERR_INVALID_ARG_STRING "ESP_ERR_INVALID_ARG"
+
+void init_i2c0(gpio_num_t SCL_PIN, gpio_num_t SDA_PIN);
+
+uint32_t i2c0_send(uint16_t dev_addr, uint16_t reg_addr, uint8_t* data, uint32_t data_len);
+uint32_t i2c0_receive(uint16_t dev_addr, uint16_t reg_addr, uint8_t* buff, uint32_t buff_len);
 
 #endif //I2C_H
