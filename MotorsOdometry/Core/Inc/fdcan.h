@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "utils.h"
 #include "synthesis.h"
+#include "spline.h"
 
 
 uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan);

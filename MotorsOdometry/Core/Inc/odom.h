@@ -13,9 +13,11 @@
 #include "interrupts.h"
 #include "struct_types.h"
 
-#define PPR         8192      // 4*2048 inc
+#define PPR         8015.655//8192      // 4*2048 inc
 #define FILTER      0.1       // determines how much of the new value will affect the new state
 #define WHEEL_HALF_DISTANCE	101.08
+#define FRONT_HALF_DISTANCE 146
+#define BACK_HALF_DISTANCE 125
 //#define WHEEL_DIAMETER 70
 //#define WHEEL_DISTANCE 166.42
 //#define INC_MM         0.10069207 // (WHEEL_DIAMETER*PI)/PPR
@@ -43,6 +45,7 @@ typedef struct {
 	float diameter;
 	float track;
 	float inc_mm;
+	int32_t inc;
 
 	uint16_t curr_inc;
 	uint16_t last_inc;

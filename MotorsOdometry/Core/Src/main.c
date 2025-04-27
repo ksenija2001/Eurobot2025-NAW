@@ -53,6 +53,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 
 /* USER CODE BEGIN PV */
 
@@ -70,6 +71,7 @@ static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -117,19 +119,27 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM6_Init();
   MX_I2C1_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
+//  HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 1, 0); //odom
+//  HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0); //fdcan
+//  HAL_NVIC_SetPriority(TIM7_IRQn, 2, 0); //movement
+
   FDCAN_Init(&hfdcan1);
 
   Init_Encoder(&left, &htim1);
   Init_Encoder(&right, &htim3);
-  Config_Encoder_Wheel(&left, 73.0, 347.0);
-  Config_Encoder_Wheel(&right, 73.0, 347.0);
+  Config_Encoder_Wheel(&left,  73.01562845, 347.0);//73
+  Config_Encoder_Wheel(&right, 72.98437197, 347.0);//73
 
   Init_Motor(&left_motor, &htim2, &hadc1);
   Init_Motor(&right_motor, &htim2, &hadc2);
 
   spline_init();
-  HAL_TIM_Base_Start_IT(&htim6);
+  synthesis_init();
+
+  HAL_TIM_Base_Start_IT(&htim6); //odom
+  HAL_TIM_Base_Start_IT(&htim7); //motor control
 
 //  Enable_Motor(&left_motor, 0);
 //  Enable_Motor(&right_motor, 0);
@@ -145,30 +155,64 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   uint8_t some_status = 0;
   HAL_Delay(2000);
-  synthesis_init();
 
-//  synthesis_start_distance(500, 1000, 2000);
-//  while(synthesis_phase != -1);
-//  synthesis_start_distance(50, 100, 100);
-//  while(synthesis_phase != -1);
-//  synthesis_start_distance(-500, 1000, 2000);
-//  while(synthesis_phase != -1);
-//  synthesis_start_distance(-50, 100, 100);
-//  while(synthesis_phase != -1);
+//synthesis_start_rotateTo(0, 5, 30);
+//  synthesis_start_XY(1, 500, 'f', 500, 2000, 1, 1);
+//  while(synthesis_state() != -1);
+//  synthesis_start_XY(0, 0, 'r', 500, 2000, 1, 1);
+//   while(synthesis_state() != -1);
 
-//  synthesis_start_XY(0, 500, 'f', 1000, 2000, 50, 15);
-//  while(synthesis_phase != -1);
-//  HAL_Delay(200);
-//  synthesis_start_XY(500, 500, 'f',1000, 2000, 50, 15);
-//  while(synthesis_phase != -1);
-//  HAL_Delay(200);
-//  synthesis_start_XY(500, 250, 'f',1000, 2000, 50, 15);
-//  while(synthesis_phase != -1);
-//  HAL_Delay(200);
-//  synthesis_start_XY(0, 0, 'f',1000, 2000, 50, 15);
-//  while(synthesis_phase != -1);
-//  HAL_Delay(200);
-//  synthesis_start_rotateTo(1.57, 50, 10);
+//  synthesis_start_distance(500, 500, 500);
+//  while(odom.y < 250);
+//  synthesis_activate_detection(100);
+//  synthesis_start_distance(200, 100, 300);
+//    while(synthesis_state() != -1);
+//  synthesis_start_distance(-200, 100, 300);
+//  while(synthesis_state() != -1);
+
+//HOMING
+//  odom.x = 500;
+//  odom.y = 0;
+//  odom.theta = M_PI_2;
+//
+//  synthesis_start_distance(-200, 200, 200);
+//  while(synthesis_state() != -1);
+//  synthesis_start_distance(150, 200, 200);
+//  while(synthesis_state() != -1);
+//  odom.x = 0;
+//  synthesis_start_rotateTo(0, 2, 2);
+//  while(synthesis_state() != -1);
+//  synthesis_start_distance(-200, 200, 200);
+//  while(synthesis_state() != -1);
+//  synthesis_start_distance(100, 200, 200);
+//  while(synthesis_state() != -1);
+//  synthesis_start_XY(300, 300, 'f', 100, 100, 2, 2);
+//  while(synthesis_state() != -1);
+//  synthesis_start_XY(200, 200, 'r', 100, 100, 2, 2);
+//  while(synthesis_state() != -1);
+//HOMING
+
+//KOCKA
+//  synthesis_start_XY(0, 700, 'r', 1000, 2000, 10, 15);
+//  while(synthesis_state() != -1);
+//
+//  synthesis_start_XY(700, 700, 'f', 1000, 2000, 10, 15);
+//  while(synthesis_state() != -1);
+//
+//  synthesis_start_XY(700, 0, 'r', 1000, 2000, 10, 15);
+//  while(synthesis_state() != -1);
+//
+//  synthesis_start_XY(0, 0, 'f', 1000, 2000, 10, 15);
+//  while(synthesis_state() != -1);
+//
+//  synthesis_start_XY(700, 700, 'r', 1000, 2000, 10, 15);
+//  while(synthesis_state() != -1);
+//
+//  synthesis_start_XY(0, 0, 'f', 1000, 2000, 10, 15);
+//   while(synthesis_state() != -1);
+//
+//  synthesis_start_rotateTo(1.57, 10, 15);
+//KOCKA
 
 //  synthesis_start_distance(500, 500, 1000);
 //  while(synthesis_phase != -1);
@@ -177,18 +221,34 @@ int main(void)
 //  synthesis_start_distance(-100, 100, 100);
 //  while(synthesis_phase != -1);
 //  synthesis_start_XY(500, 500, 'f', 100, 500, 5, 5);
-//  while(synthesis_phase != -1);
+//  while(synthesis_phase != -1);5
 //
-//  //uint32_t start = HAL_GetTick();
-//  float x[1] = {500};
-//  float y[1] = {500};
-//  float t[1] = {1.57};
-//  spline_move(x, y, t, 1, 100, 'f');
+  //uint32_t start = HAL_GetTick();
+//  	odom.x = 1782;
+//  	odom.y = 125;
+//  float x[1] = {1095};
+//  float y[1] = {850};
+//  float t[1] = {M_PI_2};
+//  spline_move(x, y, t, 1, 300, 'f');
 //  while(spline_state() != -1);
+//  synthesis_start_XY(1905, 1000, 'f', 300, 300, 1, 1);
+//  while(synthesis_state() != -1);
+
+//  synthesis_start_XY(1782, 600, 'f', 1000, 2000, 20, 15);
+//  while(synthesis_state() != -1);
+//  synthesis_start_XY(3000-775, 600, 'f', 1000, 2000, 20, 15);
+//  while(synthesis_state() != -1);
+//  synthesis_start_XY(3000-775, 400, 'f', 1000, 2000, 20, 15);
+//  while(synthesis_state() != -1);
+//  synthesis_start_XY(3000-775, 300, 'f', 300, 300, 20, 15);
+//  while(synthesis_state() != -1);
+
+//  synthesis_start_XY(0, 0, 'r', 500, 500, 5, 5);
+
 //  x[0] = 0;
 //  y[0] = 0;
 //  t[0] = 1.57;
-//  spline_move(x, y, t, 1, 100, 'r');
+//  spline_move(x, y, t, 1, 500, 'r');
 //  while(spline_state() != -1);
 //  synthesis_start_XY(50, 50, 'r', 5, 5, 1, 1);
 //  HAL_Delay(5000);
@@ -208,7 +268,7 @@ int main(void)
 //  HAL_Delay(10000);
 //  //Set_Speed(&left_motor, 20);
 //  //Set_Speed(&right_motor, 20);
-  HAL_Delay(1000);
+//  HAL_Delay(1000);
 //  Enable_Motor(&left_motor, 0);
 //  Enable_Motor(&right_motor, 0);
 //  synthesis_start_rotateFor(4*M_PI, M_PI, M_PI);
@@ -239,12 +299,12 @@ int main(void)
     if (receive_status == HAL_OK)
     {
       receive_status = HAL_ERROR;
-      HAL_GPIO_TogglePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin);
+//      HAL_GPIO_TogglePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin);
       some_status = 1;
     }
     else
     {
-      HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_RESET);
+//      HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_RESET);
     }
 
     if (some_status)
@@ -495,7 +555,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x20B0D9FF;
+  hi2c1.Init.Timing = 0x60715075;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -719,6 +779,44 @@ static void MX_TIM6_Init(void)
 }
 
 /**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 11;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 59999;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -756,7 +854,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, Motor1_EN_Pin|Motor1_Dir_Pin|ERROR_Out_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, Motor1_EN_Pin|Motor1_Dir_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, Motor2_EN_Pin|Motor2_Dir_Pin|LED_CAN_RX_Pin|LED_CAN_TX_Pin, GPIO_PIN_RESET);
@@ -764,8 +862,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED_R_Pin|LED_G_Pin|LED_B_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Motor1_EN_Pin Motor1_Dir_Pin ERROR_Out_Pin */
-  GPIO_InitStruct.Pin = Motor1_EN_Pin|Motor1_Dir_Pin|ERROR_Out_Pin;
+  /*Configure GPIO pins : Motor1_EN_Pin Motor1_Dir_Pin */
+  GPIO_InitStruct.Pin = Motor1_EN_Pin|Motor1_Dir_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -790,12 +888,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ERROR_In_Pin */
-  GPIO_InitStruct.Pin = ERROR_In_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(ERROR_In_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

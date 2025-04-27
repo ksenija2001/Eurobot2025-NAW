@@ -83,3 +83,15 @@ float distance(float x0, float y0, float x1, float y1){
 float magnitude(float x, float y){
 	return sqrtf(x*x + y*y);
 }
+
+float normalize(float theta){
+	if(theta > M_PI){
+		theta -= 2*M_PI;
+	}
+	if(theta < -M_PI){
+		theta += 2*M_PI;
+	}
+	return theta;
+ }
+
+

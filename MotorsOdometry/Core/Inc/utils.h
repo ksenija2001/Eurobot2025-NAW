@@ -19,5 +19,6 @@ uint16_t factorial(uint8_t num);
 float poow(float a, int exp);
 float distance(float x0, float y0, float x1, float y1);
 float magnitude(float x, float y);
+float normalize(float theta);
 
 #endif /* INC_UTILS_H_ */

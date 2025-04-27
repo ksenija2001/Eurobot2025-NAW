@@ -63,6 +63,8 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				};
 
 				Reset_Odometry(&new_odom);
+				uint8_t data[1] = {0x01};
+				FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
 
 				break;
 			case 0x4F1: // Wheel parameters configuration
@@ -86,6 +88,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 				break;
 			case 0x4D2:
+				HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_SET);
 				synthesis_start_distance(
 						Bytes2Float(RxData, 0), //p
 						Bytes2Float(RxData, 4), //v
@@ -109,10 +112,35 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 						Bytes2Float(RxData, 4), //y
 						RxData[8],				//direction
 						Bytes2Float(RxData, 9), //v
-						Bytes2Float(RxData, 9), //a
-						Bytes2Float(RxData, 9), //w
-						Bytes2Float(RxData, 9));//alpha
+						Bytes2Float(RxData, 13), //a
+						Bytes2Float(RxData, 17), //w
+						Bytes2Float(RxData, 21));//alpha
 				break;
+			case 0x4D6:
+				uint8_t len = RxData[0];
+				char direction = RxData[1];
+				float speed = Bytes2Float(RxData, 2);
+				float x[MAX_BEZIERS_IN_SPLINE];
+				float y[MAX_BEZIERS_IN_SPLINE];
+				float theta[MAX_BEZIERS_IN_SPLINE];
+
+				for(uint8_t i = 0;i<len;i++){
+					x[i] = Bytes2Float(RxData, 6 +i*12);
+					y[i] = Bytes2Float(RxData, 10 +i*12);
+					theta[i] = Bytes2Float(RxData, 14+i*12);
+				}
+				spline_move(x, y, theta, len, speed, direction);
+				break;
+			case 0x4D8:
+				//Detection activated
+				HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_RESET);
+				synthesis_activate_detection(Bytes2Float(RxData, 0));
+				break;
+			case 0x4D7:
+				spline_stop();
+				synthesis_stop();
+				FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
+
 			default:
 				receive_status = HAL_ERROR;
 			}

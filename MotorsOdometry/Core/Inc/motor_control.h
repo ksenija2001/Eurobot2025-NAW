@@ -15,11 +15,11 @@
 
 /* PWM timer settings */
 #define ARR 28799
-#define ARR_MAX ( (int32_t)(ARR * 0.90) )
+#define ARR_MAX ( (int32_t)(ARR * 0.85) )
 #define ARR_MIN ( (int32_t)(ARR * 0.092) )
 
 /* Motor characteristics */
-#define RPM_MAX 9380
+#define RPM_MAX 9300//9380
 #define REDUCTION 26
 #define WHEEL_DIAMETER 25.4*2.5 // mm
 

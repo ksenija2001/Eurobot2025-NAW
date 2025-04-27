@@ -66,7 +66,9 @@ void Set_Duty_Cycle(sMotorConfig_t* motor, uint16_t duty_cycle){
 }
 
 void Set_RPM(sMotorConfig_t* motor, float rpm){
-	if (abs(rpm) > RPM_MAX) rpm = rpm/(abs(rpm+1e-6)) * RPM_MAX;
+	//if (abs(rpm) > RPM_MAX) rpm = rpm/(abs(rpm+1e-6)) * RPM_MAX;
+	if(rpm > RPM_MAX) rpm = RPM_MAX;
+	else if(rpm < -RPM_MAX) rpm = -RPM_MAX;
 
 	float duty_rpm = (float)abs(rpm)/RPM_MAX;
 	duty_cycle = (uint16_t)(ARR_MIN + duty_rpm * (ARR_MAX - ARR_MIN));

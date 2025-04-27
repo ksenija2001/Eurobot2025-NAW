@@ -85,12 +85,12 @@ def calc(coefs, t):
 
 # coefs = calc_coefs(1, 0, 0, 0, 1000, 0, 0)
 # 0.5 => 500, 1875, 0
-V0 = 0
+V0 = 1000
 A0 = 0
-P0 = 0
-V_max = 3.14*1
-A_max = 3.14*8
-P_max = 3.14
+P0 = 500
+V_max = 1200
+A_max = 2000
+P_max = 1000
 T1 = 3/2 * V_max/A_max
 
 P1 = T1**2 * 8 * A_max/45 * 2

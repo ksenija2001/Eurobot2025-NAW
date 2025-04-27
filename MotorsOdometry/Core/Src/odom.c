@@ -68,6 +68,8 @@ sOdom_t* Odometry(void){
 	left.curr_inc  = left.TIM.tim->Instance->CNT;
 	right.curr_inc = right.TIM.tim->Instance->CNT;
 
+	left.inc += (int16_t)(left.curr_inc  - left.last_inc);
+	right.inc += (int16_t)(right.curr_inc - right.last_inc);
 	// The delta is calulated from increments from current and last encoder readings and converted to mm
 	// The cast to int16_t ensures that a jump from 0 to 65535 and vice versa won't happen - given that
 	// the rate of reading the encoders is fast enough
@@ -75,7 +77,7 @@ sOdom_t* Odometry(void){
 	delta_right = (int16_t)(right.curr_inc - right.last_inc) * right.inc_mm;
 
 	// Distance traveled from last encoder reading
-	delta_distance = (delta_left + delta_right) / 2;
+	delta_distance = (delta_left + delta_right) * 0.5;
 	// Change in orientation from last encoder reading
 	delta_theta    = (delta_left - delta_right) / (left.track/2 + right.track/2);
 
@@ -128,6 +130,7 @@ void Reset_Odometry(sOdom_t* new_odom){
 	left.curr_acc = 0.0;
 	left.last_vel = 0.0;
 	left.last_acc = 0.0;
+	left.inc = 0;
 
 	right.curr_inc = 0;
 	right.last_inc = 0;
@@ -135,6 +138,7 @@ void Reset_Odometry(sOdom_t* new_odom){
 	right.curr_acc = 0.0;
 	right.last_vel = 0.0;
 	right.last_acc = 0.0;
+	right.inc = 0;
 
 	left.TIM.tim->Instance->CNT = 0;
 	right.TIM.tim->Instance->CNT = 0;
