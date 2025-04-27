@@ -11,9 +11,11 @@
 #include "i2c/i2c.h"
 
 #include "tof/tof.h"
-#include "tof/tof_i2c.h"
-#include "tof/tof_api.h"
 #include "tof/point_cloud.h"
+
+#include "utils/utils.h"
+
+#define SIMA_ID "1"
 
 #define I2C_TOF_ADDRESS 0x52
 
