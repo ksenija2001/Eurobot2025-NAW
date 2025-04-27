@@ -33,7 +33,22 @@ void Error_Handler(){
 
 void app_main(void)
 {
+    init_wifi(WIFI_SSID, WIFI_PASS);
+    init_socket(&rpi_socket);
+
     init_i2c0(GPIO_NUM_4, GPIO_NUM_5);
+
+    // init_motor();
+
+    /***
+     * @todo Test connection again
+     * socket_connect(&rpi_socket, SERVER_IP, SERVER_PORT);
+     * send sima ID
+     * receive data for sima (max 128 bytes)
+     * convert received data to float
+     */
+
+    
 
     VL53LMZ_Reset(&tof.io);
     status = VL53LMZ_Init(&tof, tof.conf.platform.address);
@@ -50,23 +65,8 @@ void app_main(void)
     if ( status != VL53LMZ_STATUS_OK ){
   	    Error_Handler();
     }
-
-    // init_wifi(WIFI_SSID, WIFI_PASS);
-    // init_socket(&rpi_socket);
-
-    // socket_connect(&rpi_socket, SERVER_IP, SERVER_PORT);
-
-    // socket_recv(&rpi_socket);
-    // socket_close(&rpi_socket);
-
-    // if(!strcmp("Sima 1", rpi_socket.rx_buff)){
-    //     ESP_LOGE(rpi_socket.tag, "Running aplication 1: %s", rpi_socket.rx_buff);
-    // }else{
-    //     ESP_LOGE(rpi_socket.tag, "Error receiving sima code: %s", rpi_socket.rx_buff);
-    // }
     
     while(1){  
-        ESP_LOGI("App", "Running...");
         status = VL53LMZ_STATUS_OK;
 
         status |= VL53LMZ_Get_Distance(&tof.conf, &data);
