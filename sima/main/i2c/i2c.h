@@ -7,6 +7,8 @@
 #include "driver/i2c.h"
 
 //#define DEBUG_I2C
+#define LOW_DEBUG_I2C_LEVEL 0
+#define HIGH_DEBUG_I2C_LEVEL 2
 
 #if defined(DEBUG_I2C)
     #define I2C_TAG "I2C"
@@ -15,8 +17,6 @@
 #endif
 
 #if !defined(DEBUG_I2C_LEVEL)
-    #define LOW_DEBUG_I2C_LEVEL 0
-    #define HIGH_DEBUG_I2C_LEVEL 2
     #define DEBUG_I2C_LEVEL HIGH_DEBUG_I2C_LEVEL
 #endif
 

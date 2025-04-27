@@ -3,7 +3,9 @@
 
 #include "driver/gpio.h"
 
-#define DEBUG_GPIO
+//#define DEBUG_GPIO
+#define HIGH_DEBUG_GPIO_LEVEL 1
+#define LOW_DEBUG_GPIO_LEVEL 0
 
 #if defined(DEBUG_GPIO)
     #include "esp_log.h"
@@ -12,9 +14,6 @@
 #endif
 
 #if !defined(DEBUG_GPIO_LEVEL)
-    #define HIGH_DEBUG_GPIO_LEVEL 1
-    #define LOW_DEBUG_GPIO_LEVEL 0
-
     #define DEBUG_GPIO_LEVEL HIGH_DEBUG_GPIO_LEVEL
 #endif
 
