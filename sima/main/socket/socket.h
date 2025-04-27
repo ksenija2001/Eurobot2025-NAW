@@ -76,7 +76,7 @@ void socket_connect(Socket* sock, const char* host_ip, const int port);
  * 
  * @retval Number of bytes received from host
  */
-uint32_t socket_recv(Socket* sock);
+int32_t socket_recv(Socket* sock);
 
 /***
  * @brief Function used to send max 128 bytes from `Socket` buffer (`tx_buff`)
@@ -85,6 +85,6 @@ uint32_t socket_recv(Socket* sock);
  * 
  * @retval None
  */
-uint32_t socket_send(Socket* sock);
+int32_t socket_send(Socket* sock);
 
 #endif //SOCKET_H

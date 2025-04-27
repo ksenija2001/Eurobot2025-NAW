@@ -25,8 +25,8 @@
 #define DEBUG_TOF_I2C
 
 typedef int64_t (*VL53LMZ_get_tick_Func)(void);
-typedef uint8_t (*VL53LMZ_write_Func)(uint16_t, uint16_t, uint8_t *, uint32_t);
-typedef uint8_t (*VL53LMZ_read_Func)(uint16_t, uint16_t, uint8_t *, uint32_t);
+typedef esp_err_t (*VL53LMZ_write_Func)(uint16_t, uint16_t, uint8_t *, uint32_t);
+typedef esp_err_t (*VL53LMZ_read_Func)(uint16_t, uint16_t, uint8_t *, uint32_t);
 
 /**
  * @brief Structure VL53LMZ_Platform needs to be filled by the customer,

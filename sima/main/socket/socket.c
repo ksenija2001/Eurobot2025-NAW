@@ -80,14 +80,14 @@ void socket_close(Socket* sock){
     sock->created = 0;
 }
 
-uint32_t socket_recv(Socket* sock){
+int32_t socket_recv(Socket* sock){
 
     #if defined(DEBUG_SOCKET) && DEBUG_SOCKET_LEVEL == LOW_DEBUG_SOCKET_LEVEL
         ESP_LOGE(SOCKET_TAG, "%s: Receiving data...", sock->tag);
     #endif
 
     if(!sock->created){
-        return;
+        return -1;
     }
 
     int err = recv(sock->desc, sock->rx_buff, SOCKET_BUFFER_MAX - 1, 0);
@@ -95,9 +95,6 @@ uint32_t socket_recv(Socket* sock){
         #if defined(DEBUG_SOCKET) && DEBUG_SOCKET_LEVEL == LOW_DEBUG_SOCKET_LEVEL
             ESP_LOGE(SOCKET_TAG, "%s: Error receiving data, errno %d", sock->tag, err);
         #endif
-    }else{
-        sock->rx_buff[err] = '\0';
-        ESP_LOGW(sock->tag, "%s", sock->rx_buff);
     }
 
     #if defined(DEBUG_SOCKET) && DEBUG_SOCKET_LEVEL == LOW_DEBUG_SOCKET_LEVEL
@@ -107,14 +104,14 @@ uint32_t socket_recv(Socket* sock){
     return err;
 }
 
-uint32_t socket_send(Socket* sock){
+int32_t socket_send(Socket* sock){
 
     #if defined(DEBUG_SOCKET) && DEBUG_SOCKET_LEVEL == LOW_DEBUG_SOCKET_LEVEL
         ESP_LOGE(SOCKET_TAG, "%s: Sending data...", sock->tag);
     #endif
 
     if(!sock->created){
-        return;
+        return -1;
     }
 
     int err = write(sock->desc, sock->tx_buff, strlen(sock->tx_buff));
