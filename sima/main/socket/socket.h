@@ -12,7 +12,7 @@
 
 #include "credentials.h"
 
-#define DEBUG_SOCKET
+//#define DEBUG_SOCKET
 #define HIGH_DEBUG_SOCKET_LEVEL 1
 #define LOW_DEBUG_SOCKET_LEVEL 0
 

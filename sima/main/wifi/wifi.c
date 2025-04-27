@@ -5,6 +5,10 @@ static wifi_config_t        wifi_conf;
 
 void init_wifi(char* ssid, char* pass){
 
+    #if defined(DEBUG_WIFI) && DEBUG_WIFI_LEVEL == HIGH_DEBUG_WIFI_LEVEL
+        ESP_LOGI(WIFI_TAG, "Initializing WiFi...");
+    #endif
+
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
       ESP_ERROR_CHECK(nvs_flash_erase());
@@ -40,14 +44,25 @@ void init_wifi(char* ssid, char* pass){
 }
 
 void wifi_set_ssid(char* ssid){
+    #if defined(DEBUG_WIFI) && DEBUG_WIFI_LEVEL == LOW_DEBUG_WIFI_LEVEL
+        ESP_LOGI(WIFI_TAG, "Setting WiFi SSID to %s", ssid);
+    #endif
     memcpy(&wifi_conf.sta.ssid, ssid, strlen(ssid));
 }
 
 void wifi_set_pass(char* pass){
+    #if defined(DEBUG_WIFI) && DEBUG_WIFI_LEVEL == LOW_DEBUG_WIFI_LEVEL
+        ESP_LOGI(WIFI_TAG, "Setting WiFi password to %s", pass);
+    #endif
     memcpy(&wifi_conf.sta.password, pass, strlen(pass));
 }
 
 void wifi_connect(){
+
+    #if defined(DEBUG_WIFI) && DEBUG_WIFI_LEVEL == HIGH_DEBUG_WIFI_LEVEL
+        ESP_LOGI(WIFI_TAG, "Connecting to WiFi...");
+    #endif
+
     esp_wifi_start();
 
     while(true){
@@ -55,12 +70,17 @@ void wifi_connect(){
 
         wifi_ap_record_t ap_info;
         if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
-            ESP_LOGI("WiFi", "Connected to WiFi, RSSI: %d", ap_info.rssi);
+            #if defined(DEBUG_WIFI) && DEBUG_WIFI_LEVEL == HIGH_DEBUG_WIFI_LEVEL
+                ESP_LOGI(WIFI_TAG, "Connected to WiFi, RSSI: %d", ap_info.rssi);
+            #endif
             break;
         }
-        ESP_LOGI("WiFi", "Waiting for WiFi connection...");
+        #if defined(DEBUG_WIFI) && DEBUG_WIFI_LEVEL == HIGH_DEBUG_WIFI_LEVEL
+            ESP_LOGI(WIFI_TAG, "Waiting for WiFi connection...");
+        #endif
         vTaskDelay(pdMS_TO_TICKS(2500));
     }
-
-    ESP_LOGI("WiFi", "WiFi Connected");
+    #if defined(DEBUG_WIFI) && DEBUG_WIFI_LEVEL == HIGH_DEBUG_WIFI_LEVEL
+        ESP_LOGI(WIFI_TAG, "WiFi Connected");
+    #endif
 }
