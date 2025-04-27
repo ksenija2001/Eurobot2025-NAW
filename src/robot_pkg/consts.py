@@ -25,11 +25,11 @@ class LIDAR_FOV:
     BACK_UNDEPLOY = 450
 
 class ODOM_DATA:
-    odom_left_diameter = 72
-    odom_right_diameter = 72
-    odom_track = 274.5
-    wheel_diameter = 74
-    wheel_track = 150
+    odom_left_diameter = 73
+    odom_right_diameter = 73
+    left_gain = 1
+    right_gain = 1
+    odom_track = 348
 
 class Points:
     LEVEL1 = 4
@@ -41,7 +41,6 @@ class Points:
 class IDs(Enum):
     SET_LIDAR = 0x4C0
     
-
     RESET_ODOM  = 0x4F0
     ODOM_CONFIG = 0x4F1
 
