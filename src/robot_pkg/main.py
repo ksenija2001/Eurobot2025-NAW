@@ -38,7 +38,7 @@ def main_func():
     sima = SIMA()
     sima.start_threads()
 
-    reset_odom = Move.ResetOdom(125, 1000, 0)#1500 , 125, 1.57)
+    reset_odom = Move.ResetOdom(1780, 230, 1.57)#1500 , 125, 1.57)
     reset_odom._execute()
 
     time.sleep(2)
@@ -74,6 +74,8 @@ def main_func():
     try:
         # pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
         while running.is_set():
+            time.sleep(0.01)
+
         #     # Listen for pause flag on can
         #     if len(pause_queue) > 0:
         #         data = pause_queue.pop()
@@ -82,7 +84,6 @@ def main_func():
         #         else:
         #             paused.clear()
 
-            time.sleep(0.01)
     except KeyboardInterrupt:
         print("Cancelling")
         print("\n")
@@ -104,4 +105,8 @@ def main_func():
 
 if __name__ == "__main__":
     main_func()
+
+    times = [9.92, 10.29, 9.25, 10.44, 9.7, 10.2, 10.1, 9.65, 10.07, 9.46, 9.49, 10.44]
+
+    print(f"Avg time: {sum(times)/len(times)}")
     

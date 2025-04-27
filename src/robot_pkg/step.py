@@ -51,15 +51,16 @@ class Step:
             Servo.send_positions()
 
 if __name__ == "__main__":
+    pass
 
-    can_handler.start_threads()
+    # can_handler.start_threads()
 
-    valve = I_O.Valve(0)
-    valve._execute()
+    # valve = I_O.Valve(0)
+    # valve._execute()
 
-    time.sleep(1)
+    # time.sleep(1)
 
-    can_handler.stop_threads()
+    # can_handler.stop_threads()
 
 
 

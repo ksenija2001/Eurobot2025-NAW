@@ -30,6 +30,7 @@ class Execute:
     def loop(self):
         next_step_id = None
 
+        match_start_time = time.time()
         while self.running:
            # next_step_id will be None while the strategy is executing linearly
            # when next_step_id is an integer, all steps with an ID not equal to next_step_ID will be skipped
@@ -69,6 +70,7 @@ class Execute:
             # Waiting for end of step and checking conditions
             while self.running:
                 time.sleep(0.01)
+
                 cinch = I_O.sensor_states[SensorType.CINCH.value]
                 move_done = Move.move_done.is_set()
                 curr_pose = Move.pose
@@ -108,7 +110,9 @@ class Execute:
                 checked = {cond._type : cond.check(args) for cond in step.conditions}
               
                 if len(step.conditions) == 0:
-                    pass
+                    # MOVEMENT ADDED BEFORE TASK
+                    #pass
+                    break
                 # Conditions that are continouosly checked during step execution
                 elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False: 
                     print(f"Condition met TYPE: {ConditionType.TIME}")
@@ -149,6 +153,7 @@ class Execute:
                 break
         
         self.main_running.clear()
+        print(f"TIME: {time.time() - match_start_time}")
             
     def stop(self):
         self.running = False
@@ -169,14 +174,14 @@ class Execute:
                     Servo.BackCenterGrip(Gripper.OPEN),
                     Servo.BackSideGrip(Gripper.OPEN)]
         
-        # for gripper in grippers:
-        #     if type(gripper) is tuple:
-        #         gripper[0]._execute()
-        #         time.sleep(0.01)
-        #         gripper[1]._execute()
-        #     else:
-        #         gripper._execute()
-        #     time.sleep(0.01)
+        for gripper in grippers:
+            if type(gripper) is tuple:
+                gripper[0]._execute()
+                time.sleep(0.01)
+                gripper[1]._execute()
+            else:
+                gripper._execute()
+            time.sleep(0.01)
 
 
 

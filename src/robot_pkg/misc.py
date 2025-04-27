@@ -12,16 +12,17 @@ STACK4_X, STACK4_Y, STACK4_THETA = 0.0, 0.0, -90.0
 STACK9_X, STACK9_Y, STACK9_THETA = 0.0, 0.0, 90.0
 
 class Gripper:
-    OPEN = 30
-    GRIP = 51
+    OPEN = 28
+    GRIP = 51  # NE POVECAVATI 
     NEUTRAL = 90
     CLOSED = 110
 
 class SideGripper(Gripper):
     OPEN = 35
+    GRIP = 53
 
 class VacuumLift:
-    UP = 270
+    UP = 290
     HOLD = 230  
     HOVER = 120 
     PICKUP2 = 95
@@ -32,7 +33,7 @@ class VacuumLift:
 class CenterLift:
     UP = 265
     LIFT2 = 200
-    POSITION2 = 150
+    POSITION2 = 140
     DROP2 = 140
     HOLD2 = 90
     HOVER = 15
@@ -50,14 +51,14 @@ class Vacuum:
     DOWN = 60
 
 class FrontGripLift:
-    UP = 290
+    UP = 300
     HOLD = 210
     HOVER = 20
     DOWN = 0
 
 class BackGripLift:
     UP = 300
-    HOVER = 40
+    HOVER = 20
     DOWN = 0
 
 BACK_LIFT_BANNER, BACK_LIFT_DOWN, BACK_LIFT_UP = 0, 0, 300

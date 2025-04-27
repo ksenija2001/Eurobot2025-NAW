@@ -68,7 +68,13 @@ class Strategy:
             # s.clear()
             # a.clear()
         else:
-            task_steps[0].ID = ID
+            if m is not None:
+                servos=[]
+                step = Step(ID, m, a, servos, c, p)
+                self.steps.append(step)
+            else:
+                task_steps[0].ID = ID
+                
             self.steps.extend(task_steps)
     
     def __repr__(self):

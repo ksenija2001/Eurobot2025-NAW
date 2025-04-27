@@ -9,10 +9,18 @@ from robot_pkg.strategies.tasks import *
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
 strategy1(task_steps=init_all_servos())
-strategy1(m=Move.Distance(-150, 1000, 1500))
 
-strategy1(m=Move.Distance(200, 500, 500))
-strategy1(m=Move.Distance(200, 500, 500))
+
+strategy1(task_steps=pickup_front_full_stack())
+strategy1(m=Move.Distance(1000, 600, 300), task_steps=two_level())
+strategy1(task_steps=drop_two_level())
+# strategy1(task_steps=pickup_front_full_stack())
+# strategy1(task_steps=two_level())
+# strategy1(task_steps=drop_two_level())
+# strategy1(m=Move.Distance(-150, 1000, 1500))
+
+# strategy1(m=Move.Distance(200, 500, 500))
+# strategy1(m=Move.Distance(200, 500, 500))
 
 # strategy1(m=Move.ResetOdom(1780, 230, 1.57))
 # strategy1(m=SetPosition(316, 305, 0), 

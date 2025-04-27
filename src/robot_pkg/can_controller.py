@@ -32,9 +32,10 @@ class CanNetwork:
     def init_queues(self, max_queue_size=0):
         for msg_type in IDs:
             self.msg_receive_queues[msg_type.value] = deque(maxlen=max_queue_size)
+            self.msg_receive_queues[msg_type.value].clear()
             self.msg_send_queues[msg_type.value] = deque(maxlen=max_queue_size)
+            self.msg_send_queues[msg_type.value].clear()
             
-
     def start_threads(self):
         # self.init_queues(self.max_queue_size)
 

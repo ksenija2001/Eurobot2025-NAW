@@ -96,5 +96,6 @@ class I_O:
     
     def _execute(self):
         self.sent = True
-        data = struct.pack('2B', self.pin, self.state)
+        packed = [self.pin, self.state]
+        data = struct.pack('2B', *packed)
         I_O.send_queue.append(data)
