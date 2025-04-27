@@ -82,6 +82,8 @@ sDetection_t detection = {
 
 uint8_t process_beacon = 0;
 uint8_t process_opponent = 0;
+uint8_t det = 0;
+uint8_t last_det = 0;
 
 sVector3_t new_robot = {0};
 
@@ -595,7 +597,6 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 	if (angle > 360) angle -= 360;
 
 
-//	if (last_angle > 357 && last_angle < 360) counter = 0;
 	if (last_angle > 357 && last_angle < 360 && pc_index > 3){
 		process_opponent = 1;
 	} else if ((last_angle > 357 && last_angle < 360) || process_opponent == 2){
@@ -622,18 +623,15 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 			(point.vector[1] <= 1900 && point.vector[1] >= 100)) {
 			// Point in bounds of table
 
-//			test_dist[(uint16_t)angle] = distance;
-//			if ((uint16_t)angle == 0){
-//				test_dist[(uint16_t)angle] = distance;
-//
-//			}
+			det = Process_Detection(distance, angle);
 
-			uint8_t det = Process_Detection(distance, angle);
-
-			if (det != 0){
+			// React only on new detections
+			if (det != 0 && last_det == 0){
 				uint8_t msg[1] = {det};
 				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
 			}
+
+			last_det = det;
 
 			// Opponent point cloud
 			point_cloud[pc_index++] = point;
