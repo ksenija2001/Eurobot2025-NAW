@@ -24,6 +24,8 @@ class Position:
         self.y = y
         self.theta = theta
         self.speed = speed
+        self.left_inc = 0
+        self.right_inc = 0
     
     def reset(self, x, y, theta):
         self.x = x
@@ -80,6 +82,8 @@ class Move:
                 Move.pose.y = y
                 Move.pose.theta = theta
                 Move.pose.speed = trans
+                Move.pose.left_inc = left
+                Move.pose.right_inc = right
 
                 Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}")
             
