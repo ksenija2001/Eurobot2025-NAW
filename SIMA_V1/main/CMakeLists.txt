@@ -1,0 +1,2 @@
+idf_component_register(SRCS "main.c" "gptimer/gptimer.c" "mcpwm/mcpwm.c" "motor_control/motor_control.c" "pcnt/pcnt.c" "microswitch/microswitch.c" "control/control.c" "wifi/wifi/wifi.c" "wifi/socket/socket.c" "wifi/credentials/credentials.c"
+                    INCLUDE_DIRS ".")
