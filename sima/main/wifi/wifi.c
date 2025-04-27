@@ -16,8 +16,6 @@ void init_wifi(char* ssid, char* pass){
     esp_event_loop_create_default();
     esp_netif_create_default_wifi_sta();
     
-    ESP_LOGW("TEST", "Ovde sam :)");
-
     wifi_init_config_t init = WIFI_INIT_CONFIG_DEFAULT();
     wifi_init = init;
     

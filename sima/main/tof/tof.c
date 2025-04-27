@@ -46,8 +46,8 @@ uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, uint16_t address){
 	#endif
 
 	//dev->conf.platform.address = VL53LMZ_DEFAULT_I2C_ADDRESS;
-	dev->conf.platform.Write = i2c0_send;
-	dev->conf.platform.Read = i2c0_receive;
+	dev->conf.platform.Write = i2c0_send_to_reg16;
+	dev->conf.platform.Read = i2c0_receive_from_reg16;
 	dev->conf.platform.GetTick = get_time;
 
 	/* I2C bus initialization */

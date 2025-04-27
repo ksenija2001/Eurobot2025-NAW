@@ -15,7 +15,9 @@
 #endif
 
 #if !defined(DEBUG_I2C_LEVEL)
-    #define DEBUG_I2C_LEVEL 1
+    #define LOW_DEBUG_I2C_LEVEL 0
+    #define HIGH_DEBUG_I2C_LEVEL 2
+    #define DEBUG_I2C_LEVEL HIGH_DEBUG_I2C_LEVEL
 #endif
 
 #define ACK_EN 1
@@ -37,9 +39,64 @@
 #define ESP_FAIL_STRING "ESP_FAIL | ACK NOT RECEIVED"
 #define ESP_ERR_INVALID_ARG_STRING "ESP_ERR_INVALID_ARG"
 
+/***
+ * @brief Functions used to initialize I2C driver on i2c_port 0
+ * 
+ * @param SCL_PIN GPIO pin used for I2C clock line
+ * @param SDA_PIN GPIO pin used for I2C data line 
+ * 
+ * @retval None
+ */
 void init_i2c0(gpio_num_t SCL_PIN, gpio_num_t SDA_PIN);
 
-uint8_t i2c0_send(uint16_t dev_addr, uint16_t reg_addr, uint8_t* data, uint32_t data_len);
-uint8_t i2c0_receive(uint16_t dev_addr, uint16_t reg_addr, uint8_t* buff, uint32_t buff_len);
+/***
+ * @brief FUNCTION NOT IN FUNCTION !!!
+ * 
+ * Function used to send data from I2C driver on i2c_port 0
+ * 
+ * @param data      Pointer to data to be sent
+ * @param data_len  Length of data
+ * @param ack_en    Set to 1 if ACK should be sent from slave, otherwise 0
+ * 
+ * @retval Return ESP_OK (0) if everything is ok
+ */
+esp_err_t i2c0_send(uint8_t* data, uint32_t data_len, uint8_t ack_en);
+
+/***
+ * @brief FUNCTION NOT IN FUNCTION !!!
+ * 
+ * Function used to receive data from I2C driver on i2c_port 0
+ * 
+ * @param data      Pointer to buffer to be read
+ * @param data_len  Length of buffer
+ * @param ack_en    Set to 1 if ACK should be sent from slave, otherwise 0
+ * 
+ * @retval Return ESP_OK (0) if everything is ok
+ */
+esp_err_t i2c0_receive(uint8_t* buff, uint32_t buff_len, uint8_t ack_en);
+
+/***
+ * @brief Function used to set register value on slave device where address of register is 16 bit
+ * 
+ * @param dev_addr  Slave device address
+ * @param reg_addr  16 bit register address
+ * @param data      Pointer to data to be sent
+ * @param data_len  Length of data
+ * 
+ * @retval Return ESP_OK (0) if everything is ok
+ */
+esp_err_t i2c0_send_to_reg16(uint16_t dev_addr, uint16_t reg_addr, uint8_t* data, uint32_t data_len);
+
+/***
+ * @brief Function used to get register value on slave device where address of register is 16 bit
+ * 
+ * @param dev_addr  Slave device address
+ * @param reg_addr  16 bit register address
+ * @param buff      Pointer to buffer where data will be stored
+ * @param buff_len  Length of buffer
+ * 
+ * @retval Return ESP_OK (0) if everything is ok
+ */
+esp_err_t i2c0_receive_from_reg16(uint16_t dev_addr, uint16_t reg_addr, uint8_t* buff, uint32_t buff_len);
 
 #endif //I2C_H

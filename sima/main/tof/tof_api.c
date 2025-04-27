@@ -43,8 +43,6 @@ static uint8_t _vl53lmz_poll_for_answer(
 	uint8_t status = VL53LMZ_STATUS_OK;
 	uint8_t timeout = 0;
 
-	ESP_LOGW("exp", "%x %x", expected_value, pos);
-
 	do {
 		status |= RdMulti(&(p_dev->platform), address,
 				p_dev->temp_buffer, size);
@@ -67,7 +65,6 @@ static uint8_t _vl53lmz_poll_for_answer(
 			timeout++;
 		}
 
-		ESP_LOGW("rv", "%x", p_dev->temp_buffer[pos]);
 	}while ((p_dev->temp_buffer[pos] & mask) != expected_value);
 
 	return status;
@@ -478,16 +475,14 @@ uint8_t vl53lmz_init(
 	#endif
 	status |= WrMulti(&(p_dev->platform), 0x2fd8,
 		(uint8_t*)VL53LMZ_GET_NVM_CMD, sizeof(VL53LMZ_GET_NVM_CMD));
-	ESP_LOGW("test", "ovde");
 
 	status |= _vl53lmz_poll_for_answer(p_dev, 4, 0,
 		VL53LMZ_UI_CMD_STATUS, 0xff, 2);
-	ESP_LOGW("status", "%d", status);
+
 	status |= RdMulti(&(p_dev->platform), VL53LMZ_UI_CMD_START,
 		p_dev->temp_buffer, VL53LMZ_NVM_DATA_SIZE);
 	(void)memcpy(p_dev->offset_data, p_dev->temp_buffer,
 		VL53LMZ_OFFSET_BUFFER_SIZE);
-	ESP_LOGW("test", "ovde");
 
 	status |= _vl53lmz_send_offset_data(p_dev, VL53LMZ_RESOLUTION_4X4);
 
