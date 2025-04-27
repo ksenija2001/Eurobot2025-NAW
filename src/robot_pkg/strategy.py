@@ -72,6 +72,7 @@ class Strategy:
                 servos=[]
                 step = Step(ID, m, a, servos, c, p)
                 self.steps.append(step)
+                task_steps[-1].conditions.append(Condition.InPosition(None))
             else:
                 task_steps[0].ID = ID
                 

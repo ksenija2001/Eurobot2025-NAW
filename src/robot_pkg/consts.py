@@ -40,8 +40,10 @@ class Points:
 
 class IDs(Enum):
     SET_LIDAR = 0x4C0
+    GET_BEACON     = 0x4CD
+    GET_OPPONENT   = 0x4CE
+    GET_DETECTION  = 0x4CF
     
-
     RESET_ODOM  = 0x4F0
     ODOM_CONFIG = 0x4F1
 
@@ -69,10 +71,6 @@ class IDs(Enum):
     GET_IO = 0x69F
 
     GET_ODOM = 0x6FF
-
-    GET_BEACON     = 0x4CD
-    GET_OPPONENT   = 0x4CE
-    GET_DETECTION  = 0x4CF
 
     UNKNOWN = 0x88
 

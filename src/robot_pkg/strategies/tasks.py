@@ -66,7 +66,7 @@ def pickup_back_full_stack():
 
      s = Strategy()
 
-     s(m=Move.Distance(-250, 300, 300),
+     s(m=Move.Distance(-250, 1000, 300),
        s=[Servo.BackCenterGrip(Gripper.OPEN),
           Servo.BackSideGrip(Gripper.OPEN),
           Servo.BackLift(BackGripLift.DOWN)])
@@ -86,7 +86,7 @@ def pickup_front_full_stack(distance=0):
     '''
 
     s = Strategy()
-    s(m=Move.Distance(250+distance, 300, 300),
+    s(m=Move.Distance(250+distance, 1000, 300),
       s=[Servo.FrontCenterGrip(Gripper.OPEN),
          Servo.FrontSideGrip(SideGripper.OPEN),
          Servo.FrontVacuum(Vacuum.DOWN),
@@ -131,7 +131,7 @@ def two_level():
 
     return s.steps
 
-def drop_two_level():
+def drop_two_level(distance=0):
      '''
         Leaves a two level construction in place and backs out. 
         Backs out.
@@ -149,7 +149,7 @@ def drop_two_level():
           Servo.CenterLift(CenterLift.DROP2, 50),
           Servo.FrontGripLift(FrontGripLift.DOWN, 50)])
           
-     s(m=Move.Distance(-250, 300, 500),
+     s(m=Move.Distance(-200, 1000, 500),
           s=[Servo.FrontCenterGrip(Gripper.OPEN),
           Servo.FrontSideGrip(SideGripper.OPEN)],
           p = Points.LEVEL1+Points.LEVEL2)
@@ -165,7 +165,7 @@ def drop_one_level(distance=0):
 
      s = Strategy()
         
-     s(m=Move.Distance(-150+distance, 300, 500),
+     s(m=Move.Distance(-150+distance, 1000, 500),
       s=[Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontSideGrip(SideGripper.OPEN)],
       p = Points.LEVEL1)
@@ -189,8 +189,8 @@ def lift_two_on_one(distance=0):
           Servo.FrontGripLift(FrontGripLift.UP, 30),
           Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
           
-     s(m=Move.Distance(150+distance, 300, 500))
-     s(m=Move.Distance(-250-distance, 300, 500),
+     s(m=Move.Distance(150+distance, 1000, 500))
+     s(m=Move.Distance(-250-distance, 1000, 500),
           s=[Servo.FrontCenterGrip(Gripper.OPEN),
           Servo.FrontSideGrip(SideGripper.OPEN)],
           p = Points.LEVEL2+Points.LEVEL3)
@@ -211,13 +211,13 @@ def lift_one_on_two(distance=0):
           Servo.FrontVacuumLift(VacuumLift.HOLD, 50)],
           a=[I_O.Pump(0), I_O.Valve(0)])
 
-     s(m=Move.Distance(200+distance, 500, 500),
+     s(m=Move.Distance(200+distance, 1000, 500),
        s=[Servo.FrontVacuumLift(VacuumLift.UP, 50),
           Servo.FrontSideGrip(SideGripper.OPEN),
           Servo.FrontGripLift(FrontGripLift.DOWN),
           Servo.FrontVacuum(Vacuum.MIDDLE)])
 
-     s(m=Move.Distance(-250-distance, 300, 500),
+     s(m=Move.Distance(-250-distance, 1000, 500),
        s=[Servo.CenterSwing(CenterSwing.DOWN),
           Servo.FrontCenterGrip(Gripper.OPEN),
           Servo.FrontSideGrip(SideGripper.OPEN)],
