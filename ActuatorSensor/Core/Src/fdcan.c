@@ -24,6 +24,7 @@ uint8_t ids[10];
 uint16_t angles[10];
 uint8_t speeds[10];
 uint8_t servo_id;
+uint8_t state;
 
 uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan)
 {
@@ -96,15 +97,16 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				Set_Angle(servo_id-11, position);
 
 				break;
-			case 0x533:
-				servo_id = RxData[0];
+			case 0x533: // Enable Torque for all
+				state = RxData[0];
 
+				Enable_Torque(&huart1, 0xFE, state);
 
 			case 0x690: // Enable/disable output pin
 				uint8_t output = RxData[0];
-				uint8_t state = RxData[1];
+				state = RxData[1];
 
-				Set_Output(output, state);
+				Set_Output(output, state & 0x01);
 
 				break;
 			default:

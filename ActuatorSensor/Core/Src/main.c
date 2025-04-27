@@ -127,45 +127,11 @@ int main(void)
 
   HAL_TIM_Base_Start_IT(&htim6); // Servo moving checking
   HAL_TIM_Base_Start_IT(&htim7); // Input pin states checking
-//  uint8_t id = 0x02;
-//  Enable_LED(&huart1, 0x01, 0x01);
-//  HAL_Delay(1000);
-//  Enable_LED(&huart1, 0x01, 0x00);
-//  Get_Present_Position(&huart1, id);
-  Enable_Torque(&huart1, 0xFE, 0x01);
-//  Enable_Torque(&huart1, 0x01, 0x01);
-//  Enable_Torque(&huart1, 0x02, 0x01);
-//  Enable_Torque(&huart1, 0x04, 0x01);
 
-//
 
-//  Set_Moving_Speed(&huart1, 0x02, 10);
-//  Set_Moving_Speed(&huart1, 0x01, 10);
-//  HAL_Delay(1000);
-//  Set_Goal_Position(&huart1, 0x01, 100);
-//  Set_Goal_Position(&huart1, 0x01, 100);
-//  Set_Goal_Position(&huart1, 0x02, 130);
-//  HAL_Delay(1000);
-////  Set_Goal_Position(&huart1, 0x02, 100);
-//  Set_Goal_Position(&huart1, 0x01, 100);
-//  Get_Moving_Status(&huart1, 0x01);
-//  Get_Moving_Status(&huart1, 0x02);
-//  Get_Present_Position(&huart1, 0x01);
-//
-//  Get_Present_Position(&huart1, 0x02);
-//  Set_Output(1, 1);
-//  Set_Output(2, 1);
-//  Set_Output(3, 1);
-//  Set_Output(4, 1);
-//  HAL_Delay(10000);
-//  Set_Output(1, 0);
-//  Set_Output(2, 0);
-//  Set_Output(3, 0);
-//  Set_Output(4, 0);
-
-  Set_ADC_Channel(0);
-  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-  HAL_ADC_Start_DMA(&hadc1, &adc_output, 1);
+//  Set_ADC_Channel(0);
+//  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+//  HAL_ADC_Start_DMA(&hadc1, &adc_output, 1);
 
   Init_RC_Servo(0, &htim1, TIM_CHANNEL_1);
   Init_RC_Servo(1, &htim1, TIM_CHANNEL_2);
@@ -176,49 +142,6 @@ int main(void)
   Init_RC_Servo(5, &htim8, TIM_CHANNEL_2);
   Init_RC_Servo(6, &htim8, TIM_CHANNEL_3);
   Init_RC_Servo(7, &htim8, TIM_CHANNEL_4);
-
-//  Set_Output(3, 1);
-//  Set_Output(4, 1);
-//
-//  HAL_Delay(1000);
-//
-//  Set_Output(3, 0);
-//  Set_Output(4, 0);
-//
-//  HAL_Delay(2000);
-//
-//  Set_Target_Angle(5, 120);
-//
-//  HAL_Delay(2000);
-//
-//  Set_Target_Angle(5, 50);
-
-
-//  Set_Target_Angle(3, 180);
-//  Set_Target_Angle(2, 0);
-//  Set_Target_Angle(1, 180);
-//
-//  HAL_Delay(5000);
-//
-//  Set_Target_Angle(0, 180);
-//  Set_Target_Angle(3, 0);
-//  Set_Target_Angle(2, 180);
-//  Set_Target_Angle(1, 0);
-
-
-//  uint8_t ids[] = {0x03, 0x01};
-//  uint16_t angles[] = {300, 0};
-//  uint8_t speeds[] = {10, 10};
-//  Sync_Set_Goal_Position(&huart1, ids, angles, speeds, 2);
-//
-//  HAL_Delay(5000);
-//
-//  angles[0] = 0;
-//  angles[1] = 300;
-//
-//  Sync_Set_Goal_Position(&huart1, ids, angles, speeds, 2);
-
-
 
   /* USER CODE END 2 */
 

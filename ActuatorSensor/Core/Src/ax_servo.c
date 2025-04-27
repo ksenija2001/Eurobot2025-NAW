@@ -21,13 +21,10 @@ uint8_t crc;
 uint8_t moving_status;
 volatile uint8_t moving_servos[SERVO_NUM+1];
 uint16_t servo_angles[SERVO_NUM+1];
+uint16_t last_servo_angles[SERVO_NUM+1];
+uint8_t angle_counter[SERVO_NUM+1];
 
 uint16_t position, angle, speed, speed_perc;
-
-
-void Init_AX_Servo(){
-
-}
 
 void AX_Transmit(UART_HandleTypeDef* huart, uint8_t *tx_buffer, uint8_t tx_length, uint8_t rx_length){
 	HAL_HalfDuplex_EnableTransmitter(huart);
@@ -37,8 +34,6 @@ void AX_Transmit(UART_HandleTypeDef* huart, uint8_t *tx_buffer, uint8_t tx_lengt
 		HAL_HalfDuplex_EnableReceiver(huart);
 		HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buffer, rx_length);
 	}
-
-
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
@@ -77,16 +72,24 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 			position =  ((uint16_t)rx_buffer[rx_index+6] << 8) | rx_buffer[rx_index+5];
 			angle = 300/1023.0 * position;
 
-			if ( abs(angle - servo_angles[id]) < 20 ){
+			// 20deg tolerance between present and goal angle - the larger the tolerance the faster the execution
+			if ( abs(angle - servo_angles[id]) < 29 ){
 				moving_servos[id] = 0;
 
 				uint8_t msg[] = {id, 1};
 				FDCAN_Send_Data(0x53F, FDCAN_DLC_BYTES_2, 2, msg);
+				angle_counter[id] = 0;
+				last_servo_angles[id] = angle;
+
+				break;
 			}
 
+			// If the servo hasn't moved when it should have
+			if ( abs(angle - last_servo_angles[id]) < 3){
+				++angle_counter[id];
+			}
 
-//			uint8_t msg[] = {id, (uint8_t)((angle & 0xFF00) >> 8), (angle & 0x00FF)};
-//			FDCAN_Send_Data(0x531, FDCAN_DLC_BYTES_3, 3, msg);
+			last_servo_angles[id] = angle;
 			break;
 		case PRESENT_SPEED:
 			speed =  ((uint16_t)rx_buffer[rx_index+6] << 8) | rx_buffer[rx_index+5];
@@ -123,13 +126,16 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 // 10ms timer for checking if servos are moving after setting goal position
 void TIM6_Moving_IT(TIM_HandleTypeDef* tim, UART_HandleTypeDef* huart){
-	if (moving_servos[servo_counter]){
+	if (moving_servos[servo_counter] && angle_counter[id] < 3){
 //		Get_Moving_Status(huart, servo_counter);
 		Get_Present_Position(huart, servo_counter);
+	} else if (moving_servos[servo_counter]){
+		// If servo hasn't moved set its position again
+		Set_Goal_Position(huart, id, servo_angles[id]);
+		angle_counter[id] = 0;
 	}
 
 	if (++servo_counter > SERVO_NUM) servo_counter = 1;
-
 }
 
 uint8_t Checksum(uint8_t* buffer, uint8_t len){
@@ -217,7 +223,7 @@ void Sync_Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t* IDs, uint16_t* a
 }
 
 void Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t ID, uint16_t angle){
-	while( huart->RxState != HAL_UART_STATE_READY);
+	wait_RxState(huart);
 
 	if ( angle > 300) angle = 300;
 	position = 1023/300.0 * angle;
