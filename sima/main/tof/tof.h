@@ -14,6 +14,7 @@
 #include "tof_i2c.h"
 #include "../gpio/gpio.h"
 
+#include "esp_timer.h"
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 
@@ -58,7 +59,7 @@ typedef struct {
 	sVector3_t point_cloud[64];
 } VL53LMZ_Object;
 
-uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, I2C_Bus* bus, uint16_t address);
+uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, uint16_t address);
 void VL53LMZ_Reset(VL53LMZ_IO* io);
 uint8_t VL53LMZ_Config(VL53LMZ_Configuration* conf, uint8_t resolution, uint8_t ranging_mode, uint32_t integration_time, uint8_t ranging_frequency, uint8_t sharpener);
 uint8_t VL53LMZ_Start_Ranging(VL53LMZ_Configuration* conf);

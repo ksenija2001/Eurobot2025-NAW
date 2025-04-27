@@ -6,8 +6,7 @@
 
 #include "driver/i2c.h"
 
-#define DEBUG_I2C
-#define DEBUG_I2C_LEVEL 1
+//#define DEBUG_I2C
 
 #if defined(DEBUG_I2C)
     #define I2C_TAG "I2C"
@@ -40,7 +39,7 @@
 
 void init_i2c0(gpio_num_t SCL_PIN, gpio_num_t SDA_PIN);
 
-uint32_t i2c0_send(uint16_t dev_addr, uint16_t reg_addr, uint8_t* data, uint32_t data_len);
-uint32_t i2c0_receive(uint16_t dev_addr, uint16_t reg_addr, uint8_t* buff, uint32_t buff_len);
+uint8_t i2c0_send(uint16_t dev_addr, uint16_t reg_addr, uint8_t* data, uint32_t data_len);
+uint8_t i2c0_receive(uint16_t dev_addr, uint16_t reg_addr, uint8_t* buff, uint32_t buff_len);
 
 #endif //I2C_H

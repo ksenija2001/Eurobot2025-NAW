@@ -43,6 +43,8 @@ static uint8_t _vl53lmz_poll_for_answer(
 	uint8_t status = VL53LMZ_STATUS_OK;
 	uint8_t timeout = 0;
 
+	ESP_LOGW("exp", "%x %x", expected_value, pos);
+
 	do {
 		status |= RdMulti(&(p_dev->platform), address,
 				p_dev->temp_buffer, size);
@@ -64,6 +66,8 @@ static uint8_t _vl53lmz_poll_for_answer(
 		{
 			timeout++;
 		}
+
+		ESP_LOGW("rv", "%x", p_dev->temp_buffer[pos]);
 	}while ((p_dev->temp_buffer[pos] & mask) != expected_value);
 
 	return status;
@@ -81,6 +85,7 @@ static uint8_t _vl53lmz_poll_for_mcu_boot(
 
 	do {
 		status |= RdByte(&(p_dev->platform), 0x06, &go2_status0);
+		
 		if((go2_status0 & (uint8_t)0x80) != (uint8_t)0){
 			status |= RdByte(&(p_dev->platform), 0x07, &go2_status1);
 			if((go2_status1 & (uint8_t)0x01) != (uint8_t)0x00)
@@ -427,8 +432,6 @@ uint8_t vl53lmz_init(
 		status |= WaitMs(&(p_dev->platform), 5);
 	}
 	else {
-		ESP_LOGW("test", "ovde je");
-
 		status |= WrByte(&(p_dev->platform), 0x7fff, 0x02);
 		status |= WrByte(&(p_dev->platform), 0x03, 0x0D);
 		status |= WrByte(&(p_dev->platform), 0x7fff, 0x01);
@@ -462,7 +465,12 @@ uint8_t vl53lmz_init(
 		goto exit;
 	}
 
+	///// OVDEEEEE
+
 	status |= WrByte(&(p_dev->platform), 0x7fff, 0x02);
+
+
+	vTaskDelay(pdMS_TO_TICKS(10));
 
 	/* Get offset NVM data and store them into the offset buffer */
 	#ifdef DEBUG_TOF_API
@@ -470,12 +478,17 @@ uint8_t vl53lmz_init(
 	#endif
 	status |= WrMulti(&(p_dev->platform), 0x2fd8,
 		(uint8_t*)VL53LMZ_GET_NVM_CMD, sizeof(VL53LMZ_GET_NVM_CMD));
+	ESP_LOGW("test", "ovde");
+
 	status |= _vl53lmz_poll_for_answer(p_dev, 4, 0,
 		VL53LMZ_UI_CMD_STATUS, 0xff, 2);
+	ESP_LOGW("status", "%d", status);
 	status |= RdMulti(&(p_dev->platform), VL53LMZ_UI_CMD_START,
 		p_dev->temp_buffer, VL53LMZ_NVM_DATA_SIZE);
 	(void)memcpy(p_dev->offset_data, p_dev->temp_buffer,
 		VL53LMZ_OFFSET_BUFFER_SIZE);
+	ESP_LOGW("test", "ovde");
+
 	status |= _vl53lmz_send_offset_data(p_dev, VL53LMZ_RESOLUTION_4X4);
 
 	/* Set default Xtalk shape. Send Xtalk to sensor */
@@ -491,18 +504,18 @@ uint8_t vl53lmz_init(
 	#ifdef DEBUG_TOF_API
 		ESP_LOGI("TOF_API", "Send default configuration");
 	#endif
-	// if ( p_dev->revision_id == (uint8_t)REVISION_L8 ) {
-	// 	p_dev->default_configuration = (uint8_t*)VL53L8_DEFAULT_CONFIGURATION;
-	// 	status |= WrMulti(&(p_dev->platform), 0x2c34,
-	// 						p_dev->default_configuration,
-	// 						sizeof(VL53L8_DEFAULT_CONFIGURATION));
-	// }
-	// else {
+	if ( p_dev->revision_id == (uint8_t)REVISION_L8 ) {
+		p_dev->default_configuration = (uint8_t*)VL53L8_DEFAULT_CONFIGURATION;
+		status |= WrMulti(&(p_dev->platform), 0x2c34,
+							p_dev->default_configuration,
+							sizeof(VL53L8_DEFAULT_CONFIGURATION));
+	}
+	else {
 		p_dev->default_configuration = (uint8_t*)VL53L7_DEFAULT_CONFIGURATION;
 		status |= WrMulti(&(p_dev->platform), 0x2c34,
 							p_dev->default_configuration,
 							sizeof(VL53L7_DEFAULT_CONFIGURATION));
-	//}
+	}
 
 	status |= _vl53lmz_poll_for_answer(p_dev, 4, 1, VL53LMZ_UI_CMD_STATUS, 0xff, 0x03);
 

@@ -4,7 +4,6 @@ Socket rpi_socket = {
     .tag = "RPi"
 };
 
-I2C_Bus bus;
 VL53LMZ_Result_t data;
 VL53LMZ_Object tof = {
 		.io = {
@@ -24,25 +23,33 @@ VL53LMZ_Object tof = {
 
 uint8_t status;
 
+void Error_Handler(){
+    ESP_LOGE("Error", "error :)");
+    while(1){
+        vTaskDelay(pdMS_TO_TICKS(5000));
+
+    }
+}
+
 void app_main(void)
 {
-    init_i2c_bus(&bus, GPIO_NUM_4, GPIO_NUM_5, 7);
+    init_i2c0(GPIO_NUM_4, GPIO_NUM_5);
 
     VL53LMZ_Reset(&tof.io);
-    status = VL53LMZ_Init(&tof, &bus, tof.conf.platform.address);
+    status = VL53LMZ_Init(&tof, tof.conf.platform.address);
     if ( status != VL53LMZ_STATUS_OK ){
-        //Error_Handler();
+        Error_Handler();
     }
 
-    // status = VL53LMZ_Config(&tof.conf, VL53LMZ_RESOLUTION_8X8, VL53LMZ_RANGING_MODE_CONTINUOUS, 30, 15, 30);
-    // if ( status != VL53LMZ_STATUS_OK ){
-    //     //Error_Handler();
-    // }
+    status = VL53LMZ_Config(&tof.conf, VL53LMZ_RESOLUTION_8X8, VL53LMZ_RANGING_MODE_CONTINUOUS, 30, 15, 30);
+    if ( status != VL53LMZ_STATUS_OK ){
+        Error_Handler();
+    }
 
-    // status = vl53lmz_start_ranging(&tof.conf);
-    // if ( status != VL53LMZ_STATUS_OK ){
-  	//     //Error_Handler();
-    // }
+    status = vl53lmz_start_ranging(&tof.conf);
+    if ( status != VL53LMZ_STATUS_OK ){
+  	    Error_Handler();
+    }
 
     // init_wifi(WIFI_SSID, WIFI_PASS);
     // init_socket(&rpi_socket);
@@ -59,12 +66,17 @@ void app_main(void)
     // }
     
     while(1){  
-        // ESP_LOGI("App", "Running...");
-        // status = VL53LMZ_STATUS_OK;
+        ESP_LOGI("App", "Running...");
+        status = VL53LMZ_STATUS_OK;
 
-        // status |= VL53LMZ_Get_Distance(&tof.conf, &data);
-		// status |= ConvertDist2Point(&data, &tof, 450.0);
+        status |= VL53LMZ_Get_Distance(&tof.conf, &data);
+        status |= ConvertDist2Point(&data, &tof, 450.0);
 
-        vTaskDelay(pdMS_TO_TICKS(2500));
+        ESP_LOGW("test", "%d %lu",status, data.NumberOfZones);
+        for(uint16_t i = 0; i < VL53LMZ_RESOLUTION_8X8; i++){
+            ESP_LOGI("Distance:", "Zone status %lu, data : %d: %lu", data.ZoneResult[i].Status, i + 1, data.ZoneResult[i].Distance);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }

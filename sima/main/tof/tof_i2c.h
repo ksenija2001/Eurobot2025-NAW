@@ -24,9 +24,9 @@
 
 #define DEBUG_TOF_I2C
 
-typedef int32_t (*VL53LMZ_get_tick_Func)(void);
-typedef int32_t (*VL53LMZ_write_Func)(I2C_Device*, uint16_t, uint8_t *, uint32_t);
-typedef int32_t (*VL53LMZ_read_Func)(I2C_Device*, uint16_t, uint8_t *, uint16_t);
+typedef int64_t (*VL53LMZ_get_tick_Func)(void);
+typedef uint8_t (*VL53LMZ_write_Func)(uint16_t, uint16_t, uint8_t *, uint32_t);
+typedef uint8_t (*VL53LMZ_read_Func)(uint16_t, uint16_t, uint8_t *, uint32_t);
 
 /**
  * @brief Structure VL53LMZ_Platform needs to be filled by the customer,
@@ -38,7 +38,6 @@ typedef int32_t (*VL53LMZ_read_Func)(I2C_Device*, uint16_t, uint8_t *, uint16_t)
 
 typedef struct
 {
-	I2C_Device device;
 	/* To be filled with customer's platform. At least an I2C address/descriptor
 	 * needs to be added */
 	/* Example for most standard platform : I2C address of sensor */
@@ -92,9 +91,6 @@ typedef struct
 	#define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) \
     | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 #endif
-
-void init_tof_i2c(I2C_Bus* bus, VL53LMZ_Platform* platform);
-
 
 /**
  * @param (VL53LMZ_Platform*) p_platform : Pointer of VL53LMZ platform

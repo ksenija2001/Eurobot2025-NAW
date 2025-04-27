@@ -34,7 +34,11 @@ void VL53LMZ_Reset(VL53LMZ_IO* io){
 	/* Disable communication */
 }
 
-uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, I2C_Bus* bus, uint16_t address){
+int64_t get_time(){
+	return esp_timer_get_time() / 1000;
+}
+
+uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, uint16_t address){
 	/* Default configuration */
 
 	#ifdef DEBUG_TOF
@@ -42,12 +46,11 @@ uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, I2C_Bus* bus, uint16_t address){
 	#endif
 
 	//dev->conf.platform.address = VL53LMZ_DEFAULT_I2C_ADDRESS;
-	dev->conf.platform.Write = i2c_send_RS16;
-	dev->conf.platform.Read = i2c_receive_RS16;
+	dev->conf.platform.Write = i2c0_send;
+	dev->conf.platform.Read = i2c0_receive;
+	dev->conf.platform.GetTick = get_time;
 
 	/* I2C bus initialization */
-
-	init_tof_i2c(bus, &dev->conf.platform);
 
 	/* Enable communication for device */
 
@@ -160,7 +163,7 @@ uint8_t VL53LMZ_Get_Distance(VL53LMZ_Configuration* conf, VL53LMZ_Result_t* resu
 	do
 	{
 	  status = vl53lmz_check_data_ready(conf, &new_data);
-
+	  
 	  if (new_data == 1U)
 	  {
 		status = VL53LMZ_STATUS_OK;
@@ -172,13 +175,9 @@ uint8_t VL53LMZ_Get_Distance(VL53LMZ_Configuration* conf, VL53LMZ_Result_t* resu
 		return VL53LMZ_STATUS_TIMEOUT_ERROR;
 	}
 
-//	status = vl53lmz_get_resolution(conf, &resolution);
-//	if ( status != VL53LMZ_STATUS_OK){
-//		return status;
-//	}
-
 	VL53LMZ_ResultsData raw_data;
 	status = vl53lmz_get_ranging_data(conf, &raw_data);
+
 	if ( status != VL53LMZ_STATUS_OK){
 		return status;
 	}

@@ -15,6 +15,6 @@
 #include "tof/tof_api.h"
 #include "tof/point_cloud.h"
 
-#define I2C_TOF_ADDRESS (0x52 >> 1)
+#define I2C_TOF_ADDRESS 0x52
 
 #endif //MAIN_H
