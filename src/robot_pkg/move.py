@@ -18,20 +18,32 @@ class MoveType(Enum):
     SPLINE = 7
     STOP = 8
 
+class PositionType(Enum):
+    HOME = 0
+    FIELD = 1
+    STACK = 2
+
 class Position:
-    def __init__(self, x:float=0, y:float=0, theta:float=0, speed:float=0):
+    def __init__(self, type:PositionType, x:float=0, y:float=0, theta:float=0, speed:float=0):
         self.x = x
         self.y = y
         self.theta = theta
         self.speed = speed
         self.left_inc = 0
         self.right_inc = 0
+        self.visited = False
+        self.type = type
     
     def reset(self, x, y, theta):
         self.x = x
         self.y = y
         self.theta = theta
         self.speed = 0
+        self.visited = False
+
+    def distance_to(self, x, y):
+        """Calculate Euclidean distance to another point"""
+        return ((self.x - x) ** 2 + (self.y - y) ** 2) ** 0.5
     
     def __le__(self, other):
         return self.x <= other.x and self.y <= other.y
