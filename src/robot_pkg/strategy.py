@@ -69,7 +69,13 @@ class Strategy:
             # a.clear()
         else:
             if m is not None:
-                servos=[]
+                servos = []
+                for servo in s:
+                    if type(servo) is tuple:
+                        servos.extend(servo)
+                    else:
+                        servos.append(servo)
+                        
                 step = Step(ID, m, a, servos, c, p)
                 self.steps.append(step)
                 task_steps[-1].conditions.append(Condition.InPosition(None))

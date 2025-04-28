@@ -42,7 +42,7 @@ class Points:
 class IDs(Enum):
     SET_LIDAR = 0x4C0
     GET_BEACON     = 0x4CD
-    GET_OPPONENT   = 0x4CE
+    GET_OPPONENT   = 0x6CE
     GET_DETECTION  = 0x4CF
     
     RESET_ODOM  = 0x4F0
