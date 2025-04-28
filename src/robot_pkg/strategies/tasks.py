@@ -58,7 +58,7 @@ def init_back_servos():
 
      return s.steps
 
-def pickup_back_full_stack():
+def pickup_back_full_stack(distance=0):
      '''
         Picks-up and holds one stack with back servos.
         Backing out is not included.
@@ -66,7 +66,7 @@ def pickup_back_full_stack():
 
      s = Strategy()
 
-     s(m=Move.Distance(-250, 1000, 300),
+     s(m=Move.Distance(-250+distance, 1000, 300),
        s=[Servo.BackCenterGrip(Gripper.OPEN),
           Servo.BackSideGrip(Gripper.OPEN),
           Servo.BackLift(BackGripLift.DOWN)])

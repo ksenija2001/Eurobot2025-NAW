@@ -8,12 +8,13 @@ from robot_pkg.strategies.tasks import *
 
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
+strategy1(m=Move.ResetOdom(0,0,1.57))
 strategy1(task_steps=init_all_servos())
 
 
-strategy1(task_steps=pickup_front_full_stack())
-strategy1(m=Move.Distance(1000, 600, 300), task_steps=two_level())
-strategy1(task_steps=drop_two_level())
+# strategy1(task_steps=pickup_front_full_stack())
+# strategy1(m=Move.Distance(1000, 600, 300), task_steps=two_level())
+# strategy1(task_steps=drop_two_level())
 # strategy1(task_steps=pickup_front_full_stack())
 # strategy1(task_steps=two_level())
 # strategy1(task_steps=drop_two_level())
@@ -52,12 +53,11 @@ strategy1(task_steps=drop_two_level())
 # strategy1(m=Move.Distance(1000, 1000, 1000))
 
 # KOCKA
-# strategy1(m=Move.To(0, 500, 'r', 1000, 1000, 10, 10))
-# strategy1(m=Move.To(500, 500, 'r', 1000, 1000, 10, 10),
-#         c=[Condition.Detection(2, 2)])
-# strategy1(m=Move.To(500, 0, 'r', 1000, 1000, 10, 10))
-# strategy1(ID=2, m=Move.To(0, 0, 'r', 1000, 1000, 10, 10))
-# strategy1(m=Move.RotateTo(1.57, 10, 10))
+strategy1(m=Move.To(0, 500, 'f', 1000, 1000, 10, 10))
+strategy1(m=Move.To(500, 500, 'f', 1000, 1000, 10, 10))
+strategy1(m=Move.To(500, 0, 'f', 1000, 1000, 10, 10))
+strategy1(m=Move.To(0, 0, 'f', 1000, 1000, 10, 10))
+strategy1(m=Move.RotateTo(1.57, 10, 10))
 
 
 # strategy1(m=Move.Rotate(3.14, 15, 5))

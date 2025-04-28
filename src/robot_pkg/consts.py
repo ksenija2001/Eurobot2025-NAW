@@ -25,11 +25,12 @@ class LIDAR_FOV:
     BACK_UNDEPLOY = 450
 
 class ODOM_DATA:
-    odom_left_diameter = 73
-    odom_right_diameter = 73
-    left_gain = 1
-    right_gain = 1
-    odom_track = 348
+    diameter = 73 #73.01562845724801
+    # odom_right_diameter = 73 #72.98437197283523
+    left_gain = 1.00023541410066
+    right_gain = 0.9997645755745481
+    inc_mm = 0.028050989999999998 #0.027995 #0.028018311194310475
+    odom_track = 347.5596728779546 #329.2836088607495
 
 class Points:
     LEVEL1 = 4

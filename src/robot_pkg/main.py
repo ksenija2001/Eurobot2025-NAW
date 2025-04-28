@@ -20,6 +20,7 @@ from robot_pkg.execute import Execute
 from robot_pkg.battery import Battery
 from robot_pkg.consts import Variables
 from robot_pkg.sima_communication import SIMA
+# from robot_pkg.strategies.odom_calib import odom_calib
 
 def main_func():
     main_log = log_handler.get_logger("main")
@@ -38,7 +39,7 @@ def main_func():
     sima = SIMA()
     sima.start_threads()
 
-    reset_odom = Move.ResetOdom(1780, 230, 1.57)#1500 , 125, 1.57)
+    reset_odom = Move.ResetOdom(0, 0, 1.5707) #1780, 230, 1.57)#1500 , 125, 1.57)
     reset_odom._execute()
 
     time.sleep(2)
@@ -102,11 +103,6 @@ def main_func():
 
     can_handler.stop_threads()
 
-
 if __name__ == "__main__":
     main_func()
-
-    times = [9.92, 10.29, 9.25, 10.44, 9.7, 10.2, 10.1, 9.65, 10.07, 9.46, 9.49, 10.44]
-
-    print(f"Avg time: {sum(times)/len(times)}")
     
