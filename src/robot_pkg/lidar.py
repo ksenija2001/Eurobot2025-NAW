@@ -3,7 +3,8 @@ import struct, math, time
 
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.consts import IDs, Variables
-from robot_pkg.move import Move
+from robot_pkg.move import Move, Opponent
+from robot_pkg.visualizer import FieldVisualizer
 
 
 class Lidar:
@@ -12,6 +13,8 @@ class Lidar:
     last_detection_time = 0
     beacon_points:list = []
     running:Event = Event()
+    opponent = Opponent()
+    # visualizer = FieldVisualizer() negde u glavnom threadu ili ne znam iskreno gde
         
     @classmethod
     def _receive(cls, running:Event):
@@ -29,6 +32,9 @@ class Lidar:
                 # if speed > 150/1000 and abs(Move.pose.speed) > 150:
                 #     s.get_intersection(x, y, theta, speed)
                 Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
+
+                # Moved to visualizer
+                # opponent.update_position(x, y, theta, speed)
 
             if len(beacon_queue) > 0:
                 lidar_msg = beacon_queue.pop()
@@ -58,6 +64,16 @@ class Lidar:
                         Lidar._logger.debug(f"BACK")
                     else:
                         Lidar._logger.debug(f"Unknown detection")
+            
+            # From Move.pose for robot, and Lidar data for opponent, MOVED TO VISUALIZER
+            # visualizer.update_positions(
+            #     robot_x=Move.pose.x,
+            #     robot_y=Move.pose.y,
+            #     robot_theta=Move.pose.theta,
+            #     opponent_x=opponent.x,
+            #     opponent_y=opponent.y,
+            #     opponent_theta=opponent.theta
+            # )
 
             # Resets last detection time after 1s if not reset before
             # if (Variables.front_detection.is_set() or Variables.back_detection.is_set()) and \
@@ -110,6 +126,7 @@ class Lidar:
         Lidar.running.set()
         if Lidar._thread is None:
             Lidar._thread = Thread(target=Lidar._receive, args=(Lidar.running, ))
+            # Lidar._thread = Thread(target=Lidar._receive, args=(Lidar.running, Lidar.opponent, Lidar.visualizer)) mislim da bi trebalo ovako ako ostane vizuelizacija ovde
             Lidar._thread.start()
         Lidar._logger.info("Lidar receiving thread started.")
 
