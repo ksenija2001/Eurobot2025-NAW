@@ -35,6 +35,8 @@ typedef struct {
 	// GPIO_TypeDef* PWR_EN_port;
 	// uint16_t PWR_EN_pin;
 	gpio_num_t PWR_EN_pin;
+
+	gpio_num_t INTR_pin;
 } VL53LMZ_IO;
 
 typedef struct
@@ -57,6 +59,8 @@ typedef struct {
 	sVector3_t trans_offset;
 	sVector3_t orient_offset;
 	sVector3_t point_cloud[64];
+
+	bool interrupt;
 } VL53LMZ_Object;
 
 uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, uint16_t address);
@@ -68,7 +72,23 @@ uint8_t VL53LMZ_Get_Distance(VL53LMZ_Configuration* conf, VL53LMZ_Result_t* resu
 uint8_t VL53LMZ_Get_Distance_IT(VL53LMZ_Configuration* conf, VL53LMZ_ResultsData* data);
 void VL53LMZ_Get_Result(VL53LMZ_ResultsData raw, uint8_t resolution, VL53LMZ_Result_t* data);
 
+/***
+ * @brief This function initializes interrupt for ToF new data interrupt
+ * 
+ * @param num GPIO pin number on which interrupt should happen
+ * @param tof Pointer to ToF object
+ * 
+ * @retval None
+ */
+void init_tof_intr(gpio_num_t num, VL53LMZ_Object* tof);
 
-
+/***
+ * @brief This function checks if interrupt has happened
+ * 
+ * @param tof Pointer to ToF object
+ * 
+ * @retval Return true if interrupt has happened, otherwise false
+ */
+bool get_tof_intr(VL53LMZ_Object* tof);
 
 #endif /* TARGET_INC_CUSTOM_TOF_H_ */

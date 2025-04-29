@@ -7,6 +7,28 @@
 
 #include "tof.h"
 
+static void IRAM_ATTR tof_isr_function(void* args){
+	VL53LMZ_Object* tof = (VL53LMZ_Object*) args;
+	tof->interrupt = 1;
+}
+
+bool get_tof_intr(VL53LMZ_Object* tof){
+	if(tof->interrupt == 1){
+		tof->interrupt = 0;
+
+		return true;
+	}
+
+	return false;
+}
+
+void init_tof_intr(gpio_num_t num, VL53LMZ_Object* tof){
+	init_gpio(GPIO_MODE_INPUT, GPIO_INTR_NEGEDGE, num, GPIO_PULLDOWN_DISABLE, GPIO_PULLUP_ENABLE);
+
+	gpio_install_isr_service(0);
+    gpio_isr_handler_add(num, tof_isr_function, tof);
+}
+
 void VL53LMZ_Reset(VL53LMZ_IO* io){
 	/* Enable power */
 	init_gpio(GPIO_MODE_OUTPUT, GPIO_INTR_DISABLE, io->PWR_EN_pin, GPIO_PULLDOWN_DISABLE, GPIO_PULLUP_DISABLE);
