@@ -57,7 +57,7 @@ void app_main(void)
         Error_Handler();
     }
 
-    status = VL53LMZ_Config(&tof.conf, VL53LMZ_RESOLUTION_4X4, VL53LMZ_RANGING_MODE_CONTINUOUS, 30, 15, 30);
+    status = VL53LMZ_Config(&tof.conf, TOF_NUMBER_OF_ZONES, VL53LMZ_RANGING_MODE_CONTINUOUS, 30, 15, 30);
     if ( status != VL53LMZ_STATUS_OK ){
         Error_Handler();
     }
@@ -77,7 +77,7 @@ void app_main(void)
             status |= VL53LMZ_Get_Distance(&tof.conf, &data);
             status |= ConvertDist2Point(&data, &tof, 450.0);
 
-            for(uint16_t i = 0; i < VL53LMZ_RESOLUTION_4X4 / 4; i++){
+            for(uint16_t i = 0; i < TOF_NUMBER_OF_ZONES / 4; i++){
                 ESP_LOGI("Distances:", "%lu %lu %lu %lu (%lu %lu %lu %lu)", 
                                         data.ZoneResult[i * 4].Distance, data.ZoneResult[i * 4 +1].Distance, 
                                         data.ZoneResult[i * 4+2].Distance, data.ZoneResult[i*4+3].Distance, 

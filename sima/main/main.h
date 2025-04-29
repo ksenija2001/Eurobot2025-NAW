@@ -18,5 +18,6 @@
 #define SIMA_ID "1"
 
 #define I2C_TOF_ADDRESS 0x52
+#define TOF_NUMBER_OF_ZONES VL53LMZ_RESOLUTION_4X4
 
 #endif //MAIN_H
