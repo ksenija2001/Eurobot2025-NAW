@@ -11,15 +11,64 @@ STACK3_X, STACK3_Y, STACK3_THETA = 0.0, 0.0, 90.0
 STACK4_X, STACK4_Y, STACK4_THETA = 0.0, 0.0, -90.0
 STACK9_X, STACK9_Y, STACK9_THETA = 0.0, 0.0, 90.0
 
-class Gripper:
-    OPEN = 28
-    GRIP = 51  # NE POVECAVATI 
+GRIP_GAIN = 8
+OPEN_GAIN = 8
+
+# class Gripper:
+#     OPEN = 28
+#     GRIP = 51  # NE POVECAVATI 
+#     NEUTRAL = 90
+#     CLOSED = 110
+
+class FrontCenterRight:
+    OPEN = 180 - 39 + OPEN_GAIN - 10
+    GRIP = 180 - 39 - GRIP_GAIN + 2 - 10
+    NEUTRAL = 180 - 90
+    CLOSED = 180 - 110
+
+class FrontCenterLeft:
+    OPEN = 40 - OPEN_GAIN
+    GRIP = 40 + GRIP_GAIN
     NEUTRAL = 90
     CLOSED = 110
 
-class SideGripper(Gripper):
-    OPEN = 35
-    GRIP = 53
+class FrontSideRight:
+    OPEN = 45 - OPEN_GAIN
+    GRIP = 45 + GRIP_GAIN
+    NEUTRAL = 90
+    CLOSED = 110
+
+class FrontSideLeft:
+    OPEN = 180 - 42 + OPEN_GAIN
+    GRIP = 180 - 42 - GRIP_GAIN
+    NEUTRAL = 180 - 90
+    CLOSED = 180 - 110
+
+class BackCenterRight:
+    OPEN = 36 - OPEN_GAIN
+    GRIP = 36 + GRIP_GAIN
+    NEUTRAL = 90
+    CLOSED = 110
+
+class BackCenterLeft:
+    OPEN = 180 - 45 + OPEN_GAIN
+    GRIP = 180 - 45 - GRIP_GAIN
+    NEUTRAL = 180 - 90
+    CLOSED = 180 - 110
+
+class BackSideRight:
+    OPEN = 42 - OPEN_GAIN
+    GRIP = 42 + GRIP_GAIN
+    NEUTRAL = 90
+    CLOSED = 110
+
+class BackSideLeft:
+    OPEN = 180 - 42 + OPEN_GAIN
+    GRIP = 180 - 42 - GRIP_GAIN
+    NEUTRAL = 180 - 90
+    CLOSED = 180 - 110
+
+
 
 class VacuumLift:
     UP = 290
@@ -58,6 +107,7 @@ class FrontGripLift:
 
 class BackGripLift:
     UP = 300
+    HOLD = 210
     HOVER = 20
     DOWN = 0
 

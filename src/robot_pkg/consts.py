@@ -67,6 +67,7 @@ class IDs(Enum):
     SET_SERVO_TORQUE = 0x533
 
     GET_SERVO_IN_POSITION = 0x53F
+    GET_SERVO_ERROR = 0x53E
 
     SET_IO = 0x690
     GET_IO = 0x69F

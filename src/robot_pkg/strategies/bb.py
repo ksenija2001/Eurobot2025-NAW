@@ -13,16 +13,7 @@ from robot_pkg.strategies.tasks import *
 bb = Strategy(color = Color.BLUE, square = Square.CENTER, mood = Mood.PASSIVE)
 
 bb(m=Move.ResetOdom(1780, 230, 1.57),
-          s=[Servo.FrontSideGrip(SideGripper.CLOSED),
-            Servo.FrontCenterGrip(Gripper.NEUTRAL),
-            Servo.BackSideGrip(Gripper.OPEN-20),
-            Servo.BackCenterGrip(Gripper.OPEN),
-            Servo.FrontGripLift(FrontGripLift.DOWN),
-            Servo.FrontVacuumLift(VacuumLift.UP),
-            Servo.FrontVacuum(Vacuum.DOWN),
-            Servo.CenterSwing(CenterSwing.INIT),
-            Servo.CenterLift(CenterLift.DOWN),
-            Servo.BackLift(BackGripLift.DOWN)]) #,
+  task_steps=init_all_servos()) #,
         # c=[Condition.CinchPulled(1)])   
 
 ####################
@@ -37,14 +28,14 @@ bb(m=Move.ResetOdom(1780, 230, 1.57),
 bb(m=Move.Spline([MaterialStack.STACK6.x + 10],
                  [MaterialStack.STACK6.y + 250],
                  [-1.57],
-                 550,
+                 500,
                  'f'),
     s=[
       Servo.CenterSwing(CenterSwing.DOWN),
-      Servo.FrontCenterGrip(Gripper.OPEN),
-      Servo.FrontSideGrip(SideGripper.OPEN)])
+      Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
+      Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)])
 
-bb(m=Move.RotateTo(-1.57, 3, 3))
+bb(m=Move.RotateTo(-1.57, 5, 5))
 
 bb(task_steps=pickup_front_full_stack(20))
 bb(task_steps=two_level())
@@ -67,7 +58,7 @@ bb(task_steps=pickup_back_full_stack())
 ######################
 
 bb(m=Move.Spline([MaterialStack.STACK10.x + 10],
-                 [MaterialStack.STACK10.y - 275],
+                 [MaterialStack.STACK10.y - 260],
                  [1.57],
                  500,
                  'f'),
@@ -96,13 +87,14 @@ bb(m=Move.RotateTo(-1.57, 15, 10))
 
 bb(task_steps=drop_one_level(-150))
 
-bb(m=Move.RotateTo(0, 15, 10))
-
 #########################################
 ##  DROPPING STACK 7 FROM BACK GRIPPER ##
 #########################################
 
-bb(s=[Servo.BackLift(BackGripLift.DOWN, 30)])
+bb(m=Move.RotateTo(0, 10, 5),
+  s=[Servo.BackLift(BackGripLift.DOWN, 30)])
+
+# bb(s=[Servo.BackLift(BackGripLift.DOWN, 30)])
 # bb(m=Move.Distance(100, 1500, 1500),
 #   s=[Servo.BackSideGrip(Gripper.OPEN),
 #      Servo.BackCenterGrip(Gripper.OPEN)])
@@ -113,10 +105,10 @@ bb(s=[Servo.BackLift(BackGripLift.DOWN, 30)])
 bb(m=Move.Spline([MaterialStack.STACK6.x + 30],
                  [MaterialStack.STACK6.y + 200],
                  [-1.57],
-                 350,
+                 450, # 350
                  'f'),
-    s=[Servo.BackSideGrip(Gripper.OPEN),
-     Servo.BackCenterGrip(Gripper.OPEN)]
+    s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
+     Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN)]
 )
 # bb(m=Move.To(MaterialStack.STACK6.x+25, MaterialStack.STACK6.y+200, 'f', 1500, 1500, 15, 5))
 # bb(m=Move.RotateTo(-1.57, 15, 5))
@@ -124,7 +116,7 @@ bb(m=Move.Spline([MaterialStack.STACK6.x + 30],
 bb(task_steps=lift_one_on_two(50))
 
 bb(m=Move.RotateTo(3.0, 15, 15))
-bb(task_steps=(pickup_front_full_stack(450)))
+bb(task_steps=(pickup_front_full_stack(500)))
 bb(m=Move.To(Area.BLUE_2.x, Area.BLUE_2.y + 250, 'f', 1500, 1000, 10, 3), # changed from r
   task_steps=two_level())
 
@@ -138,14 +130,14 @@ bb(task_steps=lift_two_on_one(50))
 
 bb(m=Move.To(MaterialStack.STACK1.x + 35, 
              MaterialStack.STACK1.y - 350, 
-             'f', 1500, 1500, 15, 15),
+             'f', 2000, 2000, 15, 20),
   s=[Servo.FrontVacuumLift(VacuumLift.UP),
      Servo.CenterLift(CenterLift.DOWN),
      Servo.CenterSwing(CenterSwing.DOWN),
      Servo.FrontVacuum(Vacuum.DOWN),
      Servo.FrontGripLift(FrontGripLift.DOWN)])
 
-bb(m=Move.RotateTo(1.57, 15, 15))
+bb(m=Move.RotateTo(1.57, 15, 3))
 bb(task_steps=pickup_front_full_stack())
 
 ############################
@@ -155,7 +147,7 @@ bb(task_steps=pickup_front_full_stack())
 bb(m=Move.Spline([MaterialStack.STACK8.x - 225],
                  [MaterialStack.STACK8.y - 15],
                  [3.14],
-                 400,
+                 450, #400
                  'r'))
 
 # bb(m=Move.RotateTo(0, 15, 5))
@@ -170,24 +162,20 @@ bb(task_steps=pickup_back_full_stack())
 bb(m=Move.Spline([Area.BLUE_2.x],
                  [Area.BLUE_2.y + 550],
                  [-1.57],
-                 400,
+                 450, # 400
                  'f'),
     s=[Servo.BackLift(BackGripLift.UP)],
     task_steps=two_level())
   
 bb(s=[Servo.BackLift(BackGripLift.DOWN, 30)])
 
-bb(m=Move.Distance(390, 300, 300),
-  s=[Servo.BackCenterGrip(Gripper.OPEN),
-      Servo.BackSideGrip(Gripper.OPEN)])
-
-# bb(m=Move.RotateTo(-1.57, 15, 5))
-
-# bb(m=Move.Distance(150, 300, 300))
+bb(m=Move.Distance(390, 500, 500),
+  s=[Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN),
+      Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN)])
 
 bb(task_steps=drop_two_level())
 
-bb(m=Move.RotateTo(1.57, 15, 5),
+bb(m=Move.RotateTo(1.57, 15, 10),
   s=[Servo.FrontVacuumLift(VacuumLift.UP),
      Servo.CenterLift(CenterLift.DOWN),
      Servo.CenterSwing(CenterSwing.DOWN),
@@ -199,11 +187,11 @@ bb(task_steps=pickup_front_full_stack())
 bb(m=Move.RotateTo(-1.57, 3, 3),
   task_steps=two_level())
 
-bb(m=Move.Distance(330, 300, 300))
+bb(m=Move.Distance(330, 500, 500))
 
 bb(task_steps=drop_two_level())
 
-bb(m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y-250, 'r', 1500, 1500, 15, 15))
+bb(m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y-250, 'r', 2000, 2000, 15, 20))
 
 
 # bb(m=Move.RotateTo( ))

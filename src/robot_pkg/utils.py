@@ -160,11 +160,13 @@ def choose_strategy(color, square, mood):
     for file in os.listdir(STRATEGIES_PATH):
         if file.endswith(".py"):
             strategy = os.path.splitext(file)[0]
-            mod = import_module("robot_pkg.strategies." + strategy)
-            strategy = getattr(mod, strategy)
+            print(strategy)
+            if strategy not in ["tasks"]:
+                mod = import_module("robot_pkg.strategies." + strategy)
+                strategy = getattr(mod, strategy)
 
-            if strategy == temp_strategy:
-                return strategy
-    
+                if strategy == temp_strategy:
+                    return strategy
+        
     print("STRATEGY NOT FOUND!!!!")
     return None

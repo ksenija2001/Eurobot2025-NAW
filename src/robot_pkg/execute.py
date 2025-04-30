@@ -9,7 +9,8 @@ from robot_pkg.in_out import I_O, SensorType
 from robot_pkg.consts import Variables
 from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.main import log_handler
-from robot_pkg.misc import Gripper
+from robot_pkg.misc import FrontCenterLeft, FrontCenterRight, FrontSideLeft, FrontSideRight, \
+                            BackCenterLeft, BackCenterRight, BackSideLeft, BackSideRight
 
 
 class Execute:
@@ -169,10 +170,10 @@ class Execute:
             actuator._execute()
             time.sleep(0.01)
         
-        grippers = [Servo.FrontCenterGrip(Gripper.OPEN), 
-                    Servo.FrontSideGrip(Gripper.OPEN), 
-                    Servo.BackCenterGrip(Gripper.OPEN),
-                    Servo.BackSideGrip(Gripper.OPEN)]
+        grippers = [Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN), 
+                    Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN), 
+                    Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN),
+                    Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN)]
         
         for gripper in grippers:
             if type(gripper) is tuple:
