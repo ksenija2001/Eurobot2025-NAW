@@ -88,7 +88,35 @@ temp(m=Move.Spline([Area.BLUE_3.x+100],
                     [Area.BLUE_3.y],
                     [3.14],
                     500,
-                    'f'))
+                    'f'),
+    task_steps=two_level())
 
+temp(task_steps=drop_two_level())
 
+temp(m=Move.RotateTo(1.57, 15, 5),
+    s=[Servo.BackLift(BackGripLift.DOWN, 50)],
+    task_steps=init_front_servos())
 
+pose = Position(3000, 1000)
+temp(m=Move.To(MaterialStack.STACK3.x+450, MaterialStack.STACK3.y, 'f', 1000, 500, 10, 5),
+     s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN, pose),
+        Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN, pose)])
+
+temp(m=Move.RotateTo(0, 15, 15))
+
+temp(task_steps=pickup_back_full_stack())
+
+temp(m=Move.Distance(200, 500, 500),
+    s=[Servo.BackLift(BackGripLift.UP, 50)])
+
+temp(m=Move.RotateTo(-1.57, 10, 5))
+
+temp(task_steps=pickup_front_full_stack(100))
+
+temp(m=Move.To(Area.BLUE_3.x+100, Area.BLUE_3.y-180, 'f', 1500, 1000, 10, 5),
+    task_steps=two_level())
+
+temp(task_steps=drop_one_level())
+
+temp(m=Move.RotateTo(3.14, 10, 5))
+temp(task_steps=lift_one_on_two())
