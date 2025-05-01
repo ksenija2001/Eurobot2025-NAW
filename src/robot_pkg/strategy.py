@@ -24,6 +24,8 @@ class Square(Enum):
 class Mood(Enum):
     PASSIVE   = 'passive'
     AGGRESSIVE = 'aggressive'
+    SEMI = 'semi'
+    RUDE = 'rude'
 
     def __eq__(self, other:str):
         return self.name.lower() == other
