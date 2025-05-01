@@ -12,6 +12,7 @@ class ConditionType(Enum):
     SERVO      = 6      # Wait for servo to finish moving
     FRONT      = 7      # Check if there are cans in the front
     BACK       = 8      # Check if there are cans in the back
+    SIMA       = 9      # Send start to all SIMAs on 85s
 
 # def timeout(timeout, args) -> bool:
 #     start_time = args[0]
@@ -89,6 +90,9 @@ class Condition:
         elif self._type == ConditionType.BACK:
             if not args[6]:
                 return self.ID
+        elif self._type == ConditionType.SIMA:
+            if args[1] - Variables.match_start_time >= self.time:
+                return self.ID
         return False
         # if conditions[self.type](self.value, args):
         #     return self.ID
@@ -107,6 +111,18 @@ class Condition:
         condition.ID = step_id
         condition.time = time
         condition._type = ConditionType.TIME
+        return condition
+    
+    @classmethod
+    def SimaTime(cls, step_id:int, time:int):
+        '''
+            Checks if time[s] has passed since start of match. 
+            If it has, sends start signal to SIMAs. 
+        '''
+        condition = cls()
+        condition.ID = step_id
+        condition.time = time
+        condition._type = ConditionType.SIMA
         return condition
     
     @classmethod

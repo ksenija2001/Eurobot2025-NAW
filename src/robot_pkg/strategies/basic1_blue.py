@@ -21,7 +21,7 @@ BACK = False
 # FIELD4_X, FIELD4_Y, FIELD4_THETA = FIELD4_BLUE_X, FIELD4_BLUE_Y, FIELD4_BLUE_THETA
 # FIELD5_X, FIELD5_Y, FIELD5_THETA = FIELD5_BLUE_X, FIELD5_BLUE_Y, FIELD5_BLUE_THETA
 
-basic1_blue = Strategy(color = Color.BLUE, square = Square.LOWER, mood = Mood.PASSIVE)
+basic1_blue = Strategy(color = Color.BLUE, square = Square.UPPER, mood = Mood.PASSIVE)
 
 # # Starting position DOWN, initialize servo motors, backLift in position for setting off the banner mechanism
 # basic1_blue(m=Move.ResetOdom(STARTING2_X, STARTING2_Y, STARTING2_THETA), # TODO: define the starting angles (lower square)

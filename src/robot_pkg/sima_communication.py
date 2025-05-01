@@ -27,6 +27,8 @@ class SIMA:
         self.running = False
         self._thread = Thread(target=self.accept_connections)
 
+        self.coordinates = {1: None, 2:None, 3:None, 4:None}
+
     def start_threads(self):
         self.running = True
 
@@ -36,19 +38,28 @@ class SIMA:
         self._thread.start()
 
         self._logger.info("Started listening for sima")
-    
-    # def send_start(self):
-    #     for id, connection in self.connections:
 
+    def send_start(self):
+        try:
+            s = 1
+            data = struct.pack("B", s)
+            for id, connection in self.connections.items():
+                if connection is not None:
+                    connection.send(data)
+        except Exception as e:
+            print(e)
+            pass
+
+        self._logger.info(f"Sending start to all connected SIMA")
 
     def send_command(self, sima_ID:int, coordinates:list[Position]):
         size = len(coordinates)
         packed = [size]
         for position in coordinates:
-            packed.extend([position.x, position.y, position.theta])
+            packed.extend([position.x, position.y, position.theta, position.speed])
        
         try:
-            data = struct.pack('<B'+'f'*(size*3), *packed)
+            data = struct.pack('<B'+'f'*(size*4), *packed)
             self.connections[sima_ID].send(data)
         except Exception as e:
             print(e)
@@ -58,8 +69,6 @@ class SIMA:
 
     def accept_connections(self):
         while self.running and any([True for _, connection in self.connections.items() if connection is None]):
-            # for _, connection in self.connections.items():
-            #     if connection is None:
             try:
                 conn, address = self.s.accept()
                 # blocks until one byte that contains the ID of the connected SIMA is received
@@ -69,12 +78,12 @@ class SIMA:
 
                 self._logger.info(f"SIMA {ID} CONNECTED")
 
-                self.send_command(1, [Position(550, 1000, 1.57)])
+                self.send_command(ID, self.coordinates[ID])
             except Exception as e:
                 # print(e)
                 pass
         
-            # time.sleep(0.1)
+            time.sleep(0.1)
         
     def stop_threads(self):
         self.running = False

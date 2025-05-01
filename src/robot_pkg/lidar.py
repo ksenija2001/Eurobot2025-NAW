@@ -28,7 +28,7 @@ class Lidar:
 
                 # if speed > 150/1000 and abs(Move.pose.speed) > 150:
                 #     s.get_intersection(x, y, theta, speed)
-                Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
+                # Lidar._logger.debug(f"Opponent: x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, speed:{speed:4.2f}")
 
             if len(beacon_queue) > 0:
                 lidar_msg = beacon_queue.pop()

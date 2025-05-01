@@ -28,19 +28,19 @@ class FrontCenterRight:
 
 class FrontCenterLeft:
     OPEN = 40 - OPEN_GAIN
-    GRIP = 40 + GRIP_GAIN
+    GRIP = 40 + GRIP_GAIN 
     NEUTRAL = 90
     CLOSED = 110
 
 class FrontSideRight:
-    OPEN = 45 - OPEN_GAIN
-    GRIP = 45 + GRIP_GAIN
+    OPEN = 45 - OPEN_GAIN - 5
+    GRIP = 45 + GRIP_GAIN + 2
     NEUTRAL = 90
     CLOSED = 110
 
 class FrontSideLeft:
-    OPEN = 180 - 42 + OPEN_GAIN
-    GRIP = 180 - 42 - GRIP_GAIN
+    OPEN = 180 - 42 + OPEN_GAIN + 5
+    GRIP = 180 - 42 - GRIP_GAIN - 2
     NEUTRAL = 180 - 90
     CLOSED = 180 - 110
 
@@ -74,7 +74,7 @@ class VacuumLift:
     UP = 290
     HOLD = 230  
     HOVER = 120 
-    PICKUP2 = 95
+    PICKUP2 = 92 #95 
     POSITION2 = 40
     DROP2 = 10
     DOWN = 0

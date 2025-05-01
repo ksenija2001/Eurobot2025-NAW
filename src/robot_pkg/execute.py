@@ -9,6 +9,7 @@ from robot_pkg.in_out import I_O, SensorType
 from robot_pkg.consts import Variables
 from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.main import log_handler
+from robot_pkg.sima_communication import SIMA
 from robot_pkg.misc import FrontCenterLeft, FrontCenterRight, FrontSideLeft, FrontSideRight, \
                             BackCenterLeft, BackCenterRight, BackSideLeft, BackSideRight
 
@@ -22,11 +23,27 @@ class Execute:
         self.running = False
         self.main_running = main_running
         self.display = Display()
+
+        self.sima = SIMA()
         
     def start(self):
         self.running = True
-        self.thread.start()
+
         self.display.start()
+
+        # Reads sima coordinates before starting communication
+        for i in range(4):
+            if self.steps[i].sima_id is not None:
+                sima_id = self.steps[i].sima_id
+                coor = self.steps[i].sima
+                if len(coor) > 0:
+                    print(f"SIMA COORDINATES FOR {sima_id}")
+                    self.sima.coordinates[sima_id] = coor
+
+        self.sima.start_threads()
+
+        self.thread.start()
+
 
     def loop(self):
         next_step_id = None
@@ -110,34 +127,43 @@ class Execute:
                 args = [start_time, time.time(), move_done, cinch, servo_in_pos, None, None] 
                 checked = {cond._type : cond.check(args) for cond in step.conditions}
               
-                if len(step.conditions) == 0:
+                if len(step.conditions) == 0 or \
+                    (len(step.conditions) == 1 and step.conditions[0]._type == ConditionType.SIMA):
                     # MOVEMENT ADDED BEFORE TASK
                     #pass
                     break
                 # Conditions that are continouosly checked during step execution
+                elif ConditionType.SIMA in checked and checked[ConditionType.SIMA] != False:
+                    self._logger.info(f"Condition met TYPE: {ConditionType.SIMA}")
+
+                    sima = [cond for cond in step.conditions if cond._type == ConditionType.SIMA][0]
+                    step.conditions.remove(sima)
+                    self.sima.send_start()
+
+                    continue
                 elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False: 
-                    print(f"Condition met TYPE: {ConditionType.TIME}")
+                    self._logger.info(f"Condition met TYPE: {ConditionType.TIME}")
                     next_step_id = checked[ConditionType.TIME]  
                 elif ConditionType.TIMEOUT in checked and checked[ConditionType.TIMEOUT] != False:
-                    print(f"Condition met TYPE: {ConditionType.TIMEOUT}")
+                    self._logger.info(f"Condition met TYPE: {ConditionType.TIMEOUT}")
                     next_step_id = checked[ConditionType.TIMEOUT]
                     # if not Servo.check_in_positions():
                     #     # TODO check if it's a problem if not all servos are in position
                     #     continue
                 elif ConditionType.CINCH in checked and checked[ConditionType.CINCH] != False:
-                    print(f"Condition met TYPE: {ConditionType.CINCH}")
+                    self._logger.info(f"Condition met TYPE: {ConditionType.CINCH}")
                     next_step_id = checked[ConditionType.CINCH]
                 elif ConditionType.POSITION in checked and ConditionType.SERVO in checked:
                     if checked[ConditionType.POSITION] != False and checked[ConditionType.SERVO] != False:
-                        print(f"Condition met TYPE: {ConditionType.POSITION} and {ConditionType.SERVO}")
+                        self._logger.info(f"Condition met TYPE: {ConditionType.POSITION} and {ConditionType.SERVO}")
                         next_step_id = checked[ConditionType.POSITION]
                     else:
                         continue
                 elif ConditionType.POSITION in checked and checked[ConditionType.POSITION] != False:
-                    print(f"Condition met TYPE: {ConditionType.POSITION}")
+                    self._logger.info(f"Condition met TYPE: {ConditionType.POSITION}")
                     next_step_id = checked[ConditionType.POSITION]
                 elif ConditionType.SERVO in checked and checked[ConditionType.SERVO] != False:
-                    print(f"Condition met TYPE: {ConditionType.SERVO}")
+                    self._logger.info(f"Condition met TYPE: {ConditionType.SERVO}")
                     next_step_id = checked[ConditionType.SERVO]
                 else:
                     continue
@@ -146,7 +172,7 @@ class Execute:
                 self.display.add_points(step.points)       
 
                 time.sleep(0.05)
-                print("-------------------------------")
+                self._logger.info("-------------------------------")
 
                 if len(self.steps) == 0:
                     self.running = False
@@ -164,6 +190,9 @@ class Execute:
 
         stop_motors = Move.Stop()
         stop_motors._execute()
+
+        self.sima.stop_threads()
+
 
         actuators = [I_O.Pump(0), I_O.Valve(0)]
         for actuator in actuators:

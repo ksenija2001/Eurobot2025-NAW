@@ -36,8 +36,6 @@ def main_func():
     Move.start_threads()
     I_O.start_threads()
     Lidar.start_threads()
-    sima = SIMA()
-    sima.start_threads()
 
     reset_odom = Move.ResetOdom(0, 0, 1.5707) #1780, 230, 1.57)#1500 , 125, 1.57)
     reset_odom._execute()
@@ -53,7 +51,7 @@ def main_func():
 
         main_log.info(f"------ Strategy -------\n{strategy}")
 
-        Variables.match_start_time = time.time()
+        Variables.match_start_time = time.time() # REMOVE WHEN CINCH IS ENABLED
         
         running.set()
 
@@ -98,7 +96,6 @@ def main_func():
     Servo.stop_threads()
     Move.stop_threads()
     I_O.stop_threads()
-    sima.stop_threads()
     time.sleep(1)
 
     can_handler.stop_threads()

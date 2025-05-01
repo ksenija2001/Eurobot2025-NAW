@@ -6,7 +6,7 @@ from robot_pkg.conditions import ConditionType, Condition
 # from robot_pkg.play_elements import Area, MaterialStock
 from robot_pkg.strategies.tasks import *
 
-kula_od_karata = Strategy(color = Color.BLUE, square = Square.LOWER, mood = Mood.PASSIVE)
+kula_od_karata = Strategy(color = Color.BLUE, square = Square.UPPER, mood = Mood.PASSIVE)
 
 # kula_od_karata(m=Move.ResetOdom(Area.BLUE_2.x, Area.BLUE_2.y, 1.57))
 

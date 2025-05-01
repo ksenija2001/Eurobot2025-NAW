@@ -17,7 +17,7 @@ def init_all_servos():
     s = Strategy()
     s(s=[Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideLeft.CLOSED),
          Servo.FrontCenterGrip(FrontCenterLeft.NEUTRAL, FrontCenterRight.NEUTRAL),
-         Servo.BackSideGrip(BackSideLeft.CLOSED, BackSideRight.CLOSED),
+         Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),  # PROMENITI KADA SE ISEKU GRIPPERI
          Servo.BackCenterGrip(BackCenterLeft.OPEN, BackSideRight.OPEN),
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontVacuumLift(VacuumLift.UP),
@@ -86,7 +86,7 @@ def pickup_front_full_stack(distance=0):
     '''
 
     s = Strategy()
-    s(m=Move.Distance(250+distance, 700, 300),
+    s(m=Move.Distance(250+distance, 700, 300), # 300 SA RAZLOGOM
       s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
          Servo.FrontVacuum(Vacuum.DOWN),
@@ -114,9 +114,9 @@ def two_level():
 
     s = Strategy()
     
-    s(s=[Servo.FrontVacuumLift(VacuumLift.HOLD+40),
-         Servo.FrontGripLift(100, 60),
-         Servo.CenterLift(CenterLift.DOWN, 60)])
+    s(s=[Servo.FrontVacuumLift(VacuumLift.HOLD+40)])
+    s(s=[Servo.FrontGripLift(100),
+         Servo.CenterLift(CenterLift.DOWN)])
 
     s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
          Servo.FrontGripLift(FrontGripLift.HOLD),
@@ -144,10 +144,10 @@ def drop_two_level(distance=0):
 
      s = Strategy()
 
-     s(s=[
-          Servo.CenterLift(CenterLift.POSITION2+20),
-          Servo.FrontVacuumLift(VacuumLift.POSITION2-20)],
+     s(s=[Servo.CenterLift(CenterLift.POSITION2+40)],
           a=[I_O.Pump(0), I_O.Valve(0)])
+     
+     s(s=[Servo.FrontVacuumLift(VacuumLift.POSITION2-20)])
      
      s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
           Servo.FrontVacuumLift(VacuumLift.DOWN),
@@ -177,7 +177,7 @@ def drop_one_level(distance=0):
     
      return s.steps
 
-def lift_two_on_one(distance=0):
+def lift_two_on_one(distance=0, back_distance=0):
      '''
         Places two levels on a one level high construction on the ground.
         Backs out.
@@ -192,11 +192,11 @@ def lift_two_on_one(distance=0):
      s(s=[
           Servo.CenterLift(CenterLift.UP, 60),
           Servo.FrontVacuumLift(VacuumLift.UP, 60),
-          Servo.FrontGripLift(FrontGripLift.UP, 30),
+          Servo.FrontGripLift(FrontGripLift.UP-20, 30),
           Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
           
-     s(m=Move.Distance(150+distance, 1000, 500))
-     s(m=Move.Distance(-250-distance, 1000, 500),
+     s(m=Move.Distance(150+distance, 1000, 300))
+     s(m=Move.Distance(-250-back_distance, 1000, 500),
           s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
           p = Points.LEVEL2+Points.LEVEL3)
@@ -218,18 +218,18 @@ def lift_one_on_two(distance=0):
           Servo.FrontVacuumLift(VacuumLift.HOLD, 50)],
           a=[I_O.Pump(0), I_O.Valve(0)])
 
-     s(m=Move.Distance(200+distance, 1000, 500),
-       s=[Servo.FrontVacuumLift(VacuumLift.UP, 50),
+     s(m=Move.Distance(200+distance, 1000, 400),  # BILO 500 UBRZANJE
+       s=[Servo.FrontVacuumLift(VacuumLift.UP-15, 50),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
           Servo.FrontGripLift(FrontGripLift.DOWN),
           Servo.FrontVacuum(Vacuum.MIDDLE)])
-
-     s(m=Move.Distance(-250-distance, 1000, 500),
-       s=[
+     
+     s(s=[Servo.CenterLift(CenterLift.UP-10),
           Servo.CenterSwing(CenterSwing.DOWN),
           Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
-          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
-       p = Points.LEVEL3)
+          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)])
+
+     s(m=Move.Distance(-250-distance, 1000, 500), p = Points.LEVEL3)
      
      return s.steps
 
