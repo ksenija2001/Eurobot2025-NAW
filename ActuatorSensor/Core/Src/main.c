@@ -129,7 +129,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim7); // Input pin states checking
 
 
-//  Set_ADC_Channel(0);
+//  Set_ADC_Channel(0);GRIPGRIP_GAIN_GAIN
 //  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 //  HAL_ADC_Start_DMA(&hadc1, &adc_output, 1);
 

@@ -136,17 +136,20 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 // 10ms timer for checking if servos are moving after setting goal position
 void TIM6_Moving_IT(TIM_HandleTypeDef* tim, UART_HandleTypeDef* huart){
-	if (moving_servos[servo_counter]){ //&& angle_counter[id] < 3){
+	if (moving_servos[servo_counter] && angle_counter[servo_counter] < 2){
 //		Get_Moving_Status(huart, servo_counter);
 		Get_Present_Position(huart, servo_counter);
 	}
-//	else if (moving_servos[servo_counter]){
-//		// If servo hasn't moved set its position again
-//		Set_Goal_Position(huart, id, servo_angles[id]);
-//		angle_counter[id] = 0;
-//	}
+	else if (moving_servos[servo_counter]){
+		// If servo hasn't moved set its position again
+		Set_Goal_Position(huart, servo_counter, servo_angles[servo_counter]);
+		angle_counter[servo_counter] = 0;
+	}
 
-	if (++servo_counter > SERVO_NUM) servo_counter = 1;
+	if (++servo_counter > SERVO_NUM){
+		servo_counter = 1;
+
+	}
 }
 
 uint8_t Checksum(uint8_t* buffer, uint8_t len){
