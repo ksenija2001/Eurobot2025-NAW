@@ -31,18 +31,17 @@ def init_all_servos():
 
 def init_front_servos():
     '''
-        Brings all front servos to their starting position.
+        Brings all front servos to pickup positions.
     '''
 
     s = Strategy()
-    s(s=[Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideRight.CLOSED),
-         Servo.FrontCenterGrip(FrontCenterLeft.CLOSED, FrontCenterRight.CLOSED),
-         Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN),
-         Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_UP),
-         Servo.FrontVacuum(FRONT_VACUUM_DOWNWARD),
-         Servo.CenterSwing(CENTER_SWING_DOWN),
-         Servo.CenterLift(CENTER_LIFT_DOWN)],
-       a=[I_O.Pump(0), I_O.Valve(0)])
+    s(s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
+         Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
+         Servo.FrontVacuum(Vacuum.DOWN),
+         Servo.CenterSwing(CenterSwing.DOWN, 50),
+         Servo.CenterLift(CenterLift.DOWN),
+         Servo.FrontGripLift(FrontGripLift.DOWN),
+         Servo.FrontVacuumLift(VacuumLift.UP)])
 
     return s.steps
 
@@ -171,10 +170,34 @@ def drop_one_level(distance=0):
      s = Strategy()
         
      s(m=Move.Distance(-150+distance, 1000, 500),
-      s=[Servo.FrontGripLift(FrontGripLift.DOWN),
+      s=[Servo.CenterLift(CenterLift.DROP1),
+         Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
       p = Points.LEVEL1)
     
+     return s.steps
+
+def drop_separate_two_level(between_drop_distance=0, backout_distance=0):
+     '''
+          Drops lower level and moves back to drop second level.
+          Backs out.
+          Points: 8
+     '''
+     
+     s = Strategy()
+
+     s(task_steps=drop_one_level(between_drop_distance))
+
+     s(s=[Servo.CenterLift(CenterLift.DOWN),
+          Servo.FrontVacuumLift(VacuumLift.DROP1, 20),
+          Servo.FrontVacuum(Vacuum.DOWN, 25)])
+
+     s(s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN)],
+          a=[I_O.Pump(0), I_O.Valve(0)])
+
+     s(m=Move.Distance(-200+backout_distance, 1000, 500),
+          s=[Servo.FrontVacuumLift(VacuumLift.HOVER)])
+
      return s.steps
 
 def lift_two_on_one(distance=0, back_distance=0):
@@ -201,6 +224,26 @@ def lift_two_on_one(distance=0, back_distance=0):
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
           p = Points.LEVEL2+Points.LEVEL3)
      
+     return s.steps
+
+def push_two_level(push_distance=0, backout_distance=0):
+     '''
+          Pushes a two level construction on top of two planks.
+          Makes space for one more two level coonstruction.
+          Assumes the robot has backed out after lifting.
+          Backs out.
+     '''
+
+     s = Strategy()
+
+     s(s=[Servo.CenterLift(CenterLift.DOWN),
+          Servo.FrontGripLift(FrontGripLift.DOWN),
+          Servo.FrontVacuumLift(VacuumLift.PUSH)])
+
+     s(m=Move.Distance(150+push_distance, 50, 50))
+
+     s(m=Move.Distance(-300+backout_distance, 1000, 1000))
+
      return s.steps
 
 def lift_one_on_two(distance=0):
@@ -233,11 +276,27 @@ def lift_one_on_two(distance=0):
      
      return s.steps
 
+def leave_banner(back_distance=0, forward_distance=0):
+     '''
+          Leave banner by hitting the back wall.
+          Forwards out.
+          Points: 20
+     '''
+
+     s = Strategy()
+
+     s(m=Move.Rotate(3.14, 15, 10))
+
+     s(m=Move.Distance(-250+back_distance, 500, 500))
+
+     s(m=Move.Distance(125+forward_distance, 1000, 500),
+       p=Points.BANNER)
+
+     return s.steps
+
 def back_lift_one_on_one():
      '''
         Places one level on a one level high construction on the ground.
-        Backs out.
-        Points: 8
      '''
      
      pass
@@ -247,88 +306,30 @@ def back_lift_one_on_stack():
         Places one level on an untouched stack (with four cans and two planks) 
         on the ground.
         Pushes the untouched stack into an area.
-        Points: 12
      '''
 
      pass
 
+def drop_back_one_level():
+     '''
+        Drop one level with back servos.
+        Forwards out.
+        Points: 4
+     '''
 
+     # blue3(m=Move.Distance(-300, 300, 300))
+     # blue3(s=[Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN),
+     #         Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
+     #         Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideRight.CLOSED),
+     #         Servo.BackLift(BackGripLift.UP-40)])
+     
+     pass
 
-# def three_and_one_level():
-#     '''
-#         Separates one material stock into a third level and first level.
-#         The third level is lifted on top of a two level, and the first is in the back grippers.
-#     '''
-#     s = Strategy()
-
-#     s(m=Move.Distance(150, 100, 300))
-
-#     s(s=[Servo.FrontCenterGrip(FRONT_CENTER_GRIP_CLOSED, 100),
-#          Servo.FrontSideGrip(FRONT_SIDE_GRIP_CLOSED, 100)])
-
-#     s(s=[Servo.FrontVacuumLift(FRONT_VACUUM_LIFT_PICKUP, 100)],
-#       a=[I_O.Pump(1), I_O.Valve(1)])
-
-#     s(s=[Servo.FrontVacuumLift(250, 100), 
-#          Servo.FrontVacuum(240, 40)])
-
-#     s(s=[Servo.FrontGripLift(FRONT_GRIP_LIFT_UP, 100), 
-#          Servo.CenterSwing(CENTER_SWING_UP, 10)])
-#     s(s=[Servo.CenterLift(CENTER_LIFT_LEVEL2, 100),
-#          Servo.FrontGripLift(FRONT_GRIP_LIFT_DOWN, 100)])
-#     s(s=[Servo.FrontSideGrip(FRONT_SIDE_GRIP_OPEN, 100)])
-
-#     s(m=Move.Distance(-150, 100, 100))
-#     s(m=Move.Rotate(3.14, 1, 1), 
-#       s=[Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100)])
-#     s(m=Move.Distance(-170, 100, 100))
-#     s(s=[Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
-#     s(m=Move.Distance(150, 100, 100))
-#     s(m=Move.Rotate(3.14, 1, 1))
-
-#     s(s=[Servo.CenterSwing(CENTER_SWING_LEVEL3, 100),
-#          Servo.CenterLift(CENTER_LIFT_LEVEL3, 100)],
-#       a=[I_O.Pump(0), I_O.Valve(0)])
-
-#     s(s=[Servo.FrontVacuumLift(180, 100)])
-
-#     s(s=[Servo.FrontVacuum(FRONT_VACUUM_OUTSTRETCHED, 100),
-#          Servo.FrontVacuumLift(250, 100)])
-
-#     s(m=Move.Distance(350, 100, 100))
-
-#     s(s=[Servo.CenterSwing(CENTER_SWING_DOWN, 50), 
-#          Servo.FrontCenterGrip(FRONT_CENTER_GRIP_OPEN, 100)])
-
-#     s(m=Move.Distance(-300, 100, 100))
-
-#     return s.steps
-
-
-# def level_lift():
-#     '''
-#         Lifts one or two levels on top of a one level.
-#     '''
-#     s= Strategy()
-
-#     s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
-#              Servo.BackSideGrip(BACK_SIDE_GRIP_OPEN, 100),
-#              Servo.BackLift(BACK_LIFT_DOWN, 50)])
-
-#     s(m=Move.Distance(-170, 100, 100))
-#     s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_CLOSED, 100),
-#          Servo.BackSideGrip(BACK_SIDE_GRIP_CLOSED, 100)])
-
-#     s(s=[Servo.BackLift(BACK_LIFT_UP, 50)])
-
-#     s(m=Move.Distance(-200, 100, 100))
-#     s(s=[Servo.BackCenterGrip(BACK_CENTER_GRIP_OPEN, 100),
-#          Servo.BackSideGrip(BACK_CENTER_GRIP_OPEN, 100),
-#          Servo.BackLift(BACK_LIFT_UP-50, 50)])  # ZAGLAVICE SE NA KABEL OD SENZORA AKO SE NE STAVI -50
-
-#     s(m=Move.Distance(200, 100, 100))
-
-#     return s.steps
-
-
-
+def drop_back_two_level():
+     '''
+        Drop two level construction with back servos.
+        Forwards out.
+        Points: 8
+     '''
+     
+     pass

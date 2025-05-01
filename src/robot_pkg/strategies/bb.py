@@ -26,8 +26,8 @@ bb(m=Move.ResetOdom(1780, 230, 1.57),
 ####################
 ## LEAVING BANNER ##
 ####################
-# bb(m=Move.Distance(-100, 1000, 1500))
-# bb(m=Move.Distance(100, 300, 300))
+# bb(m=Move.Distance(-100, 1000, 500))
+# bb(m=Move.Distance(100, 1000, 500))
 
 ##############################
 ## PICK-UP and DROP STACK 6 ##

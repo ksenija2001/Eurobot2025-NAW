@@ -73,8 +73,10 @@ class BackSideLeft:
 class VacuumLift:
     UP = 290
     HOLD = 230  
+    PUSH = 147
     HOVER = 120 
-    PICKUP2 = 92 #95 
+    DROP1 = 102      # Position for dropping one plank 
+    PICKUP2 = 92 #95 # Position for pickinng-up one plank
     POSITION2 = 40
     DROP2 = 10
     DOWN = 0
@@ -82,6 +84,7 @@ class VacuumLift:
 class CenterLift:
     UP = 265
     LIFT2 = 200
+    DROP1 = 160
     POSITION2 = 140
     DROP2 = 140
     HOLD2 = 90
