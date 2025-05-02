@@ -21,21 +21,18 @@ def init_position(init_x, init_y, init_theta, final_position:str):
 
      s(task_steps=init_all_servos())
 
-     s(m=Move.ResetOdom(init_x, init_y, init_theta),
-       task_steps=close_front())
+     s(m=Move.ResetOdom(init_x, init_y, init_theta))
 
      if final_position == "left corner":
-          s(m=Move.Distance(-125.5, 100, 100))
+          s(m=Move.Distance(-122, 100, 100))
      elif final_position == "middle":
-          s(m=Move.Distance(-77.5, 100, 100))
-     elif final_position == "right_corner":
-          s(m=Move.Distance(-29.5, 100, 100))
+          s(m=Move.Distance(-80, 100, 100))
+     elif final_position == "right corner":
+          s(m=Move.Distance(-42, 100, 100))
 
-     s(m=Move.Rotate(1.5707,  1, 1),
-       s=[Servo.BackLift(BackGripLift.HOLD)])
+     s(m=Move.Rotate(1.5707,  1, 1))
      
-     s(m=Move.Distance(-200, 100, 100),
-       task_steps=close_back()) 
+     s(m=Move.Distance(-200, 100, 100)) 
 
      angle = init_theta+1.5707
      if angle > math.pi:
@@ -45,8 +42,8 @@ def init_position(init_x, init_y, init_theta, final_position:str):
 
      s(m=Move.ResetOdom(0, 0, angle))
 
-     s(m=Move.Distance(150, 100, 100),
-       s=init_all_servos())
+     s(m=Move.Distance(150, 100, 100))
+     # s(task_steps=init_all_servos())
 
      return s.steps
 
@@ -89,16 +86,16 @@ def init_all_servos():
     '''
 
     s = Strategy()
-    s(s=[Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideLeft.CLOSED),
+    s(s=[Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideRight.CLOSED),
          Servo.FrontCenterGrip(FrontCenterLeft.NEUTRAL, FrontCenterRight.NEUTRAL),
-         Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),  # PROMENITI KADA SE ISEKU GRIPPERI
-         Servo.BackCenterGrip(BackCenterLeft.OPEN, BackSideRight.OPEN),
+         Servo.BackSideGrip(BackSideLeft.CLOSED, BackSideRight.CLOSED),  # PROMENITI KADA SE ISEKU GRIPPERI
+         Servo.BackCenterGrip(BackCenterLeft.CLOSED, BackCenterRight.CLOSED),
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontVacuumLift(VacuumLift.UP),
          Servo.FrontVacuum(Vacuum.DOWN),
          Servo.CenterSwing(CenterSwing.INIT),
          Servo.CenterLift(CenterLift.DOWN, 50),
-         Servo.BackLift(BackGripLift.DOWN)],
+         Servo.BackLift(BackGripLift.HOLD)],
        a=[I_O.Pump(0), I_O.Valve(0)])
     
     return s.steps

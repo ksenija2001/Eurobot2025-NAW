@@ -14,10 +14,13 @@ visoka_gradnja_plava = Strategy(color = Color.BLUE,
 ## STARTING POSITION: BLUE HOME AREA ##
 #######################################
 
-visoka_gradnja_plava(task_steps=init_position(),)
-
-visoka_gradnja_plava(m=Move.ResetOdom(3000-150-225+47.5, 2000-230, -1.57),
-        task_steps=init_all_servos())
+visoka_gradnja_plava(
+    task_steps=init_position(
+                            Area.BLUE_HOME.x - 77.5, 
+                            Area.BLUE_HOME.y - 48, 
+                            3.14, 
+                            'left corner')
+)
 
 ######################
 ## PICK-UP STACK 10 ##

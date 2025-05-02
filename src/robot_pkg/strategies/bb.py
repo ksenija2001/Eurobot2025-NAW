@@ -12,15 +12,28 @@ from robot_pkg.strategies.tasks import *
 
 bb = Strategy(color = Color.BLUE, square = Square.CENTER, mood = Mood.PASSIVE)
 
-bb(sima_id=4, 
-  sima=[Position(125, -400, 0, 0), 
-        Position(1000, -600, 0, 35), 
-        Position(1800, -550, 0, 35)])
+# bb(sima_id=4, 
+#   sima=[Position(125, -400, 0, 0), 
+#         Position(1000, -600, 0, 35), 
+#         Position(1800, -550, 0, 35)])
 # bb(sima_id=1, 
 #   sima=[Position(1000, 1000, 1.57, 100), Position(1500, 1500, 0, 100), Position(900, 900.5, 0, 200)])
 
-bb(m=Move.ResetOdom(1780, 230, 1.57),
-  task_steps=init_all_servos()) #,
+####################################
+## STARTING POSITION: BLUE 2 AREA ##
+####################################
+
+bb(
+    task_steps=init_position(
+                            Area.BLUE_2.x + 77.5, 
+                            Area.BLUE_2.y + 48, 
+                            0.0, 
+                            'middle')
+)
+
+
+# bb(m=Move.ResetOdom(1780, 230, 1.57),
+#   task_steps=init_all_servos()) #,
         # c=[Condition.CinchPulled(1)])   
 
 ####################

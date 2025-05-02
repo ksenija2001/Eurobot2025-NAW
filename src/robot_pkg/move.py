@@ -235,10 +235,10 @@ class Move:
     def _execute(self):
         Move.move_done.clear()
 
-        if self._type == MoveType.RESET and not any(self.data[0:8]):
-            packed = [Move.pose.x, Move.pose.y]
-            xy_data = struct.pack('2f', *packed)
-            self.data[0:8] = xy_data
+        if self._type == MoveType.RESET.name and not any(self.data[0:8]):
+            theta = float(struct.unpack('f', self.data[8:12])[0])
+            packed = [Move.pose.x, Move.pose.y, theta]
+            self.data = struct.pack('3f', *packed)
             
         self.send_queue.append(self.data)
         self.executed = True
