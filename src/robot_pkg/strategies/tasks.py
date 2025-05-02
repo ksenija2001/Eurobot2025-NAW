@@ -6,7 +6,81 @@ from robot_pkg.conditions import ConditionType
 from robot_pkg.misc import *
 from robot_pkg.play_elements import *
 from robot_pkg.consts import Points
+import math
 
+def init_position(init_x, init_y, init_theta, final_position:str):
+     '''
+          The robot is aligned with the left or right corner at the beginning, 
+          facing to the right of the area.
+          All servos are closed.
+          It moves back to the center of area, rotates for 90deg and moves back until it hits a wall.
+          Theta is reset after and it moves to the starting position in area.
+     '''
+
+     s = Strategy()
+
+     s(task_steps=init_all_servos())
+
+     s(m=Move.ResetOdom(init_x, init_y, init_theta),
+       task_steps=close_front())
+
+     if final_position == "left corner":
+          s(m=Move.Distance(-125.5, 100, 100))
+     elif final_position == "middle":
+          s(m=Move.Distance(-77.5, 100, 100))
+     elif final_position == "right_corner":
+          s(m=Move.Distance(-29.5, 100, 100))
+
+     s(m=Move.Rotate(1.5707,  1, 1),
+       s=[Servo.BackLift(BackGripLift.HOLD)])
+     
+     s(m=Move.Distance(-200, 100, 100),
+       task_steps=close_back()) 
+
+     angle = init_theta+1.5707
+     if angle > math.pi:
+          angle -= 2*math.pi
+     elif angle < math.pi:
+          angle += 2*math.pi
+
+     s(m=Move.ResetOdom(0, 0, angle))
+
+     s(m=Move.Distance(150, 100, 100),
+       s=init_all_servos())
+
+     return s.steps
+
+def open_front():
+     s = Strategy()
+
+     s(s=[Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideLeft.OPEN),
+         Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN)])
+     
+     return s.steps
+
+def close_front():
+     s = Strategy()
+
+     s(s=[Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideLeft.CLOSED),
+         Servo.FrontCenterGrip(FrontCenterLeft.CLOSED, FrontCenterRight.CLOSED)])
+     
+     return s.steps
+
+def open_back():
+     s = Strategy()
+
+     s(s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN), 
+         Servo.BackCenterGrip(BackCenterLeft.OPEN, BackSideRight.OPEN)])
+     
+     return s.steps
+
+def close_back():
+     s = Strategy()
+
+     s(s=[Servo.BackSideGrip(BackSideLeft.CLOSED, BackSideRight.CLOSED), 
+         Servo.BackCenterGrip(BackCenterLeft.CLOSED, BackSideRight.CLOSED)])
+     
+     return s.steps
 
 def init_all_servos():
     '''
