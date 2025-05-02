@@ -74,6 +74,7 @@ void app_main(void)
     }
 
     init_tof_intr(tof.io.INTR_pin, &tof);
+    vTaskDelay(pdMS_TO_TICKS(500));
     
     while(1){  
 
