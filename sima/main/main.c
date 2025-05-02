@@ -24,6 +24,12 @@ VL53LMZ_Object tof = {
 		.orient_offset = { .vector = {0} }
 };
 
+VL53LMZ_Interrupt_Zone zone = {
+    .interrupt_left = 0,
+    .interrupt_right = 0,
+    .interrupt_center = 0
+};
+
 void Error_Handler(){
     ESP_LOGE("Error", "error :)");
     while(1){
@@ -77,13 +83,30 @@ void app_main(void)
             status |= VL53LMZ_Get_Distance(&tof.conf, &data);
             status |= ConvertDist2Point(&data, &tof, 450.0);
 
-            for(uint16_t i = 0; i < VL53LMZ_RESOLUTION_4X4 / 4; i++){
-                ESP_LOGI("Distances:", "%lu %lu %lu %lu (%lu %lu %lu %lu)", 
-                                        data.ZoneResult[i * 4].Distance, data.ZoneResult[i * 4 +1].Distance, 
-                                        data.ZoneResult[i * 4+2].Distance, data.ZoneResult[i*4+3].Distance, 
-                                        data.ZoneResult[i * 4].Status, data.ZoneResult[i * 4 +1].Status, 
-                                        data.ZoneResult[i * 4+2].Status, data.ZoneResult[i*4+3].Status);
-            }        
+            tof_calculate_distances_interrupt(&tof, &data);
+
+            // for(uint16_t i = 0; i < VL53LMZ_RESOLUTION_4X4 / 4; i++){
+            //     ESP_LOGI("Distances:", "%lu %lu %lu %lu (%lu %lu %lu %lu)", 
+            //                             data.ZoneResult[i * 4].Distance, data.ZoneResult[i * 4 +1].Distance, 
+            //                             data.ZoneResult[i * 4+2].Distance, data.ZoneResult[i*4+3].Distance, 
+            //                             data.ZoneResult[i * 4].Status, data.ZoneResult[i * 4 +1].Status, 
+            //                             data.ZoneResult[i * 4+2].Status, data.ZoneResult[i*4+3].Status);
+            // }        
         }
+
+        if(get_tof_intr_zone(&tof, &data, &zone)){
+            if(zone.interrupt_left){
+                ESP_LOGI("Interrupt zone", "left");
+            }
+
+            if(zone.interrupt_right){
+                ESP_LOGI("Interrupt zone", "right");
+            }
+
+            if(zone.interrupt_center){
+                ESP_LOGI("Interrupt zone", "center");
+            }
+        }
+
     }
 }

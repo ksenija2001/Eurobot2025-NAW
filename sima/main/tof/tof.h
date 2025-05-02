@@ -22,6 +22,30 @@
 
 #define DEBUG_TOF
 
+#define TOF_NUMBER_OF_ZONES VL53LMZ_RESOLUTION_4X4
+
+#if defined(TOF_NUMBER_OF_ZONES) && TOF_NUMBER_OF_ZONES == VL53LMZ_RESOLUTION_8X8
+	#define TOF_RIGHT_ZONE_1 24
+	#define TOF_RIGHT_ZONE_2 32
+
+	#define TOF_LEFT_ZONE_1 31
+	#define TOF_LEFT_ZONE_2 39
+
+	#define TOF_CENTER_ZONE_1 35
+	#define TOF_CENTER_ZONE_2 27
+#else
+	#define TOF_RIGHT_ZONE_1 4
+	#define TOF_RIGHT_ZONE_2 8
+
+	#define TOF_LEFT_ZONE_1 7
+	#define TOF_LEFT_ZONE_2 11
+
+	#define TOF_CENTER_ZONE_1 5
+	#define TOF_CENTER_ZONE_2 9
+#endif
+
+#define TOF_INTERRUPT_DISTANCE 300
+
 typedef struct {
 	//GPIO_TypeDef* LPn_port;
 	//uint16_t LPn_pin;
@@ -61,7 +85,17 @@ typedef struct {
 	sVector3_t point_cloud[64];
 
 	bool interrupt;
+
+	bool interrupt_left_zone;
+	bool interrupt_right_zone;
+	bool interrupt_center_zone;
 } VL53LMZ_Object;
+
+typedef struct {
+	bool interrupt_left;
+	bool interrupt_right;
+	bool interrupt_center;
+} VL53LMZ_Interrupt_Zone;
 
 uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, uint16_t address);
 void VL53LMZ_Reset(VL53LMZ_IO* io);
@@ -90,5 +124,8 @@ void init_tof_intr(gpio_num_t num, VL53LMZ_Object* tof);
  * @retval Return true if interrupt has happened, otherwise false
  */
 bool get_tof_intr(VL53LMZ_Object* tof);
+
+void tof_calculate_distances_interrupt(VL53LMZ_Object* tof, VL53LMZ_Result_t *data);
+bool get_tof_intr_zone(VL53LMZ_Object* tof, VL53LMZ_Result_t *data, VL53LMZ_Interrupt_Zone* zone);
 
 #endif /* TARGET_INC_CUSTOM_TOF_H_ */
