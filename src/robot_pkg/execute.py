@@ -89,7 +89,7 @@ class Execute:
             while self.running:
                 time.sleep(0.01)
 
-                cinch = 0 #I_O.sensor_states[SensorType.CINCH.value]
+                cinch = I_O.sensor_states[SensorType.CINCH.value]
                 move_done = Move.move_done.is_set()
                 curr_pose = Move.pose
                 servo_in_pos = Servo.check_in_positions()

@@ -40,10 +40,11 @@ def init_position(init_x, init_y, init_theta, final_position:str):
      elif angle < math.pi:
           angle += 2*math.pi
 
-     s(m=Move.ResetOdom(0, 0, angle),
-          c=[Condition.CinchPulled(1)])
+     s(m=Move.ResetOdom(0, 0, angle))
 
-     s(ID=1, m=Move.Distance(150, 100, 100))
+     s(m=Move.Distance(150, 100, 100),
+       c=[Condition.CinchPulled(1)])
+       
      # s(task_steps=init_all_servos())
 
      return s.steps

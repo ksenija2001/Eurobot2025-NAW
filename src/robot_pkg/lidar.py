@@ -48,13 +48,13 @@ class Lidar:
                     detection_side = struct.unpack('B', lidar_msg.data)[0]
                     if detection_side == 70: # 'F' - FRONT
                         # Lidar.last_detection_time = time.time()
-                        # Variables.front_detection.set()
-                        # Variables.processing_detection.set()
+                        Variables.front_detection.set()
+                        Variables.processing_detection.set()
                         Lidar._logger.debug(f"FRONT")
                     elif detection_side == 66: # 'B' - BACK
                         # Lidar.last_detection_time = time.time()
-                        # Variables.back_detection.set()
-                        # Variables.processing_detection.set()
+                        Variables.back_detection.set()
+                        Variables.processing_detection.set()
                         Lidar._logger.debug(f"BACK")
                     else:
                         Lidar._logger.debug(f"Unknown detection")

@@ -26,7 +26,8 @@ visoka_gradnja_plava(
 ## PICK-UP STACK 10 ##
 ######################
 
-visoka_gradnja_plava(m=Move.Spline([MaterialStack.STACK10.x], #- 10],
+visoka_gradnja_plava(ID=1,
+                    m=Move.Spline([MaterialStack.STACK10.x], #- 10],
                                     [MaterialStack.STACK10.y+350],
                                     [3.14],
                                     800,
