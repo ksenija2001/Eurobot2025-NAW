@@ -14,33 +14,42 @@ visoka_gradnja_plava = Strategy(color = Color.BLUE,
 ## STARTING POSITION: BLUE HOME AREA ##
 #######################################
 
-visoka_gradnja_plava(m=Move.ResetOdom(3000-150-225, 2000-230, -1.57),
+visoka_gradnja_plava(m=Move.ResetOdom(3000-150-225+47.5, 2000-230, -1.57),
         task_steps=init_all_servos())
 
 ######################
 ## PICK-UP STACK 10 ##
 ######################
 
-visoka_gradnja_plava(m=Move.Distance(450, 1500, 1500))
+visoka_gradnja_plava(m=Move.Spline([MaterialStack.STACK10.x - 10],
+                                    [MaterialStack.STACK10.y+350],
+                                    [3.14],
+                                    800,
+                                    'f'),
+                   task_steps=init_front_servos())
 
-visoka_gradnja_plava(m=Move.To(MaterialStack.STACK10.x - 20, 
-                MaterialStack.STACK10.y+350, 
-                'f', 1500, 1500, 15, 10),
-      task_steps=init_front_servos())
+# visoka_gradnja_plava(m=Move.Distance(450, 1500, 1500))
 
-visoka_gradnja_plava(m=Move.RotateTo(-1.57, 15, 5))
+# visoka_gradnja_plava(m=Move.To(MaterialStack.STACK10.x - 10, 
+#                 MaterialStack.STACK10.y+350, 
+#                 'f', 1500, 1500, 15, 10),
+#       task_steps=init_front_servos())
 
-visoka_gradnja_plava(task_steps=pickup_front_full_stack(75))
+visoka_gradnja_plava(m=Move.RotateTo(-1.57, 15, 10))
+
+visoka_gradnja_plava(task_steps=pickup_front_full_stack(125))
 
 ######################################
 ## SEPARATE STACK 10 IN BLUE AREA 2 ##
 ######################################
 
-visoka_gradnja_plava(m=Move.To(Area.BLUE_2.x - 50, 
-                Area.BLUE_2.y+80, 
-                'f', 1500, 1000, 15, 5),
+visoka_gradnja_plava(m=Move.Spline([Area.BLUE_2.x - 50], 
+                [Area.BLUE_2.y+80], 
+                [-1.57],
+                500,
+                'f'),
     task_steps=two_level())
-visoka_gradnja_plava(m=Move.RotateTo(-1.57, 15, 5))
+# visoka_gradnja_plava(m=Move.RotateTo(-1.57, 15, 10))
 
 visoka_gradnja_plava(task_steps=drop_separate_two_level(-150))
 
@@ -78,7 +87,7 @@ visoka_gradnja_plava(m=Move.RotateTo(3.14, 10, 5),
     task_steps=two_level())
 
 visoka_gradnja_plava(task_steps=lift_two_on_one(150, -100))
-visoka_gradnja_plava(task_steps=push_two_level())
+visoka_gradnja_plava(task_steps=push_two_level(0))
 
 #####################
 ## PICK-UP STACK 7 ##
@@ -94,7 +103,7 @@ visoka_gradnja_plava(m=Move.RotateTo(0, 15, 10))
 visoka_gradnja_plava(task_steps=pickup_front_full_stack(-50))
 
 # Make space for rotation while making two levels
-visoka_gradnja_plava(m=Move.Distance(-250, 300, 300))
+visoka_gradnja_plava(m=Move.Distance(-250, 1000, 500))
 
 ##############################################
 ## LEAVE TWO LEVELS ON PREVIOUSLY SEPARATED ##
@@ -103,21 +112,21 @@ visoka_gradnja_plava(m=Move.Distance(-250, 300, 300))
 
 visoka_gradnja_plava(m=Move.To(MaterialStack.STACK6.x+50,  # ADD MORE BECAUSE THE WHOLE CONSTRUCTION MOVED
                 325, 
-                'f', 1000, 500, 10, 3),
+                'f', 1500, 500, 10, 3),
     task_steps=two_level())
 
 visoka_gradnja_plava(m=Move.RotateTo(3.14, 10, 5))
 
-visoka_gradnja_plava(task_steps=lift_two_on_one(140, -100))
+visoka_gradnja_plava(task_steps=lift_two_on_one(150, -100))
 visoka_gradnja_plava(task_steps=push_two_level())
 
 #####################
 ## PICK-UP STACK 1 ##
 #####################
 
-visoka_gradnja_plava(m=Move.To(MaterialStack.STACK1.x + 10, 
-                MaterialStack.STACK1.y - 350, 
-                'f', 2000, 2000, 15, 20),
+visoka_gradnja_plava(m=Move.To(MaterialStack.STACK1.x, 
+                              MaterialStack.STACK1.y - 350, 
+                              'f', 1000, 1500, 15, 15),
       task_steps=init_front_servos())
 
 visoka_gradnja_plava(m=Move.RotateTo(1.57, 15, 3))
@@ -137,8 +146,9 @@ visoka_gradnja_plava(m=Move.Spline([MaterialStack.STACK8.x - 225],
                  450,
                  'r'))
 
-visoka_gradnja_plava(m=Move.RotateTo(0, 15, 5))
+visoka_gradnja_plava(m=Move.RotateTo(3.14, 15, 5))
 visoka_gradnja_plava(task_steps=pickup_back_full_stack())
+visoka_gradnja_plava(m=Move.Distance(100, 500, 300))
 
 ##########################
 ## MOVE TO BLUE AREA 2  ##
@@ -155,52 +165,71 @@ visoka_gradnja_plava(m=Move.RotateTo(3.14, 5, 5))
 ## LEAVE STACK 8 BEHIND ROBOT  ##
 #################################
 
-visoka_gradnja_plava(m=Move.Distance(-200, 1000, 500),
-      s=[Servo.BackLift(BackGripLift.DOWN, 30)])
-visoka_gradnja_plava(m=Move.Distance(200, 300, 300),
-      s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
-        Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN)])
+# visoka_gradnja_plava(m=Move.Distance(-200, 1200, 500),
+#       s=[Servo.BackLift(BackGripLift.DOWN, 30)])
+# visoka_gradnja_plava(m=Move.Distance(200, 300, 300),
+#       s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
+#         Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN)])
 
 ##############################################
 ## LEAVE TWO LEVELS ON PREVIOUSLY SEPARATED ##
 ## STACKS IN BLUE AREA 2 - THIRD TIME       ##
 ##############################################
 
-visoka_gradnja_plava(task_steps=lift_two_on_one(150, -100))
-visoka_gradnja_plava(task_steps=push_two_level())
+visoka_gradnja_plava(task_steps=lift_two_on_one(150, 50))
+# visoka_gradnja_plava(task_steps=push_two_level())
 
 #######################################
 ## PICK-UP STACK 8 WHERE IT WAS LEFT ##
 #######################################
 
-visoka_gradnja_plava(m=Move.RotateTo(3.14, 15, 10),
-      task_steps=init_front_servos())
+# visoka_gradnja_plava(m=Move.RotateTo(0, 15, 10),
+#       task_steps=init_front_servos())
 
-visoka_gradnja_plava(task_steps=pickup_front_full_stack())
+# visoka_gradnja_plava(task_steps=pickup_front_full_stack())
 
 ##############################################
 ## LEAVE TWO LEVELS ON PREVIOUSLY SEPARATED ##
 ## STACKS IN BLUE AREA 2 - FOURTH TIME      ##
 ##############################################
 
-visoka_gradnja_plava(m=Move.To(MaterialStack.STACK6.x+50, 
-                325, 
-                'f', 1000, 500, 10, 5),   
-      task_steps=two_level())
+# visoka_gradnja_plava(m=Move.RotateTo(-1.57, 10, 5),
+#                      task_steps=two_level())
+# visoka_gradnja_plava(task_steps=drop_two_level())
 
-visoka_gradnja_plava(m=Move.RotateTo(3.14, 10, 5))
+visoka_gradnja_plava(m=Move.RotateTo(1.57, 10, 5),
+                        s=[Servo.BackLift(BackGripLift.DOWN, 30)],
+                        task_steps=init_front_servos())
 
-visoka_gradnja_plava(task_steps=lift_two_on_one(150, -100))
-visoka_gradnja_plava(task_steps=push_two_level())
+visoka_gradnja_plava(m=Move.Distance(250, 500, 500),
+                     s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
+                        Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN)])
+
+visoka_gradnja_plava(m=Move.RotateTo(-1.57, 15 ,10))
+visoka_gradnja_plava(task_steps=pickup_front_full_stack())
+visoka_gradnja_plava(task_steps=two_level())
+visoka_gradnja_plava(task_steps=drop_two_level())
+
+# visoka_gradnja_plava(m=Move.To(MaterialStack.STACK6.x+50, 
+#                 325, 
+#                 'f', 1000, 500, 10, 5),   
+#       task_steps=two_level())
+
+# visoka_gradnja_plava(m=Move.RotateTo(3.14, 10, 5))
+
+# visoka_gradnja_plava(task_steps=lift_two_on_one(150, -100))
+# visoka_gradnja_plava(task_steps=push_two_level())
 
 ##########
 ## HOME ##
 ##########
 
 visoka_gradnja_plava(ID=100,
-      m=Move.To(Area.BLUE_HOME.x, 
-                Area.BLUE_HOME.y-250, 
-                'r', 2000, 2000, 15, 20))
+                  m=Move.Spline([Area.BLUE_HOME.x], 
+                              [Area.BLUE_HOME.y-250], 
+                              [-2.35],
+                              800,
+                              'r'))
 
 
 # visoka_gradnja_plava(m=Move.Distance(200, 500, 500))

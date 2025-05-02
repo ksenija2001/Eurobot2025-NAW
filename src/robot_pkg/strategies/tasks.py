@@ -193,7 +193,8 @@ def drop_separate_two_level(between_drop_distance=0, backout_distance=0):
           Servo.FrontVacuum(Vacuum.DOWN, 25)])
 
      s(s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN)],
-          a=[I_O.Pump(0), I_O.Valve(0)])
+          a=[I_O.Pump(0), I_O.Valve(0)],
+          p=Points.LEVEL1)
 
      s(m=Move.Distance(-200+backout_distance, 1000, 500),
           s=[Servo.FrontVacuumLift(VacuumLift.HOVER)])
@@ -212,14 +213,17 @@ def lift_two_on_one(distance=0, back_distance=0):
      s(s=[Servo.CenterLift(CenterLift.LIFT2, 50)],
           a=[I_O.Pump(0), I_O.Valve(0)])
 
-     s(s=[
-          Servo.CenterLift(CenterLift.UP, 60),
-          Servo.FrontVacuumLift(VacuumLift.UP, 60),
-          Servo.FrontGripLift(FrontGripLift.UP-20, 30),
-          Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
+     # s(s=[Servo.CenterLift(CenterLift.UP, 60),
+     #      Servo.FrontVacuumLift(VacuumLift.UP, 60),
+     #      Servo.FrontGripLift(FrontGripLift.UP-20, 30),
+     #      Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
           
-     s(m=Move.Distance(150+distance, 1000, 300))
-     s(m=Move.Distance(-250-back_distance, 1000, 500),
+     s(m=Move.Distance(150+distance, 800, 300),
+          s=[Servo.CenterLift(CenterLift.UP, 60),
+          Servo.FrontVacuumLift(VacuumLift.UP, 60),
+          Servo.FrontGripLift(FrontGripLift.UP-20, 50),
+          Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
+     s(m=Move.Distance(-250-back_distance, 1000, 1000),
           s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
           p = Points.LEVEL2+Points.LEVEL3)
@@ -236,11 +240,15 @@ def push_two_level(push_distance=0, backout_distance=0):
 
      s = Strategy()
 
-     s(s=[Servo.CenterLift(CenterLift.DOWN),
-          Servo.FrontGripLift(FrontGripLift.DOWN),
-          Servo.FrontVacuumLift(VacuumLift.PUSH)])
+     # s(s=[Servo.CenterLift(CenterLift.DOWN),
+     #      Servo.FrontGripLift(FrontGripLift.DOWN),
+     #      Servo.FrontVacuumLift(VacuumLift.PUSH)])
 
-     s(m=Move.Distance(150+push_distance, 50, 50))
+     s(m=Move.Distance(150+push_distance, 500, 50),
+     s=[
+          # Servo.CenterLift(CenterLift.DOWN),
+          Servo.FrontGripLift(FrontGripLift.HOVER+20),
+          Servo.FrontVacuumLift(VacuumLift.PUSH)])
 
      s(m=Move.Distance(-300+backout_distance, 1000, 1000))
 

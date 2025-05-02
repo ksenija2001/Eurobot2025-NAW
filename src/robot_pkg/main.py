@@ -37,7 +37,7 @@ def main_func():
     I_O.start_threads()
     Lidar.start_threads()
 
-    reset_odom = Move.ResetOdom(0, 0, 1.5707) #1780, 230, 1.57)#1500 , 125, 1.57)
+    reset_odom = Move.ResetOdom(1500 , 135, 1.57)
     reset_odom._execute()
 
     time.sleep(2)

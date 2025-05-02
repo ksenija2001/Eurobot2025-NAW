@@ -54,7 +54,7 @@ class Execute:
            # when next_step_id is an integer, all steps with an ID not equal to next_step_ID will be skipped
 
             step = self.steps.pop(0)
-            while step.ID != next_step_id:
+            while step.ID != next_step_id and step.ID != 100:
                 step = self.steps.pop(0)
             
             self._logger.info(f"Current step ID: {step.ID}")

@@ -33,13 +33,13 @@ class FrontCenterLeft:
     CLOSED = 110
 
 class FrontSideRight:
-    OPEN = 45 - OPEN_GAIN - 5
+    OPEN = 45 - OPEN_GAIN - 8
     GRIP = 45 + GRIP_GAIN + 2
     NEUTRAL = 90
     CLOSED = 110
 
 class FrontSideLeft:
-    OPEN = 180 - 42 + OPEN_GAIN + 5
+    OPEN = 180 - 42 + OPEN_GAIN + 10
     GRIP = 180 - 42 - GRIP_GAIN - 2
     NEUTRAL = 180 - 90
     CLOSED = 180 - 110
@@ -75,7 +75,7 @@ class VacuumLift:
     HOLD = 230  
     PUSH = 147
     HOVER = 120 
-    DROP1 = 102      # Position for dropping one plank 
+    DROP1 = 105      # Position for dropping one plank 
     PICKUP2 = 92 #95 # Position for pickinng-up one plank
     POSITION2 = 40
     DROP2 = 10
