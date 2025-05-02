@@ -2,7 +2,7 @@ from robot_pkg.strategy import Strategy, Color, Square, Mood
 from robot_pkg.move import Move
 from robot_pkg.servo import Servo
 from robot_pkg.in_out import I_O
-from robot_pkg.conditions import ConditionType
+from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.misc import *
 from robot_pkg.play_elements import *
 from robot_pkg.consts import Points
@@ -40,9 +40,10 @@ def init_position(init_x, init_y, init_theta, final_position:str):
      elif angle < math.pi:
           angle += 2*math.pi
 
-     s(m=Move.ResetOdom(0, 0, angle))
+     s(m=Move.ResetOdom(0, 0, angle),
+          c=[Condition.CinchPulled(1)])
 
-     s(m=Move.Distance(150, 100, 100))
+     s(ID=1, m=Move.Distance(150, 100, 100))
      # s(task_steps=init_all_servos())
 
      return s.steps
@@ -162,7 +163,8 @@ def pickup_front_full_stack(distance=0):
          Servo.FrontVacuum(Vacuum.DOWN),
          Servo.CenterSwing(CenterSwing.DOWN, 50),
          Servo.CenterLift(CenterLift.DOWN),
-         Servo.FrontGripLift(FrontGripLift.DOWN)])
+         Servo.FrontGripLift(FrontGripLift.DOWN),
+         Servo.FrontVacuumLift(VacuumLift.HOVER)])
 
     s(s=[Servo.FrontCenterGrip(FrontCenterLeft.GRIP, FrontCenterRight.GRIP),
          Servo.FrontSideGrip(FrontSideLeft.GRIP, FrontSideRight.GRIP),
@@ -219,7 +221,7 @@ def drop_two_level(distance=0):
      
      s(s=[Servo.FrontVacuumLift(VacuumLift.POSITION2-20)])
      
-     s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
+     s(s=[Servo.FrontVacuum(Vacuum.PUSH),
           Servo.FrontVacuumLift(VacuumLift.DOWN),
           Servo.CenterLift(CenterLift.DROP2, 50),
           Servo.FrontGripLift(FrontGripLift.DOWN, 50)])
@@ -293,10 +295,11 @@ def lift_two_on_one(distance=0, back_distance=0):
           s=[Servo.CenterLift(CenterLift.UP, 60),
           Servo.FrontVacuumLift(VacuumLift.UP, 60),
           Servo.FrontGripLift(FrontGripLift.UP-20, 50),
-          Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
+          Servo.FrontVacuum(Vacuum.DROP, 60)])
      s(m=Move.Distance(-250-back_distance, 1000, 1000),
-          s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
-          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
+     s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
+          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
+          Servo.FrontVacuumLift(VacuumLift.UP-20)],
           p = Points.LEVEL2+Points.LEVEL3)
      
      return s.steps
@@ -318,8 +321,9 @@ def push_two_level(push_distance=0, backout_distance=0):
      s(m=Move.Distance(150+push_distance, 500, 50),
      s=[
           # Servo.CenterLift(CenterLift.DOWN),
-          Servo.FrontGripLift(FrontGripLift.HOVER+20),
-          Servo.FrontVacuumLift(VacuumLift.PUSH)])
+          Servo.FrontGripLift(FrontGripLift.DOWN), #HOVER+20),
+          Servo.FrontVacuumLift(10),
+          Servo.FrontVacuum(Vacuum.PUSH)])
 
      s(m=Move.Distance(-300+backout_distance, 1000, 1000))
 
@@ -344,7 +348,7 @@ def lift_one_on_two(distance=0):
        s=[Servo.FrontVacuumLift(VacuumLift.UP-15, 50),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
           Servo.FrontGripLift(FrontGripLift.DOWN),
-          Servo.FrontVacuum(Vacuum.MIDDLE)])
+          Servo.FrontVacuum(Vacuum.DROP)])
      
      s(s=[Servo.CenterLift(CenterLift.UP-10),
           Servo.CenterSwing(CenterSwing.DOWN),

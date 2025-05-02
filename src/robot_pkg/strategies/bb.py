@@ -10,7 +10,7 @@ from robot_pkg.strategies.tasks import *
 ## BLUE BASIC ##
 ################
 
-bb = Strategy(color = Color.BLUE, square = Square.CENTER, mood = Mood.PASSIVE)
+bb = Strategy(color = Color.BLUE, square = Square.LOWER, mood = Mood.PASSIVE)
 
 # bb(sima_id=4, 
 #   sima=[Position(125, -400, 0, 0), 
@@ -77,7 +77,7 @@ bb(task_steps=pickup_back_full_stack())
 ## PICK-UP STACK 10 ##
 ######################
 
-bb(m=Move.Spline([MaterialStack.STACK10.x + 10],
+bb(m=Move.Spline([MaterialStack.STACK10.x],
                  [MaterialStack.STACK10.y - 260],
                  [1.57],
                  500,

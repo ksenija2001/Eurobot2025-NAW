@@ -99,6 +99,8 @@ class CenterSwing:
 
 class Vacuum:
     UP = 240
+    PUSH = 195
+    DROP = 175
     MIDDLE = 150
     DOWN = 60
 

@@ -10,7 +10,7 @@ from robot_pkg.strategies.tasks import *
 ## BLUE BASIC ##
 ################
 
-bb1 = Strategy(color = Color.BLUE, square = Square.LOWER, mood = Mood.PASSIVE)
+bb1 = Strategy(color = Color.BLUE, square = Square.CENTER, mood = Mood.PASSIVE)
 
 # bb1(sima_id=4, 
 #   sima=[Position(125, -400, 0, 0), 
@@ -19,10 +19,13 @@ bb1 = Strategy(color = Color.BLUE, square = Square.LOWER, mood = Mood.PASSIVE)
 # # bb1(sima_id=1, 
 # #   sima=[Position(1000, 1000, 1.57, 100), Position(1500, 1500, 0, 100), Position(900, 900.5, 0, 200)])
 
-bb1(m=Move.ResetOdom(1780, 230, 1.57),
-  task_steps=init_all_servos()) #,
-        # c=[Condition.CinchPulled(1)])   
-
+bb1(
+    task_steps=init_position(
+                            Area.BLUE_2.x + 77.5, 
+                            Area.BLUE_2.y + 48, 
+                            0.0, 
+                            'middle')
+)
 ####################
 ## LEAVING BANNER ##
 ####################
@@ -126,7 +129,7 @@ bb1(m=Move.RotateTo(-1.57, 5, 5))
 bb1(task_steps=lift_one_on_two(50))
 
 
-bb1(m=Move.To(MaterialStack.STACK10.x+10, MaterialStack.STACK10.y-350, 'f', 1500, 1000, 5, 5),
+bb1(m=Move.To(MaterialStack.STACK10.x+10, MaterialStack.STACK10.y-350, 'f', 1500, 1000, 5, 3),
   s=[Servo.FrontVacuumLift(VacuumLift.UP),
      Servo.FrontVacuum(Vacuum.DOWN),
      Servo.CenterLift(CenterLift.DOWN),
@@ -135,7 +138,7 @@ bb1(m=Move.To(MaterialStack.STACK10.x+10, MaterialStack.STACK10.y-350, 'f', 1500
 bb1(m=Move.RotateTo(1.57, 5, 5))
 bb1(task_steps=(pickup_front_full_stack(50)))
 
-bb1(m=Move.To(Area.BLUE_2.x, Area.BLUE_2.y, 'r', 1500, 1000, 10, 5), # changed from r
+bb1(m=Move.To(Area.BLUE_2.x, Area.BLUE_2.y, 'r', 1000, 500, 10, 5), # changed from r
   task_steps=two_level())
 
 bb1(m=Move.RotateTo(1.57, 5, 5))
@@ -144,9 +147,9 @@ bb1(m=Move.Distance(250, 300, 300),
   s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
      Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN)])
 
-bb1(m=Move.RotateTo(-1.57, 10, 5),
-    s=[Servo.CenterLift(CenterLift.LIFT2, 50)],
-          a=[I_O.Pump(0), I_O.Valve(0)])
+bb1(m=Move.RotateTo(-1.57, 10, 5)) #,
+    # s=[Servo.CenterLift(CenterLift.LIFT2, 50)],
+    #       a=[I_O.Pump(0), I_O.Valve(0)])
 
 bb1(task_steps=lift_two_on_one(100))
 
@@ -161,7 +164,7 @@ bb1(task_steps=lift_two_on_one(100))
 ##  PICKUP STACK 1   ##
 ############################
 
-bb1(m=Move.To(MaterialStack.STACK1.x + 35, 
+bb1(m=Move.To(MaterialStack.STACK1.x + 15, 
              MaterialStack.STACK1.y - 350, 
              'f', 2000, 2000, 15, 20),
   s=[Servo.FrontVacuumLift(VacuumLift.UP),
