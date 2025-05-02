@@ -29,6 +29,69 @@ void init_tof_intr(gpio_num_t num, VL53LMZ_Object* tof){
     gpio_isr_handler_add(num, tof_isr_function, tof);
 }
 
+void tof_calculate_distances_interrupt(VL53LMZ_Object* tof, VL53LMZ_Result_t *data){
+	
+	// Check 2 left zones
+	if(data->ZoneResult[TOF_LEFT_ZONE_1].Status == 0 && data->ZoneResult[TOF_LEFT_ZONE_1].Distance <= TOF_INTERRUPT_DISTANCE){
+		tof->interrupt_left_zone = 1;
+	}else if(data->ZoneResult[TOF_LEFT_ZONE_2].Status == 0 && data->ZoneResult[TOF_LEFT_ZONE_2].Distance <= TOF_INTERRUPT_DISTANCE)
+	{
+		tof->interrupt_left_zone = 1;
+	}
+
+	// Check 2 right zones
+	if(data->ZoneResult[TOF_RIGHT_ZONE_1].Status == 0 && data->ZoneResult[TOF_RIGHT_ZONE_1].Distance <= TOF_INTERRUPT_DISTANCE){
+		tof->interrupt_right_zone = 1;
+	}else if(data->ZoneResult[TOF_RIGHT_ZONE_2].Status == 0 && data->ZoneResult[TOF_RIGHT_ZONE_2].Distance <= TOF_INTERRUPT_DISTANCE)
+	{
+		tof->interrupt_right_zone = 1;
+	}
+
+	// Check 4 center zones
+	if(data->ZoneResult[TOF_CENTER_ZONE_1].Status == 0 && data->ZoneResult[TOF_CENTER_ZONE_1].Distance <= TOF_INTERRUPT_DISTANCE){
+		tof->interrupt_center_zone = 1;
+	}else if(data->ZoneResult[TOF_CENTER_ZONE_1+1].Status == 0 && data->ZoneResult[TOF_CENTER_ZONE_2+1].Distance <= TOF_INTERRUPT_DISTANCE)
+	{
+		tof->interrupt_center_zone = 1;
+	}else if(data->ZoneResult[TOF_CENTER_ZONE_2].Status == 0 && data->ZoneResult[TOF_CENTER_ZONE_2].Distance <= TOF_INTERRUPT_DISTANCE)
+	{
+		tof->interrupt_center_zone = 1;
+	}else if(data->ZoneResult[TOF_CENTER_ZONE_2+1].Status == 0 && data->ZoneResult[TOF_CENTER_ZONE_2+1].Distance <= TOF_INTERRUPT_DISTANCE)
+	{
+		tof->interrupt_center_zone = 1;
+	}
+	
+}
+
+bool get_tof_intr_zone(VL53LMZ_Object* tof, VL53LMZ_Result_t *data, VL53LMZ_Interrupt_Zone* zone){
+	bool status = 0;
+	zone->interrupt_left = 0;
+	zone->interrupt_right = 0;
+	zone->interrupt_center = 0;
+	
+	tof_calculate_distances_interrupt(tof, data);
+
+	if(tof->interrupt_left_zone == 1){
+		tof->interrupt_left_zone = 0;
+		zone->interrupt_left = 1;
+		status = 1;
+	}
+
+	if(tof->interrupt_right_zone == 1){
+		tof->interrupt_right_zone = 0;
+		zone->interrupt_right = 1;
+		status = 1;
+	}
+
+	if(tof->interrupt_center_zone == 1){
+		tof->interrupt_center_zone = 0;
+		zone->interrupt_center = 1;
+		status = 1;
+	}
+
+	return status;
+}
+
 void VL53LMZ_Reset(VL53LMZ_IO* io){
 	/* Enable power */
 	init_gpio(GPIO_MODE_OUTPUT, GPIO_INTR_DISABLE, io->PWR_EN_pin, GPIO_PULLDOWN_DISABLE, GPIO_PULLUP_DISABLE);
@@ -97,6 +160,11 @@ uint8_t VL53LMZ_Init(VL53LMZ_Object* dev, uint16_t address){
 	if ( status != VL53LMZ_STATUS_OK){
 		return status;
 	}
+
+	dev->interrupt = 0;
+	dev->interrupt_left_zone = 0;
+	dev->interrupt_right_zone = 0;
+	dev->interrupt_center_zone = 0;
 
 	/* Disable communication so other devices can be set up */
 	return status;

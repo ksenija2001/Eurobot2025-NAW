@@ -54,8 +54,8 @@
  * vl53lmz_set_resolution().
  */
 
-#define VL53LMZ_RESOLUTION_4X4			((uint8_t) 16U)
-#define VL53LMZ_RESOLUTION_8X8			((uint8_t) 64U)
+#define VL53LMZ_RESOLUTION_4X4			16U
+#define VL53LMZ_RESOLUTION_8X8			64U
 
 
 /**
