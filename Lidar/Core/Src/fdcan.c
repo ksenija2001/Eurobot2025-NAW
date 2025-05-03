@@ -61,14 +61,20 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 		{
 			switch (RxHeader.Identifier)
 			{
-			case 0x6FF: // Receive odoemtry
+			case 0x6FF: // Receive odometry
 				self.x = Bytes2Float(RxData, 0);
 				self.y = Bytes2Float(RxData, 4);
 				self.theta = Bytes2Float(RxData, 8);
+				self.speed = Bytes2Float(RxData, 20);
+				self.ang_speed = Bytes2Float(RxData, 24);
+
+				speed = 0.5*speed + 0.5*self.speed;
+				ang_speed = 0.5*ang_speed + 0.5*self.ang_speed;
 
 				break;
 			case 0x4C0: // Start/Stop Lidar
 				uint8_t status = RxData[0];
+				color = RxData[1];
 
 				if (status){
 					start_lidar = 1;

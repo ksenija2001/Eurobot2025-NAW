@@ -75,6 +75,7 @@ typedef struct {
 	float y;
 	float theta;
 	float speed;
+	float ang_speed;
 } sOdom_t;
 
 // Response descriptor struct
@@ -174,6 +175,9 @@ extern sOdom_t self;
 extern sDetection_t detection;
 extern uint8_t process_beacon;
 extern uint8_t process_opponent;
+extern uint8_t color;
+extern float speed;
+extern float ang_speed;
 
 
 #endif /* INC_LIDAR_H_ */

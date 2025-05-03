@@ -42,18 +42,15 @@ uint16_t last_angle;
 uint32_t last_timestamp;
 
 sVector3_t point_cloud[100];
-sVector3_t beacon_pc[200];
+sVector3_t beacon_pc[300];
 uint16_t pc_index = 0;
 uint16_t b_pc_index = 0;
 
 // Odometry data
 sOdom_t opponent;
 sOdom_t self;
-
-float test_dist[700];
-float test_angle[700];
-uint16_t test_cnt = 0;
-
+float speed = 0;
+float ang_speed = 0;
 
 // Debug variables
 sInfo_t lidar_info;
@@ -86,7 +83,7 @@ uint8_t det = 0;
 uint8_t last_det = 0;
 
 sVector3_t new_robot = {0};
-
+uint8_t color = 0;
 
 
 // Since Sensitivity utilizes ultra capsulated data format - which is hard to decode, scan mode 1 will be used
@@ -589,20 +586,15 @@ uint8_t Process_Detection(float distance, uint16_t angle){
 
 void Process_Distance(float distance, float angle, uint8_t new_scan){
 	sVector3_t point;
-//	counter++;
 
 	// Normalize angle
-//	angle += 353;
-//	angle %= 360;
 	if (angle > 360) angle -= 360;
 
-
-	if (last_angle > 357 && last_angle < 360 && pc_index > 3){
+	if (last_angle > 357 && last_angle < 360 && pc_index > 20){
 		process_opponent = 1;
 	} else if ((last_angle > 357 && last_angle < 360) || process_opponent == 2){
 		memset(point_cloud, 0, sizeof(point_cloud));
 		pc_index = 0;
-
 		process_opponent = 0;
 	}
 
@@ -611,12 +603,10 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 	} else if (process_beacon == 2){
 		memset(beacon_pc, 0, sizeof(beacon_pc));
 		b_pc_index = 0;
-
 		process_beacon = 0;
 	}
 
 	if (distance > 0) {
-
 		Polar2Cartesian(distance, angle, &point);
 
 		if ((point.vector[0] <= 2900 && point.vector[0] >= 100) &&
@@ -704,6 +694,12 @@ float triangulationPierlot(sVector3_t *new_robot, sVector3_t beacon1, sVector3_t
 	// θ_R = atan2(y i − y R , xi − xR ) − φ i
 	new_robot->vector[2] = atan2(beacon2.vector[1]-new_robot->vector[1], beacon2.vector[0]-new_robot->vector[0]) - beacon2.vector[2];
 
+	if (new_robot->vector[2] > M_PI){
+		new_robot->vector[2] -= 2*M_PI;
+	} else if (new_robot->vector[2] < -M_PI){
+		new_robot->vector[2] += 2*M_PI;
+	}
+
 	return invD ; // 1/|D| is a good approximation of the position error.
 }
 
@@ -741,33 +737,39 @@ uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint16_t radius){
 
 void Choose_Beacon(sVector3_t* position, sVector3_t* point){
 	// upper left beacon
-	if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
-	    (position->vector[1] > 1850 && position->vector[1] <= 2050)){
+	if ((position->vector[0] > -240 && position->vector[0] <= 60) &&
+	    (position->vector[1] > 1800 && position->vector[1] <= 2100) &&
+		color == 'y'){
 		point->vector[0] = -90;
 		point->vector[1] = 1950;
 	} // middle left beacon
-	else if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
-			 (position->vector[1] > 900  && position->vector[1] <= 1100)){
+	else if ((position->vector[0] > -240 && position->vector[0] <= 60) &&
+			 (position->vector[1] > 850  && position->vector[1] <= 1150) &&
+			 color == 'b'){
 		point->vector[0] = -90;
 		point->vector[1] = 1000;
 	} // lower left beacon
-//	else if ((position->vector[0] > -190 && position->vector[0] <= 10) &&
-//			  (position->vector[1] > -50 && position->vector[1] <= 150)){
-//		point->vector[0] = -90;
-//		point->vector[1] = 50;
-//	} // upper right beacon
-	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
-			 (position->vector[1] > 1850 && position->vector[1] <= 2050)){
+	else if ((position->vector[0] > -240 && position->vector[0] <= 60) &&
+			 (position->vector[1] > -100 && position->vector[1] <= 200) &&
+			 color == 'y'){
+		point->vector[0] = -90;
+		point->vector[1] = 50;
+	} // upper right beacon
+	else if ((position->vector[0] > 2940 && position->vector[0] <= 3240) &&
+			 (position->vector[1] > 1800 && position->vector[1] <= 2100) &&
+			  color == 'b'){
 		point->vector[0] = 3090;
 		point->vector[1] = 1950;
 	} // middle right beacon
-//	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
-//			  (position->vector[1] > 900 && position->vector[1] <= 1100)){
-//		point->vector[0] = 3090;
-//		point->vector[1] = 1000;
-//	} // lower right beacon
-	else if ((position->vector[0] > 2990 && position->vector[0] <= 3190) &&
-			  (position->vector[1] > -50 && position->vector[1] <= 150)){
+	else if ((position->vector[0] > 2940 && position->vector[0] <= 3240) &&
+			  (position->vector[1] > 850 && position->vector[1] <= 1150) &&
+			  color == 'y'){
+		point->vector[0] = 3090;
+		point->vector[1] = 1000;
+	} // lower right beacon
+	else if ((position->vector[0] > 2940 && position->vector[0] <= 3240) &&
+			  (position->vector[1] > -100 && position->vector[1] <= 200) &&
+			  color == 'b'){
 		point->vector[0] = 3090;
 		point->vector[1] = 50;
 	}
@@ -777,67 +779,70 @@ void Choose_Beacon(sVector3_t* position, sVector3_t* point){
 
 void Get_Beacons(){
 //	uint8_t i=0, j=0;
-	float reliability = 0;
-
-	b_pc_index = Segment_PC(beacon_pc, b_pc_index, 200);
+	b_pc_index = Segment_PC(beacon_pc, b_pc_index, 150);
 
 	// Three beacons
 	if (b_pc_index > 2){
-		reliability = triangulationPierlot(&new_robot, beacon_pc[0], beacon_pc[1], beacon_pc[2]);  // use first three beacons
-	} // Two beacons
-	else if (b_pc_index > 1){
-		// Correction of lidar angle
-		float fi1 = beacon_pc[0].vector[2] + self.theta;
-		float fi2 = beacon_pc[1].vector[2] + self.theta;
+		new_robot.vector[0] = 0;
+		new_robot.vector[1] = 0;
+		new_robot.vector[2] = 0;
 
-		fi1 -= (fi1 > 6.28) ? 6.28 : 0;
-		fi2 -= (fi2 > 6.28) ? 6.28 : 0;
+		sVector3_t beacon1 = {0}, beacon2 = {0}, beacon3 = {0};
 
-		float tan_fi1 = tan(fi1), tan_fi2 = tan(fi2);
+		Choose_Beacon(&beacon_pc[0], &beacon1);
+		Choose_Beacon(&beacon_pc[1], &beacon2);
+		Choose_Beacon(&beacon_pc[2], &beacon3);
 
-		float x1 = beacon_pc[0].vector[0], y1 = beacon_pc[0].vector[1];
-		float x2 = beacon_pc[1].vector[0], y2 = beacon_pc[1].vector[1];
+		float reliability = triangulationPierlot(&new_robot, beacon1, beacon2, beacon3);  // use first three beacons
 
-		new_robot.vector[0] = (tan_fi1*x1 - tan_fi2*x2 - (y1-y2))/(tan_fi1 - tan_fi2);
-		new_robot.vector[1] = tan_fi1*(new_robot.vector[0] - x1) + y1;
-		new_robot.vector[2] = self.theta;
+		float x_diff = self.x - new_robot.vector[0];
+		float y_diff = self.y - new_robot.vector[1];
+		float pose_diff = sqrt(x_diff*x_diff + y_diff*y_diff);
+		if (speed < 1 && ang_speed < 0.01 && pose_diff < 100){
+			convert_x.f = new_robot.vector[0];
+			convert_y.f = new_robot.vector[1];
+			convert_t.f = new_robot.vector[2];
 
-		// Take into account only if the new position is inside of table
-		if ((new_robot.vector[0] <= 2900 && new_robot.vector[0] >= 100) &&
-			(new_robot.vector[1] <= 1900 && new_robot.vector[1] >= 100)){
-			reliability = 1;
+			uint8_t bytes[13] = {0};
+			for (uint8_t i = 0; i < 4; ++i)
+			{
+				bytes[i] = convert_x.u[i];
+				bytes[i+4] = convert_y.u[i];
+				bytes[i+8] = convert_t.u[i];
+			}
+
+			FDCAN_Send_Data(0x4F0, FDCAN_DLC_BYTES_16, 13, bytes);
 		}
+
 	}
 
-	if (reliability > 0){
-		// TODO find experimental threshold for realiability
-		// TODO use position only if realiability larger than threshold
-	}
 
-//	uint8_t bytes[300] = {0};
-	// At least two beacons
-//	if (b_pc_index > 1){
-//		for (i=0; i<b_pc_index; i++){
-//			sVector3_t beacon = {.vector={0,0,0}};
-//			Choose_Beacon(&beacon_pc[i], &beacon);
-
-
-			// If the point can fall in one of the beacon regions send it
-//			if (beacon.vector[0] != 0 && beacon.vector[1] != 0){
-//				convert_x.f = beacon.vector[0];
-//				convert_y.f = beacon.vector[1];
-//				convert_z.f = beacon.vector[2];
+	// Two beacons
+//	else if (b_pc_index > 1){
+//		// Correction of lidar angle
+//		float fi1 = beacon_pc[0].vector[2] + self.theta;
+//		float fi2 = beacon_pc[1].vector[2] + self.theta;
 //
-//				for(j=0; j<4; ++j){
-//					bytes[j+i*12]    = convert_x.u[j];
-//					bytes[j+4+i*12]  = convert_y.u[j];
-//					bytes[j+8+i*12]  = convert_z.u[j];
-//				}
-//			}
-// 		}
-
-//		FDCAN_Send_Data(0x4CD, FDCAN_DLC_BYTES_48, 48, bytes);
+//		fi1 -= (fi1 > 6.28) ? 6.28 : 0;
+//		fi2 -= (fi2 > 6.28) ? 6.28 : 0;
+//
+//		float tan_fi1 = tan(fi1), tan_fi2 = tan(fi2);
+//
+//		float x1 = beacon_pc[0].vector[0], y1 = beacon_pc[0].vector[1];
+//		float x2 = beacon_pc[1].vector[0], y2 = beacon_pc[1].vector[1];
+//
+//		new_robot.vector[0] = (tan_fi1*x1 - tan_fi2*x2 - (y1-y2))/(tan_fi1 - tan_fi2);
+//		new_robot.vector[1] = tan_fi1*(new_robot.vector[0] - x1) + y1;
+//		new_robot.vector[2] = self.theta;
+//
+//		// Take into account only if the new position is inside of table
+//		if ((new_robot.vector[0] <= 2900 && new_robot.vector[0] >= 100) &&
+//			(new_robot.vector[1] <= 1900 && new_robot.vector[1] >= 100)){
+//			reliability = 1;
+//		}
 //	}
+
+
 }
 
 void Get_Opponent(){
@@ -884,6 +889,6 @@ void Get_Opponent(){
 		bytes[j+12] = convert_t.u[j];
 	}
 
-	FDCAN_Send_Data(0x4CE, FDCAN_DLC_BYTES_16, 16, bytes);
+	FDCAN_Send_Data(0x6CE, FDCAN_DLC_BYTES_16, 16, bytes);
 }
 

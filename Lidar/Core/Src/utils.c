@@ -19,7 +19,7 @@ union U_I
 	uint8_t u[2];
 } convert_int;
 
-// Converts a float number into an array of 3 bytes
+// Converts a float number into an array of 4 bytes
 void Float2Bytes(uint8_t *buffer, uint8_t start, float data)
 {
 	convert_float.f = data;
