@@ -111,7 +111,7 @@ class FrontGripLift:
     DOWN = 0
 
 class BackGripLift:
-    UP = 300
+    UP = 300 - 5
     HOLD = 210
     HOVER = 20
     DOWN = 0

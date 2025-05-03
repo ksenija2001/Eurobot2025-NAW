@@ -43,7 +43,7 @@ visoka_gradnja_plava(ID=1,
 
 visoka_gradnja_plava(m=Move.RotateTo(-1.57, 15, 10))
 
-visoka_gradnja_plava(task_steps=pickup_front_full_stack(125))
+visoka_gradnja_plava(task_steps=pickup_front_full_stack(375))
 
 ######################################
 ## SEPARATE STACK 10 IN BLUE AREA 2 ##
@@ -71,14 +71,14 @@ visoka_gradnja_plava(m=Move.To(MaterialStack.STACK6.x,
 
 visoka_gradnja_plava(m=Move.RotateTo(-1.57, 15, 10))
 
-visoka_gradnja_plava(task_steps=pickup_front_full_stack(100))
+visoka_gradnja_plava(task_steps=pickup_front_full_stack(350))
 
 #################################
 ## LEAVE BANNER IN BLUE AREA 4 ##
 #################################
 
 # Already in position
-visoka_gradnja_plava(task_steps=leave_banner())
+visoka_gradnja_plava(task_steps=leave_banner(3.14))
 
 ##############################################
 ## LEAVE TWO LEVELS ON PREVIOUSLY SEPARATED ##
@@ -92,7 +92,7 @@ visoka_gradnja_plava(m=Move.To(MaterialStack.STACK6.x+50,
 visoka_gradnja_plava(m=Move.RotateTo(3.14, 10, 5),
     task_steps=two_level())
 
-visoka_gradnja_plava(task_steps=lift_two_on_one(150, -100))
+visoka_gradnja_plava(task_steps=lift_two_on_one(300, -350))
 visoka_gradnja_plava(task_steps=push_two_level(0))
 
 #####################
@@ -106,7 +106,7 @@ visoka_gradnja_plava(m=Move.To(MaterialStack.STACK7.x - 300,
 
 visoka_gradnja_plava(m=Move.RotateTo(0, 15, 10))
 
-visoka_gradnja_plava(task_steps=pickup_front_full_stack(-50))
+visoka_gradnja_plava(task_steps=pickup_front_full_stack(200))
 
 # Make space for rotation while making two levels
 visoka_gradnja_plava(m=Move.Distance(-250, 1000, 500))
@@ -123,7 +123,7 @@ visoka_gradnja_plava(m=Move.To(MaterialStack.STACK6.x+50,  # ADD MORE BECAUSE TH
 
 visoka_gradnja_plava(m=Move.RotateTo(3.14, 10, 5))
 
-visoka_gradnja_plava(task_steps=lift_two_on_one(150, -100))
+visoka_gradnja_plava(task_steps=lift_two_on_one(300, -350))
 visoka_gradnja_plava(task_steps=push_two_level())
 
 #####################
@@ -182,7 +182,7 @@ visoka_gradnja_plava(m=Move.RotateTo(3.14, 5, 5))
 ## STACKS IN BLUE AREA 2 - THIRD TIME       ##
 ##############################################
 
-visoka_gradnja_plava(task_steps=lift_two_on_one(150, 50))
+visoka_gradnja_plava(task_steps=lift_two_on_one(300, -200))
 # visoka_gradnja_plava(task_steps=push_two_level())
 
 #######################################

@@ -70,14 +70,21 @@ class Execute:
                     if next_step_id != False:
                         continue
 
+                    break
+
                 if cond._type == ConditionType.FRONT:
-                    front_sensor_state = I_O.sensor_states[SensorType.FRONT_CENTER_LEFT.value] or \
-                                         I_O.sensor_states[SensorType.FRONT_LEFT.value] or \
-                                         I_O.sensor_states[SensorType.FRONT_CENTER_RIGHT.value] or \
-                                         I_O.sensor_states[SensorType.FRONT_RIGHT.value] 
+                    center_front = I_O.sensor_states[SensorType.FRONT_CENTER_LEFT.value] or I_O.sensor_states[SensorType.FRONT_CENTER_RIGHT.value]
+                    side_front = I_O.sensor_states[SensorType.FRONT_LEFT.value] or I_O.sensor_states[SensorType.FRONT_RIGHT.value] 
+                    front_sensor_state = center_front and side_front  # At least one side and one center, else there is probably no plank
+                    
                     next_step_id = cond.check([None, None, None, None, None, front_sensor_state, None])
                     if next_step_id != False:
                         continue
+                        
+                    break
+            
+            sensor = [cond for cond in step.conditions if cond._type == ConditionType.FRONT or cond._type == ConditionType.BACK][0]
+            step.conditions.remove(sensor)
 
             # Activate servos and send outputs that do not depend on current position
             step.move()    

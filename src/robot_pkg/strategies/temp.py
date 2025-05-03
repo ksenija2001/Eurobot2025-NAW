@@ -126,7 +126,7 @@ pose = Position(3000, 1450)
 temp(s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN, pose),
         Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN, pose)])
 
-temp(task_steps=pickup_front_full_stack(100))
+temp(task_steps=pickup_front_full_stack(350))
 
 temp(m=Move.To(Area.BLUE_3.x+150, Area.BLUE_3.y-180, 'f', 1500, 1000, 10, 5),
     task_steps=two_level())
@@ -152,7 +152,7 @@ temp(task_steps=pickup_front_full_stack())
 temp(m=Move.RotateTo(-1.57, 10, 5),
     task_steps=two_level())
 
-temp(task_steps=lift_two_on_one(100))
+temp(task_steps=lift_two_on_one(250))
 
 
 

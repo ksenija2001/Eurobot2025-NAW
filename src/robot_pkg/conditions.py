@@ -194,6 +194,32 @@ class Condition:
         condition.attempts = attempts
         condition._type = ConditionType.DETECTION
         return condition
+    
+    @classmethod
+    def FrontSensors(cls, step_id:int):
+        '''
+            Checks if designated sensors are enabled.
+            If they aren't, jumps to step_id.
+        '''
+
+        condition = cls()
+        condition.ID = step_id
+        condition._type = ConditionType.FRONT
+       
+        return condition
+
+    @classmethod
+    def BackSensors(cls, step_id:int):
+        '''
+            Checks if designated sensors are enabled.
+            If they aren't, jumps to step_id.
+        '''
+
+        condition = cls()
+        condition.ID = step_id
+        condition._type = ConditionType.BACK
+
+        return condition
 
 
 if __name__ == "__main__":
