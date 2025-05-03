@@ -48,7 +48,6 @@ class Execute:
     def loop(self):
         next_step_id = None
 
-        match_start_time = time.time()
         while self.running:
            # next_step_id will be None while the strategy is executing linearly
            # when next_step_id is an integer, all steps with an ID not equal to next_step_ID will be skipped
@@ -188,7 +187,6 @@ class Execute:
                 break
         
         self.main_running.clear()
-        print(f"TIME: {time.time() - match_start_time}")
             
     def stop(self):
         self.running = False
