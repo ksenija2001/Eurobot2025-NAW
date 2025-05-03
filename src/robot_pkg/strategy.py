@@ -41,7 +41,7 @@ class Strategy:
     def __eq__(self, other):
         return self.color == other.color and self.square == other.square and self.mood == other.mood
 
-    def __call__(self, sensors=None, task_steps:list=None, ID=None, m:Move=None, a:list=[], s:list=[], c:list[Condition]=[], sima_id:int=None, sima:list=[], p=0) -> Any:
+    def __call__(self, task_steps:list=None, ID=None, m:Move=None, a:list=[], s:list=[], c:list[Condition]=[], sima_id:int=None, sima:list=[], p=0) -> Any:
         if task_steps is None:
             if ConditionType.CINCH not in [cond._type for cond in c]:
                 if len(s) > 0:
@@ -76,7 +76,10 @@ class Strategy:
                         servos.extend(servo)
                     else:
                         servos.append(servo)
-                        
+                
+                # if ConditionType.POSITION not in [cond._type for cond in c]:
+                #     c.append(Condition.InPosition(None))
+
                 step = Step(ID, m, a, servos, c, sima_id, sima, p)
                 self.steps.append(step)
                 task_steps[-1].conditions.append(Condition.InPosition(None))

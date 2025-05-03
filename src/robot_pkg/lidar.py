@@ -15,7 +15,6 @@ class Lidar:
         
     @classmethod
     def _receive(cls, running:Event):
-        s = cls()
         lidar_queue = can_handler.msg_receive_queues[IDs.GET_OPPONENT.value]
         detection_queue = can_handler.msg_receive_queues[IDs.GET_DETECTION.value]
         beacon_queue = can_handler.msg_receive_queues[IDs.GET_BEACON.value]
@@ -48,13 +47,13 @@ class Lidar:
                     detection_side = struct.unpack('B', lidar_msg.data)[0]
                     if detection_side == 70: # 'F' - FRONT
                         # Lidar.last_detection_time = time.time()
-                        Variables.front_detection.set()
-                        Variables.processing_detection.set()
+                        # Variables.front_detection.set()
+                        # Variables.processing_detection.set()
                         Lidar._logger.debug(f"FRONT")
                     elif detection_side == 66: # 'B' - BACK
                         # Lidar.last_detection_time = time.time()
-                        Variables.back_detection.set()
-                        Variables.processing_detection.set()
+                        # Variables.back_detection.set()
+                        # Variables.processing_detection.set()
                         Lidar._logger.debug(f"BACK")
                     else:
                         Lidar._logger.debug(f"Unknown detection")
@@ -105,8 +104,8 @@ class Lidar:
         # return t
 
     @classmethod
-    def start_threads(cls):
-        Lidar.start_stop(1)
+    def start_threads(cls, color:str):
+        Lidar.start_stop(1, color)
         Lidar.running.set()
         if Lidar._thread is None:
             Lidar._thread = Thread(target=Lidar._receive, args=(Lidar.running, ))
@@ -123,9 +122,10 @@ class Lidar:
         Lidar._logger.info("Lidar receiving thread stopped.")
 
     @classmethod
-    def start_stop(cls, start_stop):
+    def start_stop(cls, start_stop, color=None):
         send_queue = can_handler.msg_send_queues[IDs.SET_LIDAR.value]
-        lidar_msg = struct.pack('B', (start_stop & 0x01))
+        color_byte = 'y'.encode('utf_8') if color == "yellow" else 'b'.encode('utf_8') if color == "blue" else '0'.encode('utf_8')
+        lidar_msg = struct.pack('Bc', (start_stop & 0x01), color_byte)
         send_queue.append(lidar_msg)
 
 if __name__ == "__main__":

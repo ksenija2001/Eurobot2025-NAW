@@ -112,7 +112,8 @@ class Move:
             Sets current odometry to (x,y,theta).
         '''
         move = cls()
-        move.data = struct.pack('3f', x, y, theta)
+        response = 1
+        move.data = struct.pack('3fB', x, y, theta, response) # 1 for response
         move.send_queue = can_handler.msg_send_queues[IDs.RESET_ODOM.value]
         move._type = MoveType.RESET.name
 
@@ -237,8 +238,8 @@ class Move:
 
         if self._type == MoveType.RESET.name and not any(self.data[0:8]):
             theta = float(struct.unpack('f', self.data[8:12])[0])
-            packed = [Move.pose.x, Move.pose.y, theta]
-            self.data = struct.pack('3f', *packed)
+            packed = [Move.pose.x, Move.pose.y, theta, 1]
+            self.data = struct.pack('3fB', *packed)
             
         self.send_queue.append(self.data)
         self.executed = True

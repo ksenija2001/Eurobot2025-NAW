@@ -35,9 +35,8 @@ def main_func():
     Servo.start_threads()
     Move.start_threads()
     I_O.start_threads()
-    Lidar.start_threads()
 
-    # reset_odom = Move.ResetOdom(1500 , 135, 1.57)
+    # reset_odom = Move.ResetOdom(3000-380, 1777, -1.57)#1500 , 135, 1.57)
     # reset_odom._execute()
 
     time.sleep(2)
@@ -46,11 +45,13 @@ def main_func():
     execute = None
     if len(sys.argv) > 1:
         strategy =  choose_strategy(sys.argv[1], sys.argv[2], sys.argv[3])
+        
         if strategy is None:
             raise Exception("To run in debug mode leave the arguments empty, else call 'start_main color square mood'")
 
         main_log.info(f"------ Strategy -------\n{strategy}")
 
+        Variables.color = strategy.color
         Variables.match_start_time = time.time() # REMOVE WHEN CINCH IS ENABLED
         
         running.set()
@@ -69,6 +70,7 @@ def main_func():
 
         running.set()
 
+    Lidar.start_threads(Variables.color)
 
     try:
         # pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]

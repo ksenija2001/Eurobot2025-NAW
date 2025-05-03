@@ -12,7 +12,7 @@ class ActuatorType(Enum):
     VALVE = 3
 
 class SensorType(Enum):
-    CINCH = 7
+    CINCH = 8
     FRONT_RIGHT = 3
     FRONT_CENTER_RIGHT = 2
     FRONT_CENTER_LEFT = 4
@@ -61,6 +61,7 @@ class I_O:
     @classmethod
     def start_threads(cls):
         I_O.running.set()
+        I_O.sensor_states[SensorType.CINCH.value] = 1
         if I_O._thread is None:
             I_O._thread = Thread(target=I_O._receive, args=(I_O.running, ))
             I_O._thread.start()

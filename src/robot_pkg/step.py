@@ -1,6 +1,6 @@
 import time
 
-from robot_pkg.main import can_handler, log_handler
+from robot_pkg.main import log_handler
 from robot_pkg.conditions import Condition
 from robot_pkg.servo import Servo
 from robot_pkg.move import Move, Position

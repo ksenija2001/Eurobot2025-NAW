@@ -116,7 +116,7 @@ class Execute:
                         detection_cond[0].attempts -= 1
 
                     # if a condition wasn't set, it will attemp indefinetly
-                    self.steps.insert(0, Step(None, Move.Detection(100), [], [], [Condition.InPosition(None), Condition.MatchTime(100, 96)], 0))
+                    self.steps.insert(0, Step(None, Move.Detection(100), [], [], [Condition.InPosition(None), Condition.MatchTime(100, 96)], None, None, 0))
                     step.movement.executed = False
                     Variables.processing_detection.set()
 
@@ -131,6 +131,7 @@ class Execute:
                     (len(step.conditions) == 1 and step.conditions[0]._type == ConditionType.SIMA):
                     # MOVEMENT ADDED BEFORE TASK
                     #pass
+                    next_step_id = None
                     break
                 # Conditions that are continouosly checked during step execution
                 elif ConditionType.SIMA in checked and checked[ConditionType.SIMA] != False:

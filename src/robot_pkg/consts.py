@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from enum import Enum
 from threading import Event
-import time 
+# from robot_pkg.strategy import Color
 
 ROOT_PATH = Path(__file__).parent
 LOG_PATH = os.path.join(ROOT_PATH, 'logs')
@@ -17,6 +17,7 @@ class Variables:
     back_detection = Event()
     processing_detection = Event()
     points = 0
+    color = 'blue'
 
 class LIDAR_FOV:
     FRONT_DEPLOY = 500 
@@ -41,6 +42,8 @@ class Points:
 
 class IDs(Enum):
     SET_LIDAR = 0x4C0
+    SET_LIDAR_ODOM = 0x4C1
+    
     GET_BEACON     = 0x4CD
     GET_OPPONENT   = 0x6CE
     GET_DETECTION  = 0x4CF
