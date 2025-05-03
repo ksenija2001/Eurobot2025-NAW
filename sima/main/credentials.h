@@ -1,6 +1,8 @@
 #ifndef CREDENTIALS_H
 #define CREDENTIALS_H
 
+#define SIMA_ID 1
+
 extern const char* WIFI_SSID;
 extern const char* WIFI_PASS;
 

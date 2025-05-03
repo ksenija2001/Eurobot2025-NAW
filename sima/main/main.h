@@ -15,7 +15,7 @@
 
 #include "utils/utils.h"
 
-#define SIMA_ID "1"
+#include "servo/servo.h"
 
 #define I2C_TOF_ADDRESS 0x52
 #define TOF_NUMBER_OF_ZONES VL53LMZ_RESOLUTION_4X4
