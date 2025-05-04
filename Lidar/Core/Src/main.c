@@ -162,7 +162,7 @@ int main(void)
 
 	  if (process_beacon == 1){
 		   Get_Beacons();
-		   process_beacon = 2;
+		   process_beacon = 0; //2;
 	  }
 
 	  if (send_status == HAL_OK)

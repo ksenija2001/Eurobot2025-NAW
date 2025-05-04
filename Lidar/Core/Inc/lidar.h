@@ -53,6 +53,7 @@
 #define RPLIDAR_VARBITSCALE_X16_DEST_VAL 3328
 
 // Triangulation
+#define MIN_POINTS 15
 #define 	adjust_value_to_bounds(value, max)   ( ( value > max ) ? max : ( ( value < -max ) ? -max : value ) )
 #define 	cot(x)   ( 1 / tan(x) )
 #define 	Cot(x)   cot(x)
@@ -164,7 +165,8 @@ void TIM7_IT(TIM_HandleTypeDef *tim);
 uint16_t Segment_PC(sVector3_t* pc, uint16_t ind, uint16_t radius);
 void Get_Beacons();
 void Get_Opponent();
-void Choose_Beacon(sVector3_t* position, sVector3_t* point);
+uint8_t Choose_Beacon(sVector3_t* position, sVector3_t* point);
+uint8_t Check_Beacon_Points();
 uint8_t VarbitScale_Decode(int32_t scaled, uint32_t *decoded);
 
 float triangulationPierlot(sVector3_t *new_robot, sVector3_t beacon1, sVector3_t beacon2, sVector3_t beacon3);
