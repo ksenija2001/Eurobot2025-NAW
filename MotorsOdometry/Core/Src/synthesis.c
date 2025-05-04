@@ -91,7 +91,7 @@ uint8_t synthesis_is_stuck(){
 				return 1;
 			}
 		}
-		else if(odom.y > 1700){
+		else if(odom.y > 1300){
 			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
 //				odom.y = 2000-FRONT_HALF_DISTANCE;
 //				odom.theta = M_PI_2;
@@ -566,9 +566,9 @@ void synthesis_compute(){
 	float *target_V = &synthesis.target[synthesis.phase].V;
 	float tolerance;
 	if(*type == 'r' && *target_V != 0) tolerance = 0.04;
-	if(*type == 'r' && *target_V == 0) tolerance = 0.002;
+	if(*type == 'r' && *target_V == 0) tolerance = 0.02;
 	if(*type == 't' && *target_V != 0) tolerance = 3;
-	if(*type == 't' && *target_V == 0) tolerance = 0.2;
+	if(*type == 't' && *target_V == 0) tolerance = 2;
 	//is synthesis activated
 	if(synthesis_state() >= 0){
 		//is target reached

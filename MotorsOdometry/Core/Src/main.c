@@ -129,8 +129,8 @@ int main(void)
 
   Init_Encoder(&left, &htim1);
   Init_Encoder(&right, &htim3);
-  Config_Encoder_Wheel(&left,  73.01562845, 347.0);//73
-  Config_Encoder_Wheel(&right, 72.98437197, 347.0);//73
+  Config_Encoder_Wheel(&left,  1.000235414, 0.028050989, 347.55967287);//73
+  Config_Encoder_Wheel(&right, 0.99976457,  0.028050989, 347.55967287);//73
 
   Init_Motor(&left_motor, &htim2, &hadc1);
   Init_Motor(&right_motor, &htim2, &hadc2);
@@ -155,6 +155,14 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   uint8_t some_status = 0;
   HAL_Delay(2000);
+//
+//  float x[1] = {500};
+//  float y[1] = {500};
+//  float theta[1] = {0};
+//  spline_move(x, y, theta, 1, 700, 'f');
+//
+//  while(odom.x<100);
+//  spline_activate_detection();
 
 //synthesis_start_rotateTo(0, 5, 30);
 //  synthesis_start_XY(1, 500, 'f', 500, 2000, 1, 1);

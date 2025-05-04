@@ -44,6 +44,7 @@ typedef struct {
 typedef struct {
 	float diameter;
 	float track;
+	float gain;
 	float inc_mm;
 	int32_t inc;
 
@@ -63,7 +64,7 @@ typedef struct {
 
 sOdom_t* Odometry(void);
 void Reset_Odometry(sOdom_t* new_odom);
-void Config_Encoder_Wheel(sEncoderWheel_t* wheel, float diameter, float track);
+void Config_Encoder_Wheel(sEncoderWheel_t* wheel, float gain, float inc_mm, float track);
 void Init_Encoder(sEncoderWheel_t* wheel, TIM_HandleTypeDef* htim);
 
 

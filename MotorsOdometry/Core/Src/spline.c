@@ -100,6 +100,22 @@ float spline_find_theta(float x0, float y0, float x, float y){
 	return atan2f(y-y0, x-x0);
 }
 
+void spline_activate_detection(){
+	spline.num_of_beziers = spline.index + 1;
+
+//	spline.x_bezier[0].p[0] = odom.x;
+//	spline.x_bezier[0].p[1] = odom.x + PARAM_DISTANCE*cos(odom.theta + reverse);
+	spline.x_bezier[0].p[2] = odom.x;
+	spline.x_bezier[0].p[3] = odom.x + 100*cos(odom.theta);
+
+//	spline.y_bezier[0].p[0] = odom.y;
+//	spline.y_bezier[0].p[1] = odom.y + PARAM_DISTANCE*sin(odom.theta + reverse);
+	spline.y_bezier[0].p[2] = odom.y;
+	spline.y_bezier[0].p[3] = odom.y + 100*sin(odom.theta);
+
+	spline.end_angle = odom.theta;
+}
+
 void spline_move(float *x, float *y, float *theta, uint8_t num_of_points, float max_speed, char direction){
 	spline.direction = direction;
 	float reverse = 0;

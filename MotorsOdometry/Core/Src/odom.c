@@ -30,7 +30,8 @@ sEncoderWheel_t left = {
 						.pin = Encoder1_B_Pin,
 						.port = Encoder1_B_GPIO_Port
 				}
-		}
+		},
+		.diameter = 73
 };
 sEncoderWheel_t right = {
 		.IO = {
@@ -42,7 +43,8 @@ sEncoderWheel_t right = {
 						.pin = Encoder2_B_Pin,
 						.port = Encoder2_B_GPIO_Port
 				}
-		}
+		},
+		.diameter = 73
 };
 
 void Init_Encoder(sEncoderWheel_t* wheel, TIM_HandleTypeDef* htim){
@@ -52,12 +54,10 @@ void Init_Encoder(sEncoderWheel_t* wheel, TIM_HandleTypeDef* htim){
 }
 
 // Sets the value of wheel diameter and distance used for calculating odometry data
-void Config_Encoder_Wheel(sEncoderWheel_t* wheel, float diameter, float track){
-	wheel->diameter = diameter;
+void Config_Encoder_Wheel(sEncoderWheel_t* wheel, float gain, float inc_mm, float track){
+	wheel->gain = gain;
+	wheel->inc_mm = inc_mm;
 	wheel->track = track;
-
-	// Calculates conversion
-	wheel->inc_mm = (wheel->diameter*M_PI)/PPR;
 }
 
 // Calculates current position and speeds based on encoder increment readings
@@ -73,16 +73,16 @@ sOdom_t* Odometry(void){
 	// The delta is calulated from increments from current and last encoder readings and converted to mm
 	// The cast to int16_t ensures that a jump from 0 to 65535 and vice versa won't happen - given that
 	// the rate of reading the encoders is fast enough
-	delta_left  = (int16_t)(left.curr_inc  - left.last_inc)  * left.inc_mm;
-	delta_right = (int16_t)(right.curr_inc - right.last_inc) * right.inc_mm;
+	delta_left  = ((int16_t)(left.curr_inc  - left.last_inc))  * left.inc_mm;
+	delta_right = ((int16_t)(right.curr_inc - right.last_inc)) * right.inc_mm;
 
 	// Distance traveled from last encoder reading
-	delta_distance = (delta_left + delta_right) * 0.5;
+	delta_distance = (delta_left * left.gain + delta_right * right.gain) * 0.5;
 	// Change in orientation from last encoder reading
-	delta_theta    = (delta_left - delta_right) / (left.track/2 + right.track/2);
+	delta_theta    = (delta_left  * left.gain - delta_right * right.gain) / (left.track*0.5 + right.track*0.5);
 
 	// Odometry approximation is used when the robot is moving straight, same increments on both wheels
-	if ( delta_theta == 0){
+	if ( delta_left == delta_right){
 		odom.x     += delta_distance * cos(odom.theta + delta_theta/2);
 		odom.y     += delta_distance * sin(odom.theta + delta_theta/2);
 		odom.theta -= delta_theta;
@@ -103,8 +103,8 @@ sOdom_t* Odometry(void){
 	right.last_vel = right.curr_vel;
 
 	// Low-pass filter, where FILTER determines how much of the old value is kept
-	left.curr_vel  = FILTER*delta_left*1000/ODOM_TIME + (1-FILTER)*left.last_vel;
-	right.curr_vel = FILTER*delta_right*1000/ODOM_TIME + (1-FILTER)*right.last_vel;
+	left.curr_vel  = FILTER*delta_left* left.gain*1000/ODOM_TIME + (1-FILTER)*left.last_vel;
+	right.curr_vel = FILTER*delta_right*right.gain*1000/ODOM_TIME + (1-FILTER)*right.last_vel;
 
 	odom.trans_vel = (left.curr_vel + right.curr_vel)/2.0;
 	odom.ang_vel = (left.curr_vel - right.curr_vel)/2.0;

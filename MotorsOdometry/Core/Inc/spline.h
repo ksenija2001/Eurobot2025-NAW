@@ -45,6 +45,7 @@ void spline_compute();
 void spline_init();
 int8_t spline_state();
 void spline_stop();
+void spline_activate_detection();
 
 #endif
 

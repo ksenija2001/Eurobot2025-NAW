@@ -30,7 +30,8 @@ uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan)
 	sFilterConfig.FilterIndex = 0;						  // Filter index 0
 	sFilterConfig.FilterType = FDCAN_FILTER_RANGE;		  // Use range filter
 	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0; // Route accepted messages to RX FIFO 0
-	sFilterConfig.FilterID1 = 0x321;					  // Start of ID range
+	sFilterConfig.FilterID1 = 0x4D0;					  // Start of ID range
+	sFilterConfig.FilterID2 = 0x4FF;				      //End of ID range
 
 	status = HAL_FDCAN_ConfigFilter(hfdcan, &sFilterConfig);
 	status |= HAL_FDCAN_Start(hfdcan);
@@ -61,19 +62,20 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 					.y = Bytes2Float(RxData, 4),
 					.theta = Bytes2Float(RxData, 8),
 				};
-
 				Reset_Odometry(&new_odom);
 				uint8_t data[1] = {0x01};
-				FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
+				if(RxData[12] == 1)
+					FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
 
 				break;
 			case 0x4F1: // Wheel parameters configuration
-				float left_diameter = Bytes2Float(RxData, 0);
-				float right_diameter = Bytes2Float(RxData, 4);
-				float track = Bytes2Float(RxData, 8);
+				float left_gain = Bytes2Float(RxData, 0);
+				float right_gain = Bytes2Float(RxData, 4);
+				float inc_mm = Bytes2Float(RxData, 8);
+				float track = Bytes2Float(RxData, 12);
 
-				Config_Encoder_Wheel(&left, left_diameter, track);
-				Config_Encoder_Wheel(&right, right_diameter, track);
+				Config_Encoder_Wheel(&left, left_gain, inc_mm, track);
+				Config_Encoder_Wheel(&right, right_gain, inc_mm,  track);
 
 				break;
 			case 0x4D0: // Set reference for motor speed
@@ -134,7 +136,15 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 			case 0x4D8:
 				//Detection activated
 				HAL_GPIO_WritePin(LED_CAN_RX_GPIO_Port, LED_CAN_RX_Pin, GPIO_PIN_RESET);
-				synthesis_activate_detection(Bytes2Float(RxData, 0));
+				if(synthesis_state() != -1)
+					synthesis_activate_detection(Bytes2Float(RxData, 0));
+				else if(spline_state() != -1)
+					spline_activate_detection();
+				else{
+					uint8_t data[1] = {0x01};
+					FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
+				}
+
 				break;
 			case 0x4D7:
 				spline_stop();
