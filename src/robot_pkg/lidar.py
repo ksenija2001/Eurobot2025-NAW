@@ -45,18 +45,19 @@ class Lidar:
 
                 if abs(Move.pose.speed) > 10 and not Variables.processing_detection.is_set():
                     detection_side = struct.unpack('B', lidar_msg.data)[0]
-                    if detection_side == 70: # 'F' - FRONT
+                    if detection_side == 70 and Move.pose.speed > 0: # 'F' - FRONT
                         # Lidar.last_detection_time = time.time()
                         # Variables.front_detection.set()
                         # Variables.processing_detection.set()
                         Lidar._logger.debug(f"FRONT")
-                    elif detection_side == 66: # 'B' - BACK
+                    elif detection_side == 66 and Move.pose.speed < 0: # 'B' - BACK
                         # Lidar.last_detection_time = time.time()
                         # Variables.back_detection.set()
                         # Variables.processing_detection.set()
                         Lidar._logger.debug(f"BACK")
-                    else:
-                        Lidar._logger.debug(f"Unknown detection")
+                    # else:
+                    #     pass
+                        # Lidar._logger.debug(f"Unknown detection: {detection_side}")
 
             # Resets last detection time after 1s if not reset before
             # if (Variables.front_detection.is_set() or Variables.back_detection.is_set()) and \
