@@ -76,7 +76,7 @@ temp(m=Move.Spline([MaterialStack.STACK8.x-300],
                     'r'),
     task_steps=init_front_servos())
 
-temp(task_steps=pickup_back_full_stack(-50))
+temp(task_steps=pickup_back_full_stack(-250))
 
 # STACK 1
 

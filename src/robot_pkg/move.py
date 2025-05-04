@@ -55,6 +55,10 @@ class Move:
         self.data:bytes 
         self.executed = False
         self._type:str = ""
+        self.v = 0
+        self.a = 0
+        self.w = 0
+        self.alpha = 0
         
     @classmethod
     def _receive(cls, running:Event):

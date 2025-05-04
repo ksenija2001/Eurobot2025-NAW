@@ -1,10 +1,10 @@
 from threading import Thread, Event
-import time
+import time, struct
 from robot_pkg.display import Display
 from robot_pkg.step import Step
 from robot_pkg.strategy import Strategy 
 from robot_pkg.servo import Servo
-from robot_pkg.move import Move
+from robot_pkg.move import Move, MoveType
 from robot_pkg.in_out import I_O, SensorType
 from robot_pkg.consts import Variables
 from robot_pkg.conditions import ConditionType, Condition
@@ -47,13 +47,14 @@ class Execute:
 
     def loop(self):
         next_step_id = None
+        last_moving_step = None
 
         while self.running:
            # next_step_id will be None while the strategy is executing linearly
            # when next_step_id is an integer, all steps with an ID not equal to next_step_ID will be skipped
 
             step = self.steps.pop(0)
-            while step.ID != next_step_id and step.ID != 100:
+            while step.ID != next_step_id: # and step.ID != 100:
                 step = self.steps.pop(0)
             
             self._logger.info(f"Current step ID: {step.ID}")
@@ -62,13 +63,17 @@ class Execute:
             start_time = time.time()
 
             # Conditions that need to be checked before start of step
-            for cond in step.conditions:
+            to_break = False
+            for cond in step.conditions: 
                 if cond._type == ConditionType.BACK:
                     back_sensor_state = I_O.sensor_states[SensorType.BACK.value] 
                     next_step_id = cond.check([None, None, None, None, None, None, back_sensor_state])
                     if next_step_id != False:
-                        continue
+                        to_break = True
+                        self._logger.info(f"Condition met TYPE: {ConditionType.BACK}")
 
+                    sensor = [cond for cond in step.conditions if cond._type == ConditionType.BACK][0]
+                    step.conditions.remove(sensor)
                     break
 
                 if cond._type == ConditionType.FRONT:
@@ -78,15 +83,20 @@ class Execute:
                     
                     next_step_id = cond.check([None, None, None, None, None, front_sensor_state, None])
                     if next_step_id != False:
-                        continue
+                        to_break = True
+                        self._logger.info(f"Condition met TYPE: {ConditionType.FRONT}")
                         
+                    sensor = [cond for cond in step.conditions if cond._type == ConditionType.FRONT][0]
+                    step.conditions.remove(sensor)
                     break
-            
-            sensor = [cond for cond in step.conditions if cond._type == ConditionType.FRONT or cond._type == ConditionType.BACK][0]
-            step.conditions.remove(sensor)
+        
+            if to_break:
+                continue
 
             # Activate servos and send outputs that do not depend on current position
-            step.move()    
+            if step.movement is not None:
+                last_moving_step = step
+                step.move()    
             step.servo()  
             step.output() 
 
@@ -123,7 +133,18 @@ class Execute:
 
                     # if a condition wasn't set, it will attemp indefinetly
                     self.steps.insert(0, Step(None, Move.Detection(100), [], [], [Condition.InPosition(None), Condition.MatchTime(100, 96)], None, None, 0))
+                                       
+                    if step.movement is None:
+                        step.movement = last_moving_step.movement
+
                     step.movement.executed = False
+
+                    if step.movement._type == MoveType.SPLINE.name:
+                        data = bytearray(step.movement.data)
+                        data[2:6] = bytearray(struct.pack('f', 300))
+                        print(f"SENDING: {data}")
+                        step.movement.data = bytes(data)
+
                     Variables.processing_detection.set()
 
                     self.steps.insert(1, step)

@@ -4,6 +4,7 @@ import struct, math, time
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.consts import IDs, Variables
 from robot_pkg.move import Move
+from robot_pkg.in_out import I_O, SensorType
 
 
 class Lidar:
@@ -43,7 +44,7 @@ class Lidar:
             if len(detection_queue) > 0:
                 lidar_msg = detection_queue.pop()
 
-                if abs(Move.pose.speed) > 10 and not Variables.processing_detection.is_set():
+                if abs(Move.pose.speed) > 10 and not Variables.processing_detection.is_set() and not I_O.sensor_states[SensorType.CINCH.value]:
                     detection_side = struct.unpack('B', lidar_msg.data)[0]
                     if detection_side == 70 and Move.pose.speed > 0: # 'F' - FRONT
                         # Lidar.last_detection_time = time.time()

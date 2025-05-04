@@ -52,7 +52,7 @@ def main_func():
         main_log.info(f"------ Strategy -------\n{strategy}")
 
         Variables.color = strategy.color
-        Variables.match_start_time = time.time() # REMOVE WHEN CINCH IS ENABLED
+        # Variables.match_start_time = time.time() # REMOVE WHEN CINCH IS ENABLED
         
         running.set()
 

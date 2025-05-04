@@ -22,7 +22,6 @@ class Step:
             log_handler.get_logger("move").info(f"Executing movement {self.movement._type}")
             self.movement._execute()
             
-
     def output(self, curr_pose:Position=Position()):
         not_sent = [output for output in self.outputs if not output.sent]
         for output in not_sent:

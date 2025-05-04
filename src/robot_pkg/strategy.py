@@ -48,7 +48,7 @@ class Strategy:
                     c.append(Condition.ServoMoving(None))
 
                 # if ID != 100:
-                #     c.append(Condition.MatchTime(100, 96)) 
+                #     c.append(Condition.MatchTime(100, 97)) 
                 
                 if m != None and ConditionType.POSITION not in [cond._type for cond in c]:
                     c.append(Condition.InPosition(None))
