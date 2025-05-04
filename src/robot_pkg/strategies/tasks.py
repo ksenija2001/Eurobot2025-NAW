@@ -150,7 +150,7 @@ def pickup_back_full_stack(distance=0):
 
      return s.steps
 
-def pickup_front_full_stack(distance=0):
+def pickup_front_full_stack(forward_distance=250):
     '''
         Picks-up and holds one stack with front servos.
         Separating is not included.
@@ -158,7 +158,7 @@ def pickup_front_full_stack(distance=0):
     '''
 
     s = Strategy()
-    s(m=Move.Distance(250+distance, 700, 300), # 300 SA RAZLOGOM
+    s(m=Move.Distance(forward_distance, 700, 300), # 300 SA RAZLOGOM
       s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
          Servo.FrontVacuum(Vacuum.DOWN),
@@ -208,7 +208,7 @@ def two_level():
 
     return s.steps
 
-def drop_two_level(distance=0):
+def drop_two_level(back_distance=-200):
      '''
         Leaves a two level construction in place and backs out. 
         Backs out.
@@ -227,14 +227,14 @@ def drop_two_level(distance=0):
           Servo.CenterLift(CenterLift.DROP2, 50),
           Servo.FrontGripLift(FrontGripLift.DOWN, 50)])
           
-     s(m=Move.Distance(-200, 1000, 500),
+     s(m=Move.Distance(back_distance, 1000, 500),
           s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
           p = Points.LEVEL1+Points.LEVEL2)
      
      return s.steps
 
-def drop_one_level(distance=0):
+def drop_one_level(backout_distance=-150):
      '''
         Leaves a one level construction in place and backs out. 
         Backs out.
@@ -243,7 +243,7 @@ def drop_one_level(distance=0):
 
      s = Strategy()
         
-     s(m=Move.Distance(-150+distance, 1000, 500),
+     s(m=Move.Distance(backout_distance, 1000, 500),
       s=[Servo.CenterLift(CenterLift.DROP1),
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)],
@@ -275,7 +275,7 @@ def drop_separate_two_level(between_drop_distance=0, backout_distance=0):
 
      return s.steps
 
-def lift_two_on_one(distance=0, back_distance=0):
+def lift_two_on_one(forward_distance=150, back_distance=-250):
      '''
         Places two levels on a one level high construction on the ground.
         Backs out.
@@ -292,12 +292,12 @@ def lift_two_on_one(distance=0, back_distance=0):
      #      Servo.FrontGripLift(FrontGripLift.UP-20, 30),
      #      Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
           
-     s(m=Move.Distance(150+distance, 800, 300),
+     s(m=Move.Distance(forward_distance, 800, 300),
           s=[Servo.CenterLift(CenterLift.UP, 60),
           Servo.FrontVacuumLift(VacuumLift.UP, 60),
           Servo.FrontGripLift(FrontGripLift.UP-20, 50),
           Servo.FrontVacuum(Vacuum.DROP, 60)])
-     s(m=Move.Distance(-250-back_distance, 1000, 1000),
+     s(m=Move.Distance(back_distance, 1000, 1000),
      s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
           Servo.FrontVacuumLift(VacuumLift.UP-20)],
@@ -330,7 +330,7 @@ def push_two_level(push_distance=0, backout_distance=0):
 
      return s.steps
 
-def lift_one_on_two(distance=0):
+def lift_one_on_two(forward_distance=200, backout_distance=-250):
      '''
         Places one level on a two level high construction on the ground.
         Backs out.
@@ -345,7 +345,7 @@ def lift_one_on_two(distance=0):
           Servo.FrontVacuumLift(VacuumLift.HOLD, 50)],
           a=[I_O.Pump(0), I_O.Valve(0)])
 
-     s(m=Move.Distance(200+distance, 1000, 400),  # BILO 500 UBRZANJE
+     s(m=Move.Distance(forward_distance, 1000, 400),  # BILO 500 UBRZANJE
        s=[Servo.FrontVacuumLift(VacuumLift.UP-15, 50),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
           Servo.FrontGripLift(FrontGripLift.DOWN),
@@ -356,11 +356,25 @@ def lift_one_on_two(distance=0):
           Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
           Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)])
 
-     s(m=Move.Distance(-250-distance, 1000, 500), p = Points.LEVEL3)
+     s(m=Move.Distance(backout_distance, 1000, 500), p = Points.LEVEL3)
      
      return s.steps
 
-def leave_banner(back_distance=0, forward_distance=0):
+def front_lift_stack():
+     '''
+          Lift entire gripped stack with front servos.
+     '''
+
+     s = Strategy()
+
+     s(s=[Servo.FrontVacuum(Vacuum.DOWN),
+          Servo.FrontVacuumLift(VacuumLift.UP),
+          Servo.FrontGripLift(FrontGripLift.HOLD),
+          Servo.CenterLift(CenterLift.HOLD2)])
+
+     return s.steps
+
+def leave_banner(for_angle, back_distance=-250, forward_distance=125):
      '''
           Leave banner by hitting the back wall.
           Forwards out.
@@ -369,11 +383,11 @@ def leave_banner(back_distance=0, forward_distance=0):
 
      s = Strategy()
 
-     s(m=Move.Rotate(3.14, 15, 10))
+     s(m=Move.Rotate(for_angle, 15, 10))
 
-     s(m=Move.Distance(-250+back_distance, 500, 500))
+     s(m=Move.Distance(back_distance, 500, 500))
 
-     s(m=Move.Distance(125+forward_distance, 1000, 500),
+     s(m=Move.Distance(forward_distance, 1000, 500),
        p=Points.BANNER)
 
      return s.steps

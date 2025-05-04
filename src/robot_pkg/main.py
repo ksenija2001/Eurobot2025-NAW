@@ -89,6 +89,8 @@ def main_func():
         print("Cancelling")
         print("\n")
 
+    print(f"TIME: {time.time() - Variables.match_start_time}")
+
     running.clear()
     if execute is not None and execute.thread.is_alive():
         execute.stop()

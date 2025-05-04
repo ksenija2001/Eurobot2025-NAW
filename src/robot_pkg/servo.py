@@ -238,7 +238,7 @@ class Servo:
         servo1._type = ServoType.BACK_RIGHT_LIFT.name
 
         servo2.id = ServoType.BACK_LEFT_LIFT.value
-        servo2.position = position
+        servo2.position = position + 5
         servo2.speed = speed
         servo2.activate_pose = activate_pose
         servo2._type = ServoType.BACK_LEFT_LIFT.name
