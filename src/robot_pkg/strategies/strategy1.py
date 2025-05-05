@@ -8,7 +8,13 @@ from robot_pkg.strategies.tasks import *
 
 strategy1 = Strategy(color = Color.YELLOW, square = Square.LOWER, mood = Mood.PASSIVE)
 
-strategy1(m=Move.ResetOdom(0,0,1.57))
+strategy1(m=Move.ResetOdom(0,0,1.57),
+      task_steps=init_front_servos())
+
+strategy1(task_steps=pickup_front_full_stack())
+strategy1(task_steps=two_level())
+
+strategy1(task_steps=lift_two_on_one())
 # strategy1(task_steps=init_all_servos())
 # strategy1(s=[Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN),
 #               Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
@@ -16,10 +22,10 @@ strategy1(m=Move.ResetOdom(0,0,1.57))
 #               Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN)])
 
 # strategy1(task_steps=two_level())
-strategy1(s=[Servo.BackCenterGrip(BackCenterLeft.GRIP, BackCenterRight.GRIP),
-              Servo.BackSideGrip(BackSideLeft.GRIP, BackSideRight.GRIP),
-              Servo.FrontCenterGrip(FrontCenterLeft.GRIP, FrontCenterRight.GRIP),
-              Servo.FrontSideGrip(FrontSideLeft.GRIP, FrontSideRight.GRIP)])
+# strategy1(s=[Servo.BackCenterGrip(BackCenterLeft.GRIP, BackCenterRight.GRIP),
+#               Servo.BackSideGrip(BackSideLeft.GRIP, BackSideRight.GRIP),
+#               Servo.FrontCenterGrip(FrontCenterLeft.GRIP, FrontCenterRight.GRIP),
+#               Servo.FrontSideGrip(FrontSideLeft.GRIP, FrontSideRight.GRIP)])
 
 
 # strategy1(task_steps=pickup_front_full_stack())

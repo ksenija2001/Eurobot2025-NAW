@@ -8,7 +8,7 @@ from robot_pkg.play_elements import *
 from robot_pkg.consts import Points
 import math
 
-def init_position(init_x, init_y, init_theta, final_position:str):
+def init_position(init_x, init_y, init_theta, final_position:str, final_rotation:float=0):
      '''
           The robot is aligned with the left or right corner at the beginning, 
           facing to the right of the area.
@@ -42,9 +42,14 @@ def init_position(init_x, init_y, init_theta, final_position:str):
 
      s(m=Move.ResetOdom(0, 0, angle))
 
-     s(m=Move.Distance(150, 100, 100),
-       c=[Condition.CinchPulled(1)])
-       
+     if final_rotation != 0:
+          s(m=Move.Distance(140, 100, 100))
+          s(m=Move.RotateTo(final_rotation, 10, 5),
+               c=[Condition.CinchPulled(1)])
+     else:
+          s(m=Move.Distance(150, 100, 100),
+               c=[Condition.CinchPulled(1)])
+
      # s(task_steps=init_all_servos())
 
      return s.steps
@@ -98,14 +103,14 @@ def init_all_servos():
     s = Strategy()
     s(s=[Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideRight.CLOSED),
          Servo.FrontCenterGrip(FrontCenterLeft.NEUTRAL, FrontCenterRight.NEUTRAL),
-         Servo.BackSideGrip(BackSideLeft.CLOSED, BackSideRight.CLOSED),  # PROMENITI KADA SE ISEKU GRIPPERI
+         Servo.BackSideGrip(BackSideLeft.NEUTRAL, BackSideRight.NEUTRAL),  # PROMENITI KADA SE ISEKU GRIPPERI
          Servo.BackCenterGrip(BackCenterLeft.CLOSED, BackCenterRight.CLOSED),
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontVacuumLift(VacuumLift.UP),
          Servo.FrontVacuum(Vacuum.DOWN),
          Servo.CenterSwing(CenterSwing.INIT),
          Servo.CenterLift(CenterLift.DOWN, 50),
-         Servo.BackLift(BackGripLift.HOLD)],
+         Servo.BackLift(BackGripLift.UP)],
        a=[I_O.Pump(0), I_O.Valve(0)])
     
     return s.steps
@@ -134,7 +139,7 @@ def init_back_servos():
      s = Strategy()
      s(s=[Servo.BackSideGrip(BackSideLeft.CLOSED, BackSideRight.CLOSED),
           Servo.BackCenterGrip(BackCenterLeft.CLOSED, BackCenterRight.CLOSED),
-          Servo.BackLift(BACK_LIFT_DOWN)])
+          Servo.BackLift(BackGripLift.DOWN)])
 
      return s.steps
 
@@ -195,9 +200,10 @@ def two_level():
 
     s = Strategy()
     
-    s(s=[Servo.FrontVacuumLift(VacuumLift.HOLD+40)])
+    s(s=[Servo.FrontVacuumLift(VacuumLift.HOVER + 70)])
     s(s=[Servo.FrontGripLift(100),
-         Servo.CenterLift(CenterLift.DOWN)])
+         Servo.CenterLift(CenterLift.DOWN),
+         Servo.FrontVacuumLift(VacuumLift.HOLD+40)])
 
     s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
          Servo.FrontGripLift(FrontGripLift.HOLD),
@@ -210,9 +216,9 @@ def two_level():
 
     s(s=[
           Servo.CenterSwing(CenterSwing.DOWN, 30),
-         Servo.FrontVacuum(Vacuum.UP, 30),
-         Servo.CenterLift(CenterLift.POSITION2),
-         Servo.FrontVacuumLift(VacuumLift.POSITION2+10, 50)])
+         Servo.FrontVacuum(Vacuum.UP), #, 30),
+         Servo.CenterLift(CenterLift.POSITION2), #, 50),
+         Servo.FrontVacuumLift(VacuumLift.POSITION2+10, 70)])
 
     return s.steps
 
@@ -225,10 +231,11 @@ def drop_two_level(back_distance=-200):
 
      s = Strategy()
 
-     s(s=[Servo.CenterLift(CenterLift.POSITION2+40)],
+     s(s=[Servo.CenterLift(CenterLift.POSITION2+40),
+          Servo.FrontVacuumLift(VacuumLift.POSITION2-20, 50)],
           a=[I_O.Pump(0), I_O.Valve(0)])
      
-     s(s=[Servo.FrontVacuumLift(VacuumLift.POSITION2-20)])
+     # s(s=[Servo.FrontVacuumLift(VacuumLift.POSITION2-20)])
      
      s(s=[Servo.FrontVacuum(Vacuum.PUSH),
           Servo.FrontVacuumLift(VacuumLift.DOWN),
@@ -259,7 +266,7 @@ def drop_one_level(backout_distance=-150, p=0):
     
      return s.steps
 
-def drop_separate_two_level(between_drop_distance=0, backout_distance=0):
+def drop_separate_two_level(between_drop_distance=-150, backout_distance=-200):
      '''
           Drops lower level and moves back to drop second level.
           Backs out.
@@ -272,14 +279,15 @@ def drop_separate_two_level(between_drop_distance=0, backout_distance=0):
 
      s(s=[Servo.CenterLift(CenterLift.DOWN),
           Servo.FrontVacuumLift(VacuumLift.DROP1, 20),
-          Servo.FrontVacuum(Vacuum.DOWN, 25)])
+          Servo.FrontVacuum(Vacuum.DOWN, 45)])
 
      s(s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN)],
           a=[I_O.Pump(0), I_O.Valve(0)],
           p=Points.LEVEL1)
 
-     s(m=Move.Distance(-200+backout_distance, 1000, 500),
-          s=[Servo.FrontVacuumLift(VacuumLift.HOVER)])
+     s(m=Move.Distance(backout_distance, 1000, 500),
+          s=[Servo.FrontVacuumLift(VacuumLift.HOVER),
+            Servo.CenterSwing(CenterSwing.DOWN+5)])
 
      return s.steps
 
@@ -313,7 +321,38 @@ def lift_two_on_one(forward_distance=150, back_distance=-250):
      
      return s.steps
 
-def push_two_level(push_distance=0, backout_distance=0):
+def lift_two_on_one_plus(forward_distance=150, back_distance=-250):
+     '''
+        Places two levels on a one level high construction on the ground.
+        Backs out.
+        Points: 25
+     '''
+
+     s = Strategy()
+
+     s(s=[Servo.CenterLift(CenterLift.LIFT2, 50)],
+          a=[I_O.Pump(0), I_O.Valve(0)])
+
+     # s(s=[Servo.CenterLift(CenterLift.UP, 60),
+     #      Servo.FrontVacuumLift(VacuumLift.UP, 60),
+     #      Servo.FrontGripLift(FrontGripLift.UP-20, 30),
+     #      Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
+          
+     s(m=Move.Distance(forward_distance, 800, 300),
+          s=[Servo.CenterLift(CenterLift.UP, 60),
+          Servo.FrontVacuumLift(VacuumLift.UP, 60),
+          Servo.FrontGripLift(FrontGripLift.UP-20, 50),
+          Servo.FrontVacuum(Vacuum.DROP, 60)])
+     s(m=Move.Distance(back_distance, 1000, 1000),
+     s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
+          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
+          Servo.FrontVacuumLift(VacuumLift.UP-20)],
+          p = Points.LEVEL2+Points.LEVEL3)
+     
+     return s.steps
+
+
+def push_two_level(push_distance=150, backout_distance=-300):
      '''
           Pushes a two level construction on top of two planks.
           Makes space for one more two level coonstruction.
@@ -327,14 +366,14 @@ def push_two_level(push_distance=0, backout_distance=0):
      #      Servo.FrontGripLift(FrontGripLift.DOWN),
      #      Servo.FrontVacuumLift(VacuumLift.PUSH)])
 
-     s(m=Move.Distance(150+push_distance, 500, 50),
+     s(m=Move.Distance(push_distance, 500, 85),
      s=[
           # Servo.CenterLift(CenterLift.DOWN),
           Servo.FrontGripLift(FrontGripLift.DOWN), #HOVER+20),
           Servo.FrontVacuumLift(10),
           Servo.FrontVacuum(Vacuum.PUSH)])
 
-     s(m=Move.Distance(-300+backout_distance, 1000, 1000))
+     s(m=Move.Distance(backout_distance, 1000, 1000))
 
      return s.steps
 
@@ -390,11 +429,12 @@ def leave_banner(back_distance=-250, forward_distance=125):
 
      s = Strategy()
 
-     s(m=Move.RotateTo(1.57, 15, 10))
+     s(m=Move.RotateTo(1.57, 5, 5))
 
-     s(m=Move.Distance(back_distance, 500, 500))
+     s(m=Move.Distance(back_distance, 500, 500),
+         s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN)])
 
-     s(m=Move.Distance(forward_distance, 1000, 500),
+     s(m=Move.Distance(forward_distance, 1000, 1000),
        p=Points.BANNER)
 
      return s.steps

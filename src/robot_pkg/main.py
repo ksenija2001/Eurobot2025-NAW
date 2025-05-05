@@ -36,7 +36,7 @@ def main_func():
     Move.start_threads()
     I_O.start_threads()
 
-    reset_odom = Move.ResetOdom(1245, 230, 1.57)#1500 , 135, 1.57)
+    reset_odom = Move.ResetOdom(3000-230, 1110, 3.14)#1500 , 135, 1.57)
     reset_odom._execute()
 
     time.sleep(2)

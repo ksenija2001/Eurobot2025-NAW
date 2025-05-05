@@ -55,8 +55,7 @@ bb(task_steps=drop_two_level())
 bb(m=Move.To(MaterialStack.STACK7.x - 290, 
              MaterialStack.STACK7.y - 15, 
              'f', 1500, 1500, 15, 15),
-    task_steps=init_front_servos(),
-    c=[Condition.Detection(5, 3)])                # ID 5
+    task_steps=init_front_servos())                # ID 5
 
 bb(m=Move.RotateTo(0, 15, 15))
 
@@ -65,7 +64,7 @@ bb(m=Move.Distance(-350, 1500, 500),
     task_steps=two_level())
 bb(task_steps=drop_one_level(p=-4))
 bb(m=Move.RotateTo(3.14, 15, 15))
-bb(task_steps=pickup_back_full_stack())
+bb(task_steps=pickup_back_full_stack(-220))
 
 #########################################
 ## MOVE TO STACK 6 AND LIFT ONE ON TWO ##
@@ -102,7 +101,7 @@ bb(task_steps=lift_two_on_one(250))
 #####################
 
 bb(m=Move.To(MaterialStack.STACK1.x + 15, 
-             MaterialStack.STACK1.y - 350, 
+             MaterialStack.STACK1.y - 365, 
              'f', 1500, 1500, 15, 15),
   task_steps=init_front_servos())
 
@@ -113,7 +112,7 @@ bb(task_steps=pickup_front_full_stack())
 ##  PICKUP STACK 8   ##
 ############################
 
-bb(m=Move.Spline([MaterialStack.STACK8.x - 225],
+bb(m=Move.Spline([MaterialStack.STACK8.x - 215],
                  [MaterialStack.STACK8.y - 30],
                  [3.14],
                  450, #400

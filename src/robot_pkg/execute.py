@@ -103,7 +103,7 @@ class Execute:
             # time.sleep(0.5)
             # Waiting for end of step and checking conditions
             while self.running:
-                time.sleep(0.01)
+                time.sleep(0.001)
 
                 cinch = I_O.sensor_states[SensorType.CINCH.value]
                 move_done = Move.move_done.is_set()
