@@ -29,24 +29,24 @@ basic(
 )
 
 basic(task_steps=init_position(
-    Area.BLUE_2.x + 77.5,
-    Area.BLUE_2.y + 48,
+    Area.YELLOW_2.x + 77.5,
+    Area.YELLOW_2.y + 48,
     0.0,
     'middle'))
 
 ###################################
-## LEAVING BANNER IN BLUE AREA 2 ##
+## LEAVING BANNER IN YELLOW AREA 2 ##
 ###################################
 
 basic(ID=1,
       task_steps=leave_banner())
 
 #####################
-## PICK-UP STACK 6 ##
+## PICK-UP STACK 5 ##
 #####################
 
-basic(m=Move.Spline([MaterialStack.STACK6.x + 10],
-                    [MaterialStack.STACK6.y + 250],
+basic(m=Move.Spline([MaterialStack.STACK5.x + 10],
+                    [MaterialStack.STACK5.y + 250],
                     [-1.57],
                     500,
                     'f'),
@@ -57,27 +57,27 @@ basic(m=Move.RotateTo(-1.57, 10, 10))
 basic(task_steps=pickup_front_full_stack(270))
 
 #####################################
-## BUILD TWO LEVELS IN BLUE AREA 4 ##
+## BUILD TWO LEVELS IN YELLOW AREA 4 ##
 #####################################
 
 basic(task_steps=two_level())
 basic(task_steps=drop_two_level())
 
 #####################
-## PICK-UP STACK 7 ##
+## PICK-UP STACK 4 ##
 #####################
 
-basic(m=Move.To(MaterialStack.STACK7.x - 290,
-                MaterialStack.STACK7.y - 15,
+basic(m=Move.To(MaterialStack.STACK4.x + 290,
+                MaterialStack.STACK4.y + 15,
                 'f', 1500, 1500, 15, 15),
       task_steps=init_front_servos())
 
-basic(m=Move.RotateTo(0, 15, 15))
+basic(m=Move.RotateTo(3.14, 15, 15))
 
 basic(task_steps=pickup_front_full_stack(200))
 
 ####################################
-## SEPARATE STACK 7               ##
+## SEPARATE STACK 4               ##
 ## PICK-UP LOWER LEVEL WITH BACK  ##
 ####################################
 
@@ -88,11 +88,11 @@ basic(m=Move.RotateTo(3.14, 15, 15))
 basic(task_steps=pickup_back_full_stack(-220))
 
 #############################################
-## MOVE TO BLUE AREA 4 AND LIFT ONE ON TWO ##
+## MOVE TO YELLOW AREA 4 AND LIFT ONE ON TWO ##
 #############################################
 
-basic(m=Move.To(MaterialStack.STACK6.x + 10,
-                MaterialStack.STACK6.y + 200,
+basic(m=Move.To(MaterialStack.STACK5.x + 10,
+                MaterialStack.STACK5.y + 200,
                 'f', 1000, 800, 10, 5),
       s=[Servo.BackLift(BackGripLift.UP)])   # HOVER)])
 basic(m=Move.RotateTo(-1.57, 15, 10))  # 5, 5))
@@ -100,11 +100,11 @@ basic(m=Move.RotateTo(-1.57, 15, 10))  # 5, 5))
 basic(task_steps=lift_one_on_two(forward_distance=250))
 
 ######################
-## PICK-UP STACK 10 ##
+## PICK-UP STACK 9 ##
 ######################
 
-basic(m=Move.To(MaterialStack.STACK10.x + 10,
-                MaterialStack.STACK10.y - 350,
+basic(m=Move.To(MaterialStack.STACK9.x + 10,
+                MaterialStack.STACK9.y + 350,
                 'f', 1500, 1000, 15, 10),  # 5, 3),
       task_steps=init_front_servos())
 
@@ -113,11 +113,11 @@ basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
 basic(task_steps=(pickup_front_full_stack(300)))
 
 ################################################
-## LEAVE LOWER LEVEL FROM BACK IN BLUE AREA 2 ##
+## LEAVE LOWER LEVEL FROM BACK IN YELLOW AREA 2 ##
 ################################################
 
-basic(m=Move.To(Area.BLUE_2.x,
-                Area.BLUE_2.y,
+basic(m=Move.To(Area.YELLOW_2.x,
+                Area.YELLOW_2.y,
                 'r', 1000, 500, 10, 5),
       task_steps=two_level())
 
@@ -136,11 +136,11 @@ basic(m=Move.RotateTo(-1.57, 10, 5))
 basic(task_steps=lift_two_on_one(250))
 
 #####################
-##  PICKUP STACK 1 ##
+##  PICKUP STACK 2 ##
 #####################
 
-basic(m=Move.To(MaterialStack.STACK1.x + 15,
-                MaterialStack.STACK1.y - 365,
+basic(m=Move.To(MaterialStack.STACK2.x + 15,
+                MaterialStack.STACK2.y - 365,
                 'f', 1500, 1500, 15, 15),
       task_steps=init_front_servos())
 
@@ -148,12 +148,12 @@ basic(m=Move.RotateTo(1.57, 15, 10))
 basic(task_steps=pickup_front_full_stack())
 
 ################################
-##  PICKUP STACK 8  WITH BACK ##
+##  PICKUP STACK 3  WITH BACK ##
 ################################
 
-basic(m=Move.Spline([MaterialStack.STACK8.x - 215],
-                    [MaterialStack.STACK8.y - 30],
-                    [3.14],
+basic(m=Move.Spline([MaterialStack.STACK3.x + 215],
+                    [MaterialStack.STACK3.y + 30],
+                    [0.0],
                     450,
                     'r'))
 
@@ -163,20 +163,21 @@ basic(m=Move.Distance(250, 1000, 500),
       s=[Servo.BackLift(BackGripLift.UP)])
 
 ##########################
-##  MOVE TO BLUE AREA 2 ##
+##  MOVE TO YELLOW AREA 2 ##
 ##########################
 
 # TODO brzi spline i slaganje tek kada stigne zbog obima
-basic(m=Move.Spline([Area.BLUE_2.x],
-                    [Area.BLUE_2.y + 550],
+# PAZI -J
+basic(m=Move.Spline([Area.YELLOW_2.x],
+                    [Area.YELLOW_2.y + 550],
                     [-1.57],
                     500,
                     'f'),
       task_steps=two_level())
 
 #####################################################
-## LEAVE STACK 8 FROM BACK IN FRONT OF BLUE AREA 2 ##
-## DROP TWO LEVELS IN BLUE AREA 2                  ##
+## LEAVE STACK 3 FROM BACK IN FRONT OF YELLOW AREA 2 ##
+## DROP TWO LEVELS IN YELLOW AREA 2                  ##
 #####################################################
 
 basic(s=[Servo.BackLift(BackGripLift.DOWN, 30)])
@@ -187,11 +188,11 @@ basic(m=Move.Distance(390, 500, 500),
 basic(task_steps=drop_two_level())
 
 #######################################
-## PICK-UP STACK 8 WHERE IT WAS LEFT ##
+## PICK-UP STACK 3 WHERE IT WAS LEFT ##
 ## AND BUILD TWO LEVELS              ##
 #######################################
 
-basic(m=Move.RotateTo(1.57, 15, 10),
+basic(m=Move.RotateTo(1.57, 15, 10), # PAZI
       task_steps=init_front_servos())
 
 basic(task_steps=pickup_front_full_stack(300))
@@ -200,12 +201,12 @@ basic(task_steps=two_level())
 
 ###############################################
 ## PICK-UP LOWER WITH BACK                   ##
-## LIFT UPPER ON CONSTRUCTION IN BLUE AREA 2 ##
+## LIFT UPPER ON CONSTRUCTION IN YELLOW AREA 2 ##
 ###############################################
 
 basic(task_steps=drop_one_level())
 
-basic(m=Move.RotateTo(-1.57, 15, 10),
+basic(m=Move.RotateTo(-1.57, 15, 10), # PAZI
       task_steps=init_back_servos())
 
 basic(task_steps=pickup_back_full_stack())
@@ -231,8 +232,8 @@ basic(m=Move.Distance(100, 500, 300))
 basic(ID=100,
       task_steps=open_all())
 
-basic(m=Move.Spline([Area.BLUE_HOME.x],
-                    [Area.BLUE_HOME.y - 250],
+basic(m=Move.Spline([Area.YELLOW_HOME.x],
+                    [Area.YELLOW_HOME.y - 250],
                     [1.57],
                     800,
                     'f'),
