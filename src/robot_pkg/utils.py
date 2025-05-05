@@ -156,13 +156,14 @@ from robot_pkg.strategy import Strategy
 from importlib import import_module
 def choose_strategy(color, square, mood):
     temp_strategy = Strategy(color, square, mood)
+    path = os.path.join(STRATEGIES_PATH, color)
 
-    for file in os.listdir(STRATEGIES_PATH):
+    for file in os.listdir(path):
         if file.endswith(".py"):
             strategy = os.path.splitext(file)[0]
             print(strategy)
             if strategy not in ["tasks"]:
-                mod = import_module("robot_pkg.strategies." + strategy)
+                mod = import_module("robot_pkg.strategies." + color + "." + strategy)
                 strategy = getattr(mod, strategy)
 
                 if strategy == temp_strategy:

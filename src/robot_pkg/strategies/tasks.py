@@ -478,3 +478,26 @@ def drop_back_two_level():
      '''
      
      pass
+
+def sima_coordinates(sima1_coor:list[Position]=[], sima2_coor:list[Position]=[], sima3_coor:list[Position]=[], sima4_coor:list[Position]=[]):
+     '''
+          Lists coordinates that will be sent to SIMAs at the 85th second of the match.
+          Each position is defined with (x, y, theta, speed).
+          The firt coordinate defines the starting position and orientation of the SIMA, and
+          the rest the target coordinates on it's path.
+     '''
+     s = Strategy()
+
+     s(sima_id=1, 
+       sima=sima1_coor)
+
+     s(sima_id=2, 
+       sima=sima2_coor)
+
+     s(sima_id=3, 
+       sima=sima3_coor)
+     
+     s(sima_id=4, 
+       sima=sima4_coor)
+
+     return s.steps
