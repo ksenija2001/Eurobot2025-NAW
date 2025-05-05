@@ -1,6 +1,7 @@
 from threading import Thread, Event
 import time
 import struct
+import math
 from robot_pkg.display import Display
 from robot_pkg.step import Step
 from robot_pkg.strategy import Strategy
@@ -65,6 +66,22 @@ class Execute:
 
             self._logger.info(f"Current step ID: {step.ID}")
             self._logger.info(f"Conditions: {step.conditions}")
+
+            if step.movement is None and \
+                    len(step.servos) == 0 and \
+                    len(step.outputs) == 0 and \
+                    len(step.conditions) < 1:
+
+                next_step_id = None
+                continue
+
+            if step.ID == 100:
+                data = bytearray(step.movement.data)
+                distance, v, a = struct.unpack('3f', data)
+
+                direction = -1 if Move.pose.theta < 0 else 1
+                step.movement.data = struct.pack(
+                    '3f', direction*distance, v, a)
 
             start_time = time.time()
 
@@ -150,14 +167,27 @@ class Execute:
 
                     if step.movement is None:
                         step.movement = last_moving_step.movement
-
-                    step.movement.executed = False
-
-                    if step.movement._type == MoveType.SPLINE.name:
+                        step.movement.executed = False
+                    elif step.movement._type == MoveType.SPLINE.name:
                         data = bytearray(step.movement.data)
-                        data[2:6] = bytearray(struct.pack('f', 300))
-                        # print(f"SENDING: {data}")
-                        step.movement.data = bytes(data)
+                        size = data[0]
+                        direction = str(data[1])
+                        index = 1+1+4+4*3*(size-1)
+                        x, y, theta = struct.unpack(
+                            '3f', data[index:index+12])
+
+                        reverse = math.pi if direction == 'r' else 0
+                        x_ = x + 200*math.cos(theta+math.pi+reverse)
+                        y_ = y + 200*math.sin(theta+math.pi+reverse)
+
+                        move1 = Move.To(x_, y_, direction, 1000, 500, 5, 5)
+                        step.movement = move1
+
+                        move2 = Move.To(x, y, direction, 1000, 500, 5, 5)
+                        step2 = Step(None, move2, [], [], [Condition.InPosition(
+                            None), Condition.MatchTime(100, 96)], None, None, 0)
+
+                        self.steps.insert(1, step2)
 
                     Variables.processing_detection.set()
 
@@ -170,22 +200,14 @@ class Execute:
                 checked = {cond._type: cond.check(
                     args) for cond in step.conditions}
 
-                if len(step.conditions) == 0 or \
-                        (len(step.conditions) == 1 and step.conditions[0]._type == ConditionType.SIMA):
-
-                    next_step_id = None
-                    break
-                # Conditions that are continouosly checked during step execution
-                elif ConditionType.SIMA in checked and checked[ConditionType.SIMA] != False:
-                    self._logger.info(
-                        f"Condition met TYPE: {ConditionType.SIMA}")
-
-                    sima = [
-                        cond for cond in step.conditions if cond._type == ConditionType.SIMA][0]
-                    step.conditions.remove(sima)
+                # Send start to SIMAs in 85th second
+                if time.time() - Variables.match_start_time >= 84.5 and not self.sima.sent:
                     self.sima.send_start()
 
-                    continue
+                # Conditions that are continouosly checked during step execution
+                if len(step.conditions) == 0:
+                    next_step_id = None
+                    break
                 elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False:
                     self._logger.info(
                         f"Condition met TYPE: {ConditionType.TIME}")
@@ -231,17 +253,19 @@ class Execute:
         self.main_running.clear()
 
     def stop(self):
+        self.stop_children()
+
         self.running = False
         self.thread.join()
 
-        self.main_running.clear()
-
+    def stop_children(self):
         stop_motors = Move.Stop()
         stop_motors._execute()
 
         self.sima.stop_threads()
 
         actuators = [I_O.Pump(0), I_O.Valve(0)]
+
         for actuator in actuators:
             actuator._execute()
             time.sleep(0.01)

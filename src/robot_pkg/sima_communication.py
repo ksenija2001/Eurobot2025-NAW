@@ -1,10 +1,12 @@
 import socket
 from threading import Thread
-import time, struct
+import time
+import struct
 
 from robot_pkg.main import log_handler
 from robot_pkg.move import Position
 from robot_pkg.consts import IP
+
 
 class SIMA:
     def __init__(self):
@@ -18,16 +20,18 @@ class SIMA:
         except:
             self.s.close()
             self.s.bind((IP, 9999))
-        
+
         self._logger.info("Opened port")
 
-        self.connections = {1: None, 2:None, 3:None, 4:None}
-        self.addresses   = {1: None, 2:None, 3:None, 4:None}
+        self.connections = {1: None, 2: None, 3: None, 4: None}
+        self.addresses = {1: None, 2: None, 3: None, 4: None}
 
         self.running = False
         self._thread = Thread(target=self.accept_connections)
 
-        self.coordinates = {1: None, 2:None, 3:None, 4:None}
+        self.coordinates = {1: None, 2: None, 3: None, 4: None}
+
+        self.sent = False
 
     def start_threads(self):
         self.running = True
@@ -50,14 +54,16 @@ class SIMA:
             print(e)
             pass
 
+        self.sent = True
         self._logger.info(f"Sending start to all connected SIMA")
 
-    def send_command(self, sima_ID:int, coordinates:list[Position]):
+    def send_command(self, sima_ID: int, coordinates: list[Position]):
         size = len(coordinates)
         packed = [size]
         for position in coordinates:
-            packed.extend([position.x, position.y, position.theta, position.speed])
-       
+            packed.extend(
+                [position.x, position.y, position.theta, position.speed])
+
         try:
             data = struct.pack('<B'+'f'*(size*4), *packed)
             self.connections[sima_ID].send(data)
@@ -72,7 +78,7 @@ class SIMA:
             try:
                 conn, address = self.s.accept()
                 # blocks until one byte that contains the ID of the connected SIMA is received
-                ID = int(conn.recv(1)) 
+                ID = int(conn.recv(1))
                 self.addresses[ID] = address
                 self.connections[ID] = conn
 
@@ -82,9 +88,9 @@ class SIMA:
             except Exception as e:
                 # print(e)
                 pass
-        
+
             time.sleep(0.1)
-        
+
     def stop_threads(self):
         self.running = False
         if self._thread.is_alive():
@@ -93,11 +99,11 @@ class SIMA:
         for _, connection in self.connections.items():
             if connection is not None:
                 connection.close()
-      
+
         self.s.detach()
         self.s.close()
         self._logger.info("SIMA thread stopped.")
 
+
 if __name__ == "__main__":
     sima = SIMA()
-

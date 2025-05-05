@@ -50,10 +50,14 @@ basic(m=Move.Spline([MaterialStack.STACK6.x + 10],
                     [-1.57],
                     500,
                     'f'),
-      task_steps=init_front_servos())
+      task_steps=init_front_servos(),
+      c=[Condition.Detection(2, attempts=0),])
+# TODO DETEKCIJA ID=2 - ALTERNATIVA NA STACK 10 - ide se na 5, 4, 3
+# TODO DETEKCIJA ID=3 - ALTERNATIVA DETEKCIJE NA 10 - ide se na 9, pa 5, 4, 3
 
 basic(m=Move.RotateTo(-1.57, 10, 10))
 
+# NEMOGUCE DA NEMA STACK 6 A DA SE NIJE DESILA DETEKCIJA
 basic(task_steps=pickup_front_full_stack(270))
 
 #####################################
@@ -110,7 +114,9 @@ basic(m=Move.To(MaterialStack.STACK10.x + 10,
 
 basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
 
-basic(task_steps=(pickup_front_full_stack(300)))
+basic(task_steps=(pickup_front_full_stack(300, id=4)))
+
+# TODO ALTERNATIVA ID=4 - NEMA 10 - ide se odma na STACK 1, ostavljaa se trospratnica u BLUE area 2 i ide se na 8 posle
 
 ################################################
 ## LEAVE LOWER LEVEL FROM BACK IN BLUE AREA 2 ##
@@ -157,7 +163,8 @@ basic(m=Move.Spline([MaterialStack.STACK8.x - 215],
                     450,
                     'r'))
 
-basic(task_steps=pickup_back_full_stack())
+basic(task_steps=pickup_back_full_stack(id=5))
+# TODO nema STACK 8 - ostaviti dvospratnicu od STACK 1 u BLUE AREA 2
 
 basic(m=Move.Distance(250, 1000, 500),
       s=[Servo.BackLift(BackGripLift.UP)])
@@ -179,7 +186,7 @@ basic(m=Move.Spline([Area.BLUE_2.x],
 ## DROP TWO LEVELS IN BLUE AREA 2                  ##
 #####################################################
 
-basic(s=[Servo.BackLift(BackGripLift.DOWN, 30)])
+basic(s=[Servo.BackLift(BackGripLift.DOWN)])
 
 basic(m=Move.Distance(390, 500, 500),
       task_steps=open_back())
@@ -222,23 +229,172 @@ basic(m=Move.Distance(-100, 500, 300),
       task_steps=open_back(),
       p=Points.LEVEL1)
 
-basic(m=Move.Distance(100, 500, 300))
+basic(m=Move.Distance(100, 500, 300),
+      c=[Condition.InPosition(100),])
+
+
+#############################################
+## DETECTION ON STACK 6 ALTERNATIVE - ID 2 ##
+#############################################
+# ALTERNATIVA NA STACK 10 - ide se na 5, 4, 3
+
+basic(ID=2)
+
+######################
+## PICK-UP STACK 10 ##
+######################
+
+basic(m=Move.To(MaterialStack.STACK10.x + 10,
+                MaterialStack.STACK10.y - 350,
+                'f', 1500, 1000, 15, 10),  # 5, 3),
+      task_steps=init_front_servos(),
+      c=[Condition.Detection(3, attempts=0),])
+
+basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
+
+basic(task_steps=(pickup_front_full_stack(300)))
+
+basic(c=[Condition.Timeout(4, 0.1),])
+
+##############################################
+## DETECTION ON STACK 10 ALTERNATIVE - ID 3 ##
+##############################################
+# ALTERNATIVA DETEKCIJE NA 10 - ide se na 9, pa 5, 4, 3
+
+basic(ID=3)
+
+#####################
+## PICK-UP STACK 9 ##
+#####################
+
+basic(m=Move.To(MaterialStack.STACK9.x + 10,
+                MaterialStack.STACK9.y - 350,
+                'f', 1500, 1000, 15, 10),  # 5, 3),
+      task_steps=init_front_servos())
+
+basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
+
+basic(task_steps=(pickup_front_full_stack(300)))
+
+
+#############################################
+## MERGE ID 2 AND ID 3 ALTERNATIVES - ID 4 ##
+#############################################
+# ALTERNATIVA DETEKCIJE NA 10 - ide se na 9, pa 5, 4, 3
+
+basic(ID=4)
+
+###############################
+## PICK-UP STACK 5 WITH BACK ##
+###############################
+
+basic(m=Move.To(MaterialStack.STACK5.x,
+                MaterialStack.STACK5.y + 300,
+                'r', 1500, 1000, 15, 10),
+      task_steps=init_back_servos())
+
+basic(m=Move.RotateTo(1.57, 15, 10))
+
+basic(task_steps=pickup_back_full_stack())
+
+###################################
+## SEPARATE STACK IN BLUE AREA 3 ##
+###################################
+
+basic(m=Move.Spline([Area.BLUE_3.x + 120],
+                    [Area.BLUE_3.y],
+                    [3.14],
+                    400,
+                    'f'),
+      s=[Servo.BackLift(BackGripLift.UP)],
+      task_steps=two_level())
+
+basic(task_steps=drop_separate_two_level(-275, backout_distance=-300))
+
+basic(m=Move.RotateTo(-1.57, 15, 10))
+
+################################
+## PICK-UP STACK 4 WITH FRONT ##
+################################
+
+basic(m=Move.Spline([MaterialStack.STACK4.x + 175],
+                    [MaterialStack.STACK4.y],
+                    [3.14],
+                    400,
+                    'f'),
+      task_steps=init_front_servos())
+
+basic(task_steps=pickup_front_full_stack())
+
+basic(m=Move.Distance(-100, 500, 500))
+
+####################################
+## LEAVE BACK AND LIFT TWO ON ONE ##
+####################################
+
+basic(m=Move.RotateTo(1.57, 5, 5),
+      task_steps=two_level(),
+      s=[Servo.BackLift(BackGripLift.DOWN)])
+
+basic(task_steps=open_back())
+
+basic(task_steps=lift_two_on_one(forward_distance=250, back_distance=-135))
+basic(task_steps=push_two_level(push_distance=135, backout_distance=-250))
+
+##############################################
+## PICK-UP LEFT STACK 5 AND LIFT TWO ON ONE ##
+##############################################
+
+basic(m=Move.RotateTo(-1.57, 15, 10),
+      task_steps=init_front_servos())
+
+basic(task_steps=pickup_front_full_stack(150))
+
+basic(m=Move.RotateTo(1.57, 5, 5),
+      task_steps=two_level())
+
+basic(task_steps=lift_two_on_one(300, -300))
+
+
+#####################
+## PICK-UP STACK 3 ##
+#####################
+
+basic(m=Move.RotateTo(0, 15, 15))
+basic(m=Move.Spline([MaterialStack.STACK3.x + 175],
+                    [MaterialStack.STACK3.y],
+                    [3.14],
+                    400, 'f'),
+      task_steps=init_front_servos())
+
+basic(task_steps=pickup_front_full_stack())
+
+basic(m=Move.Distance(-100, 500, 500))
+
+basic(m=Move.RotateTo(-1.57, 10, 5),
+      task_steps=two_level())
+
+basic(task_steps=lift_two_on_one(250, -300))
+
+basic(m=Move.RotateTo(0, 15, 15),
+      c=[Condition.InPosition(100),])
+
 
 ##########
 ## HOME ##
 ##########
 
 basic(ID=100,
+      m=Move.Distance(150, 1000, 1000),
       task_steps=open_all())
 
-basic(m=Move.Spline([Area.BLUE_HOME.x],
-                    [Area.BLUE_HOME.y - 250],
-                    [1.57],
-                    800,
-                    'f'),
-      task_steps=init_all_servos(),
-      c=[Condition.InPosition(102)])
+basic(m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y - 450, 'f', 1100, 1500, 15, 15),
+      task_steps=init_all_servos())
 
+# Wait for 99s to enter area
+basic(c=[Condition.MatchTime(101, 99)])
 
-# KEEP AT BOTTOM OF STARTEGY - ensures points for home are given when movement is done
-basic(ID=102, p=10)
+basic(ID=101,
+      m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y -
+                250, 'f', 1100, 1500, 15, 15),
+      p=10)

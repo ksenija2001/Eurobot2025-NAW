@@ -1,26 +1,29 @@
 
+from robot_pkg.utils import user_cmd, choose_strategy
+import sys
+import time
+from robot_pkg.sima_communication import SIMA
+from robot_pkg.consts import Variables
+from robot_pkg.battery import Battery
+from robot_pkg.execute import Execute
+from robot_pkg.in_out import I_O
+from robot_pkg.move import Move
+from robot_pkg.servo import Servo
+from robot_pkg.lidar import Lidar
+from robot_pkg.can_controller import CanNetwork
+from robot_pkg.logger import LogHandler
 from threading import Event, Thread
 
-paused:Event = Event()
-import time, sys
+paused: Event = Event()
 
-from robot_pkg.logger import LogHandler
 log_handler = LogHandler()
 
-from robot_pkg.can_controller import CanNetwork
-can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
+can_handler = CanNetwork(
+    channel='can0', interface='socketcan', max_queue_size=10)
 can_handler.init_queues(10)
 
-from robot_pkg.lidar import Lidar
-from robot_pkg.servo import Servo
-from robot_pkg.move import Move
-from robot_pkg.in_out import I_O
-from robot_pkg.utils import user_cmd,choose_strategy
-from robot_pkg.execute import Execute
-from robot_pkg.battery import Battery
-from robot_pkg.consts import Variables
-from robot_pkg.sima_communication import SIMA
 # from robot_pkg.strategies.odom_calib import odom_calib
+
 
 def main_func():
     main_log = log_handler.get_logger("main")
@@ -36,7 +39,7 @@ def main_func():
     Move.start_threads()
     I_O.start_threads()
 
-    reset_odom = Move.ResetOdom(3000-230, 1110, 3.14)#1500 , 135, 1.57)
+    reset_odom = Move.ResetOdom(3000-230, 1110, 3.14)  # 1500 , 135, 1.57)
     reset_odom._execute()
 
     time.sleep(2)
@@ -44,16 +47,17 @@ def main_func():
     running = Event()
     execute = None
     if len(sys.argv) > 1:
-        strategy =  choose_strategy(sys.argv[1], sys.argv[2], sys.argv[3])
-        
+        strategy = choose_strategy(sys.argv[1], sys.argv[2], sys.argv[3])
+
         if strategy is None:
-            raise Exception("To run in debug mode leave the arguments empty, else call 'start_main color square mood'")
+            raise Exception(
+                "To run in debug mode leave the arguments empty, else call 'start_main color square mood'")
 
         main_log.info(f"------ Strategy -------\n{strategy}")
 
         Variables.color = strategy.color
         # Variables.match_start_time = time.time() # REMOVE WHEN CINCH IS ENABLED
-        
+
         running.set()
 
         execute = Execute(strategy, running)
@@ -94,7 +98,7 @@ def main_func():
     running.clear()
     if execute is not None and execute.thread.is_alive():
         execute.stop()
-        time.sleep(1)
+        # time.sleep(1)
 
     Lidar.stop_threads()
     Servo.stop_threads()
@@ -104,6 +108,6 @@ def main_func():
 
     can_handler.stop_threads()
 
+
 if __name__ == "__main__":
     main_func()
-    
