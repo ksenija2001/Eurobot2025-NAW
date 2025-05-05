@@ -7,10 +7,10 @@ from robot_pkg.play_elements import Area, MaterialStack
 from robot_pkg.strategies.tasks import *
 
 #################################
-## BLUE CENTER SEMI AGGRESSIVE ##
+## YELLOW CENTER SEMI AGGRESSIVE ##
 #################################
 
-semi = Strategy(color=Color.BLUE, square=Square.CENTER, mood=Mood.SEMI)
+semi = Strategy(color=Color.YELLOW, square=Square.CENTER, mood=Mood.SEMI)
 
 #################
 ## PREPARATION ##
@@ -24,18 +24,18 @@ semi(
         sima3_coor=[],
         sima4_coor=[Position(125, -400, 0, 0), Position(1000, -600, 0, 35), Position(1800, -550, 0, 35)])
 )
-semi(task_steps=init_position(Area.BLUE_3.x + 48,
-                              Area.BLUE_3.y - 77.5,
+semi(task_steps=init_position(Area.BLUE_3.x - 48,
+                              Area.BLUE_3.y - 77.5, # NE ZNAM TREBA LI OVDE +
                               -1.57,
                               'middle',
                               -0.5))
 
 #####################
-## PICK-UP STACK 5 ##
+## PICK-UP STACK 6 ##
 #####################
 
-semi(ID=1, m=Move.To(MaterialStack.STACK5.x,
-                     MaterialStack.STACK5.y + 350,
+semi(ID=1, m=Move.To(MaterialStack.STACK6.x,
+                     MaterialStack.STACK6.y + 350,
                      'f',
                      1500, 1500, 15, 10))
 
@@ -45,11 +45,11 @@ semi(m=Move.RotateTo(-1.57, 15, 10),
 semi(task_steps=pickup_front_full_stack())
 
 #################################
-## LEAVE BANNER IN BLUE AREA 5 ##
+## LEAVE BANNER IN YELLOW AREA 5 ##
 #################################
 
-semi(m=Move.Spline([Area.BLUE_5.x + 75],
-                   [Area.BLUE_5.y + 175],
+semi(m=Move.Spline([Area.YELLOW_5.x - 75],
+                   [Area.YELLOW_5.y + 175],
                    [1.57],
                    400,
                    'r'))
@@ -57,11 +57,11 @@ semi(m=Move.Spline([Area.BLUE_5.x + 75],
 semi(task_steps=leave_banner(back_distance=-150))
 
 #################################
-## DROP STACK 5 IN BLUE AREA 3 ##
+## DROP STACK 6 IN YELLOW AREA 3 ##
 #################################
 
-semi(m=Move.Spline([Area.BLUE_3.x],
-                   [Area.BLUE_3.y-25],
+semi(m=Move.Spline([Area.YELLOW_3.x],
+                   [Area.YELLOW_3.y-25],
                    [3.14],
                    350, 'f'),
 
@@ -70,27 +70,27 @@ semi(m=Move.Spline([Area.BLUE_3.x],
 semi(task_steps=drop_two_level())
 
 #####################
-## PICK-UP STACK 3 ##
+## PICK-UP STACK 8 ##
 #####################
 
-semi(m=Move.To(Area.BLUE_3.x + 175,
-               MaterialStack.STACK3.y,
+semi(m=Move.To(Area.YELLOW_3.x - 175,
+               MaterialStack.STACK8.y,
                'f', 1500, 1000, 15, 10),
      task_steps=init_front_servos())
 
-semi(m=Move.RotateTo(3.14, 10, 5))
+semi(m=Move.RotateTo(0.0, 10, 5))
 
 semi(task_steps=pickup_front_full_stack())
 
 semi(m=Move.Distance(-200, 500, 300))
 
 #########################################
-## DROP HALF OF STACK 3 in BLUE AREA 3 ##
+## DROP HALF OF STACK 8 in YELLOW AREA 3 ##
 ## AND LIFT OTHER HALF ON TWO LEVEL    ##
 #########################################
 
-semi(m=Move.To(Area.BLUE_3.x + 175,
-               Area.BLUE_3.y-25,
+semi(m=Move.To(Area.YELLOW_3.x - 175,
+               Area.YELLOW_3.y-25,
                'f',
                1500, 1000, 10, 5),
      task_steps=two_level())
@@ -101,14 +101,14 @@ semi(m=Move.RotateTo(3.14, 15, 5))  # MOZE BRZE AKO NIJE PREBLIZU
 semi(task_steps=lift_one_on_two())
 
 #####################
-## PICK-UP STACK 8 ##
+## PICK-UP STACK 3 ##
 #####################
 
-semi(m=Move.RotateTo(0.707, 15, 10),
+semi(m=Move.RotateTo(-0.707, 15, 10),
      task_steps=init_front_servos())
 
-semi(m=Move.Spline([1200, MaterialStack.STACK8.x-290],
-                   [1250, MaterialStack.STACK8.y],
+semi(m=Move.Spline([1200, MaterialStack.STACK3.x+290],
+                   [1250, MaterialStack.STACK3.y],
                    [0.1, 0],
                    900,
                    'f'))
@@ -116,11 +116,11 @@ semi(m=Move.Spline([1200, MaterialStack.STACK8.x-290],
 semi(task_steps=pickup_front_full_stack(200))
 
 ###############################
-## PICK-UP STACK 1 WITH BACK ##
+## PICK-UP STACK 2 WITH BACK ##
 ###############################
 
-semi(m=Move.Spline([MaterialStack.STACK1.x],
-                   [MaterialStack.STACK1.y-325],
+semi(m=Move.Spline([MaterialStack.STACK2.x],
+                   [MaterialStack.STACK2.y-325],
                    [-1.57],
                    450,
                    'r'),
@@ -131,12 +131,12 @@ semi(task_steps=pickup_back_full_stack())
 # semi(m=Move.Distance(300, 1500, 1500))
 
 #################################
-## DROP STACK 8 IN BLUE AREA 2 ##
+## DROP STACK 3 IN YELLOW AREA 2 ##
 #################################
 
-# Moving through STACK 10
-semi(m=Move.Spline([Area.BLUE_2.x],
-                   [Area.BLUE_2.y + 200],
+# Moving through STACK 9
+semi(m=Move.Spline([Area.YELLOW_2.x],
+                   [Area.YELLOW_2.y + 200],
                    [-1.57],
                    350,
                    'f'),
@@ -150,11 +150,11 @@ semi(task_steps=drop_two_level(-200))
 semi(m=Move.RotateTo(0, 10, 5))
 
 #################################
-## PICK-UP STACK 6             ##
+## PICK-UP STACK 5             ##
 #################################
 
-semi(m=Move.Spline([MaterialStack.STACK6.x + 25],
-                   [MaterialStack.STACK6.y + 250],
+semi(m=Move.Spline([MaterialStack.STACK5.x - 25],
+                   [MaterialStack.STACK5.y + 250],
                    [-1.57],
                    400,
                    'f'),
@@ -165,7 +165,7 @@ semi(task_steps=two_level())
 semi(task_steps=drop_one_level(-250))
 
 #################################
-## LEAVE STACK 1 FORM BACK     ##
+## LEAVE STACK 2 FORM BACK     ##
 #################################
 
 semi(m=Move.RotateTo(1.57, 3, 3),
@@ -175,11 +175,11 @@ semi(m=Move.Distance(100, 500, 300),
      task_steps=open_back())
 
 ##########################################
-## RETURN FOR LEFT STACK IN BLUE AREA 2 ##
+## RETURN FOR LEFT STACK IN YELLOW AREA 2 ##
 ##########################################
 
-semi(m=Move.Spline([Area.BLUE_2.x - 25],
-                   [Area.BLUE_2.y+450],
+semi(m=Move.Spline([Area.YELLOW_2.x - 25],
+                   [Area.YELLOW_2.y + 450],
                    [-1.57],
                    400,
                    'f'))
@@ -187,13 +187,13 @@ semi(m=Move.Spline([Area.BLUE_2.x - 25],
 semi(task_steps=lift_one_on_two(150))
 
 ################################################
-## RETURN FOR LEFT STACK 1 IN FRONT OF AREA 4 ##
+## RETURN FOR LEFT STACK 2 IN FRONT OF AREA 4 ##
 ################################################
 
 semi(m=Move.RotateTo(0, 15, 15))
 
-semi(m=Move.Spline([MaterialStack.STACK6.x + 25],
-                   [MaterialStack.STACK6.y + 350],
+semi(m=Move.Spline([MaterialStack.STACK5.x - 25],
+                   [MaterialStack.STACK5.y + 150],
                    [-1.57],
                    400,
                    'f'),
@@ -210,8 +210,8 @@ semi(task_steps=lift_two_on_one())
 semi(ID=100,
      task_steps=open_all())
 
-semi(m=Move.Spline([Area.BLUE_HOME.x],
-                   [Area.BLUE_HOME.y-250],
+semi(m=Move.Spline([Area.YELLOW_HOME.x],
+                   [Area.YELLOW_HOME.y-250],
                    [-1.57],
                    800,
                    'r'),

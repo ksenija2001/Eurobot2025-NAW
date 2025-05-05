@@ -30,7 +30,7 @@ basic(
 
 basic(task_steps=init_position(
     Area.YELLOW_2.x + 77.5,
-    Area.YELLOW_2.y + 48,
+    Area.YELLOW_2.y - 48, # NE ZNAM DA LI SE I OVDE MENJA PREDZNAK
     0.0,
     'middle'))
 
