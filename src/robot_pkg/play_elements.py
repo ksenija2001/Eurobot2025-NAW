@@ -25,7 +25,7 @@ class Area:
     def get_all_visited_areas(cls, color=None):
         '''
         Gets all VISITED areas on the field. If a colors is passed, returns visited fields of that color. If nothing is passed, returns all fields.
-        Can be used for avoiding parts of the table where there is a possibility of planks and cans might have fallen while building (if against 
+        Can be used for avoiding parts of the table where there is a possibility planks and cans might have fallen while building (if against 
         lower-ranked teams), or to steal (if against better teams).
         
         '''
