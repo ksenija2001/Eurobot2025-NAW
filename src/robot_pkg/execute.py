@@ -289,14 +289,18 @@ class Execute:
         self.main_running.clear()
 
     def stop(self):
+        self.running = False
+        time.sleep(0.1)
+
         self.stop_children()
 
-        self.running = False
         self.thread.join()
 
     def stop_children(self):
         stop_motors = Move.Stop()
         stop_motors._execute()
+
+        log_handler.get_logger("move").info(f"Executing movement STOP")
 
         self.sima.stop_threads()
 

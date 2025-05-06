@@ -55,7 +55,8 @@ class CanNetwork:
     def receive(self):
         while self.running:
             try:
-                msg = self.bus.recv(timeout=0.1)                  # blocks until a message is ready
+                # with can.interface.Bus() as bus:
+                msg = self.bus.recv(timeout=0.001)                  # blocks until a message is ready
                 if msg is not None:
                     msg_id = msg.arbitration_id
 
@@ -70,7 +71,7 @@ class CanNetwork:
             except can.CanError as e:
                 self.logger.warning(f"Message NOT received correctly: {e}")
             
-            time.sleep(0.0005) # 0.5ms
+            # time.sleep(0.0005) # 0.5ms
 
     def send(self):
         key = None

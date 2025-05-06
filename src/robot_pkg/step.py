@@ -28,7 +28,7 @@ class Step:
             x = abs(curr_pose.x - output.send_pose.x)
             y = abs(curr_pose.y - output.send_pose.y)
             if x <= 3 or y <= 3:  # if x or y is less than 3mm - activate
-                print(f"Executing actuator {output._type}")
+                log_handler.get_logger("otuputs").info(f"Executing actuator {output._type}")
                 output._execute()
                 time.sleep(0.01)
         
@@ -42,7 +42,7 @@ class Step:
             x = abs(curr_pose.x - servo.activate_pose.x)
             y = abs(curr_pose.y - servo.activate_pose.y)
             if x <= 50 or y <= 50:  # if x or y is less than 3mm - activate
-                print(f"Executing servo {servo._type}")
+                log_handler.get_logger("servos").info(f"Executing servo {servo._type}")
                 servo._execute()
 
                 # Only tracking AX servos, RC servos are sent individually

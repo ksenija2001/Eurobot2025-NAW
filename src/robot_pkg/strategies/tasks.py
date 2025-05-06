@@ -178,7 +178,7 @@ def pickup_back_full_stack(back_distance=-200, id=None):
     return s.steps
 
 
-def pickup_front_full_stack(forward_distance=250, id=None):
+def pickup_front_full_stack(forward_distance=250, ID=None):
     '''
         Picks-up and holds one stack with front servos.
         Separating is not included.
@@ -186,8 +186,6 @@ def pickup_front_full_stack(forward_distance=250, id=None):
     '''
 
     s = Strategy()
-
-    s(c=[Condition.FrontSensors(id)])
 
     s(m=Move.Distance(forward_distance, 700, 300),  # 300 SA RAZLOGOM
       s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
@@ -197,6 +195,8 @@ def pickup_front_full_stack(forward_distance=250, id=None):
          Servo.CenterLift(CenterLift.DOWN),
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontVacuumLift(VacuumLift.HOVER)])
+    
+    s(c=[Condition.FrontSensors(ID)])
 
     s(s=[Servo.FrontCenterGrip(FrontCenterLeft.GRIP, FrontCenterRight.GRIP),
          Servo.FrontSideGrip(FrontSideLeft.GRIP, FrontSideRight.GRIP),

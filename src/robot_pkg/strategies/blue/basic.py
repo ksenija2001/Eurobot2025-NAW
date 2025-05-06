@@ -51,7 +51,7 @@ basic(ID=1,
 basic(m=Move.Spline([MaterialStack.STACK6.x + 10],
                     [MaterialStack.STACK6.y + 250],
                     [-1.57],
-                    500,
+                    550,
                     'f'),
       task_steps=init_front_servos(),
       c=[Condition.Detection(2, attempts=0),])
@@ -91,7 +91,7 @@ basic(task_steps=pickup_front_full_stack(200))
 basic(m=Move.Distance(-350, 1500, 500),
       task_steps=two_level())
 basic(task_steps=drop_one_level(p=-4))
-basic(m=Move.RotateTo(0, 15, 15),
+basic(m=Move.RotateTo(3.14, 15, 15),
       task_steps=close_back())
 basic(task_steps=pickup_back_full_stack(-220))
 
@@ -115,12 +115,12 @@ basic(m=Move.To(MaterialStack.STACK10.x + 10,
                 MaterialStack.STACK10.y - 350,
                 'f', 1500, 1000, 15, 10),  # 5, 3),
       task_steps=init_front_servos())
+task_steps=drop_back_one_level()
+basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
 
-basic(m=Move.RotateTo(1.57, 10, 5))  # 5, 5))
+basic(task_steps=pickup_front_full_stack(315, ID=5))
 
-basic(task_steps=(pickup_front_full_stack(315)))#, id=4)))
-
-# TODO ALTERNATIVA ID=4 - NEMA 10 - ide se odma na STACK 1, ostavljaa se trospratnica u BLUE area 2 i ide se na 8 posle
+# TODO ALTERNATIVA ID=5 - NEMA 10 - ide se odma na STACK 1, ostavljaa se trospratnica u BLUE area 2 i ide se na 8 posle
 
 ################################################
 ## LEAVE LOWER LEVEL FROM BACK IN BLUE AREA 2 ##
@@ -131,7 +131,7 @@ basic(m=Move.To(Area.BLUE_2.x,
                 'r', 1000, 500, 10, 5),
       task_steps=two_level())
 
-basic(m=Move.RotateTo(1.57, 10, 5),
+basic(m=Move.RotateTo(1.57, 5, 5),
       s=[Servo.BackLift(BackGripLift.DOWN)])
 basic(task_steps=open_back())
 
@@ -145,6 +145,8 @@ basic(m=Move.RotateTo(-1.57, 10, 5))
 
 basic(task_steps=lift_two_on_one(250))
 
+basic(task_steps=init_front_servos())
+
 #####################
 ##  PICKUP STACK 1 ##
 #####################
@@ -152,7 +154,7 @@ basic(task_steps=lift_two_on_one(250))
 basic(m=Move.To(MaterialStack.STACK1.x + 15,
                 MaterialStack.STACK1.y - 365,
                 'f', 1500, 1500, 15, 15),
-      task_steps=init_front_servos())
+      task_steps=close_front())
 
 basic(m=Move.RotateTo(1.57, 15, 10))
 basic(task_steps=pickup_front_full_stack())
@@ -284,7 +286,6 @@ basic(task_steps=(pickup_front_full_stack(300)))
 #############################################
 ## MERGE ID 2 AND ID 3 ALTERNATIVES - ID 4 ##
 #############################################
-# ALTERNATIVA DETEKCIJE NA 10 - ide se na 9, pa 5, 4, 3
 
 basic(ID=4)
 
@@ -338,7 +339,7 @@ basic(m=Move.Distance(-100, 500, 500))
 
 basic(m=Move.RotateTo(1.57, 5, 5),
       task_steps=two_level(),
-      s=[Servo.BackLift(BackGripLift.DOWN)])
+      s=[Servo.BackLift(BackGripLift.DOWN, 30)])
 
 basic(task_steps=open_back())
 
@@ -382,6 +383,121 @@ basic(task_steps=lift_two_on_one(250, -300))
 
 basic(m=Move.RotateTo(0, 15, 15),
       c=[Condition.InPosition(100),])
+
+
+
+####################################
+## NO STACK 10 ALTERNATIVE - ID=5 ##
+####################################
+
+basic(ID=5)
+
+################################################
+## LEAVE LOWER LEVEL FROM BACK IN BLUE AREA 2 ##
+################################################
+
+basic(m=Move.To(Area.BLUE_2.x,
+                Area.BLUE_2.y,
+                'r', 1000, 500, 10, 5))
+
+basic(m=Move.RotateTo(1.57, 10, 5),
+      s=[Servo.BackLift(BackGripLift.DOWN)])
+basic(task_steps=open_back())
+
+basic(m=Move.Distance(250, 500, 300))
+
+#####################
+##  PICKUP STACK 1 ##
+#####################
+
+basic(m=Move.To(MaterialStack.STACK1.x + 15,
+                MaterialStack.STACK1.y - 365,
+                'f', 1500, 1500, 15, 15),
+      task_steps=init_front_servos())
+
+basic(m=Move.RotateTo(1.57, 15, 10))
+basic(task_steps=pickup_front_full_stack())
+
+################################
+##  PICKUP STACK 8  WITH BACK ##
+################################
+
+basic(m=Move.Spline([MaterialStack.STACK8.x - 215],
+                    [MaterialStack.STACK8.y - 30],
+                    [3.14],
+                    450,
+                    'r'))
+
+basic(task_steps=pickup_back_full_stack())#id=6))
+# TODO nema STACK 8 - ostaviti dvospratnicu od STACK 1 u BLUE AREA 2
+
+basic(m=Move.Distance(250, 1000, 500),
+      s=[Servo.BackLift(BackGripLift.UP2)])
+
+##########################
+##  MOVE TO BLUE AREA 2 ##
+##########################
+
+# TODO brzi spline i slaganje tek kada stigne zbog obima
+basic(m=Move.Spline([Area.BLUE_2.x],
+                    [Area.BLUE_2.y + 550],
+                    [-1.57],
+                    500,
+                    'f'),
+      task_steps=two_level())
+
+#####################################################
+## LEAVE STACK 8 FROM BACK IN FRONT OF BLUE AREA 2 ##
+## DROP TWO LEVELS IN BLUE AREA 2                  ##
+#####################################################
+
+basic(s=[Servo.BackLift(BackGripLift.DOWN)])
+
+basic(m=Move.Distance(390, 500, 500),
+      task_steps=open_back())
+
+basic(task_steps=drop_two_level())
+
+#######################################
+## PICK-UP STACK 8 WHERE IT WAS LEFT ##
+## AND BUILD TWO LEVELS              ##
+#######################################
+
+basic(m=Move.RotateTo(1.57, 15, 10),
+      task_steps=init_front_servos())
+
+basic(task_steps=pickup_front_full_stack(300))
+
+basic(task_steps=two_level())
+
+###############################################
+## PICK-UP LOWER WITH BACK                   ##
+## LIFT UPPER ON CONSTRUCTION IN BLUE AREA 2 ##
+###############################################
+
+basic(task_steps=drop_one_level(p=-4))
+
+basic(m=Move.RotateTo(-1.57, 15, 10),
+      task_steps=init_back_servos())
+
+basic(task_steps=pickup_back_full_stack())
+
+basic(task_steps=lift_one_on_two(forward_distance=380+200))
+
+##############################################
+## LEAVE ONE LEVEL FROM BACK IN BLUE AREA 2 ##
+##############################################
+
+basic(m=Move.RotateTo(1.57, 10, 5))
+
+basic(m=Move.Distance(-100, 500, 300),
+      task_steps=open_back(),
+      p=Points.LEVEL1)
+
+basic(m=Move.Distance(100, 500, 300),
+      c=[Condition.InPosition(100),])
+
+# TODO dodati deo gde kupi jos jedan stack od negde
 
 
 ##########
