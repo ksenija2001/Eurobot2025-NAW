@@ -1,26 +1,28 @@
-
-from robot_pkg.utils import user_cmd, choose_strategy
-import sys
-import time
-from robot_pkg.sima_communication import SIMA
-from robot_pkg.consts import Variables
-from robot_pkg.battery import Battery
-from robot_pkg.execute import Execute
-from robot_pkg.in_out import I_O
-from robot_pkg.move import Move
-from robot_pkg.servo import Servo
-from robot_pkg.lidar import Lidar
-from robot_pkg.can_controller import CanNetwork
-from robot_pkg.logger import LogHandler
 from threading import Event, Thread
 
-paused: Event = Event()
+paused:Event = Event()
+import time, sys
 
+from robot_pkg.logger import LogHandler
 log_handler = LogHandler()
 
-can_handler = CanNetwork(
-    channel='can0', interface='socketcan', max_queue_size=10)
+from robot_pkg.can_controller import CanNetwork
+can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
 can_handler.init_queues(10)
+
+from robot_pkg.lidar import Lidar
+from robot_pkg.servo import Servo
+from robot_pkg.move import Move
+from robot_pkg.in_out import I_O
+from robot_pkg.utils import user_cmd,choose_strategy
+from robot_pkg.execute import Execute
+from robot_pkg.battery import Battery
+from robot_pkg.consts import Variables
+from robot_pkg.sima_communication import SIMA
+
+# paused: Event = Event()
+
+
 
 # from robot_pkg.strategies.odom_calib import odom_calib
 
@@ -98,7 +100,7 @@ def main_func():
     running.clear()
     if execute is not None and execute.thread.is_alive():
         execute.stop()
-        # time.sleep(1)
+        time.sleep(1)
 
     Lidar.stop_threads()
     Servo.stop_threads()

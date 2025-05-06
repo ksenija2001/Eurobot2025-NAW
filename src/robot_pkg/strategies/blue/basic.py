@@ -21,7 +21,10 @@ basic(
         sima1_coor=[Position(1000, 1000, 1.57, 100),
                     Position(1500, 1500, 0, 100),
                     Position(900, 900.5, 0, 200)],
-        sima2_coor=[],
+        sima2_coor=[Position(125, -276, 0, 0), 
+                    Position(300, -276, 0, 50), 
+                    Position(900, -600, 0, 50), 
+                    Position(1200, -580, 0, 50)],
         sima3_coor=[],
         sima4_coor=[Position(125, -400, 0, 0),
                     Position(1000, -600, 0, 35),
@@ -99,7 +102,7 @@ basic(m=Move.To(MaterialStack.STACK6.x + 10,
                 MaterialStack.STACK6.y + 200,
                 'f', 1000, 800, 10, 5),
       s=[Servo.BackLift(BackGripLift.UP)])   # HOVER)])
-basic(m=Move.RotateTo(-1.57, 15, 10))  # 5, 5))
+basic(m=Move.RotateTo(-1.57, 10, 5))  # 5, 5))
 
 basic(task_steps=lift_one_on_two(forward_distance=250))
 
@@ -112,9 +115,9 @@ basic(m=Move.To(MaterialStack.STACK10.x + 10,
                 'f', 1500, 1000, 15, 10),  # 5, 3),
       task_steps=init_front_servos())
 
-basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
+basic(m=Move.RotateTo(1.57, 10, 5))  # 5, 5))
 
-basic(task_steps=(pickup_front_full_stack(300, id=4)))
+basic(task_steps=(pickup_front_full_stack(315)))#, id=4)))
 
 # TODO ALTERNATIVA ID=4 - NEMA 10 - ide se odma na STACK 1, ostavljaa se trospratnica u BLUE area 2 i ide se na 8 posle
 
@@ -163,11 +166,11 @@ basic(m=Move.Spline([MaterialStack.STACK8.x - 215],
                     450,
                     'r'))
 
-basic(task_steps=pickup_back_full_stack(id=5))
+basic(task_steps=pickup_back_full_stack())#id=5))
 # TODO nema STACK 8 - ostaviti dvospratnicu od STACK 1 u BLUE AREA 2
 
 basic(m=Move.Distance(250, 1000, 500),
-      s=[Servo.BackLift(BackGripLift.UP)])
+      s=[Servo.BackLift(BackGripLift.UP2)])
 
 ##########################
 ##  MOVE TO BLUE AREA 2 ##
@@ -248,7 +251,7 @@ basic(m=Move.To(MaterialStack.STACK10.x + 10,
                 MaterialStack.STACK10.y - 350,
                 'f', 1500, 1000, 15, 10),  # 5, 3),
       task_steps=init_front_servos(),
-      c=[Condition.Detection(3, attempts=0),])
+      c=[Condition.Detection(3, attempts=2),])
 
 basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
 
@@ -306,7 +309,7 @@ basic(m=Move.Spline([Area.BLUE_3.x + 120],
                     [3.14],
                     400,
                     'f'),
-      s=[Servo.BackLift(BackGripLift.UP)],
+      s=[Servo.BackLift(BackGripLift.UP2)],
       task_steps=two_level())
 
 basic(task_steps=drop_separate_two_level(-275, backout_distance=-300))

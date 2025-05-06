@@ -89,36 +89,46 @@ class Execute:
             to_break = False
             for cond in step.conditions:
                 if cond._type == ConditionType.BACK:
+                    to_break = True
+
                     back_sensor_state = I_O.sensor_states[SensorType.BACK.value]
                     next_step_id = cond.check(
                         [None, None, None, None, None, None, back_sensor_state])
                     if next_step_id != False:
-                        to_break = True
                         self._logger.info(
                             f"Condition met TYPE: {ConditionType.BACK}")
-
-                    sensor = [
-                        cond for cond in step.conditions if cond._type == ConditionType.BACK][0]
-                    step.conditions.remove(sensor)
+                    else:
+                        next_step_id = None
+                        
+                    # sensor = [
+                    #     cond for cond in step.conditions if cond._type == ConditionType.BACK][0]
+                    # step.conditions.remove(sensor)
                     break
 
                 if cond._type == ConditionType.FRONT:
+                    to_break = True
+
                     center_front = I_O.sensor_states[SensorType.FRONT_CENTER_LEFT.value] or I_O.sensor_states[
                         SensorType.FRONT_CENTER_RIGHT.value]
                     side_front = I_O.sensor_states[SensorType.FRONT_LEFT.value] or I_O.sensor_states[SensorType.FRONT_RIGHT.value]
                     # At least one side and one center, else there is probably no plank
                     front_sensor_state = center_front and side_front
 
+                    print(f"FRONT SENSORS: {front_sensor_state}")
+
                     next_step_id = cond.check(
                         [None, None, None, None, None, front_sensor_state, None])
+
+                    print(f"Next step ID: {next_step_id}")
                     if next_step_id != False:
-                        to_break = True
                         self._logger.info(
                             f"Condition met TYPE: {ConditionType.FRONT}")
+                    else:
+                        next_step_id = None
 
-                    sensor = [
-                        cond for cond in step.conditions if cond._type == ConditionType.FRONT][0]
-                    step.conditions.remove(sensor)
+                    # sensor = [
+                    #     cond for cond in step.conditions if cond._type == ConditionType.FRONT][0]
+                    # step.conditions.remove(sensor)
                     break
 
             if to_break:
@@ -133,7 +143,7 @@ class Execute:
 
             # Waiting for end of step and checking conditions
             while self.running:
-                time.sleep(0.001)
+                time.sleep(0.01)
 
                 cinch = I_O.sensor_states[SensorType.CINCH.value]
                 move_done = Move.move_done.is_set()
@@ -153,25 +163,38 @@ class Execute:
 
                     # if there was a detection condition and the attempts ran out in current step a skip to a new step happens
                     detection_cond = [
-                        c for c in step.conditions if c._type == ConditionType.DETECTION]
+                        c for c in last_moving_step.conditions if c._type == ConditionType.DETECTION]
 
+                    print(f"Detection condition: {detection_cond}")
                     if len(detection_cond) > 0 and detection_cond[0].attempts == 0:
-                        next_step_id = detection_cond[0].ID
+                        # next_step_id = detection_cond[0].ID
+                        self.steps.insert(0, Step(None, Move.Detection(100), [], [], [
+                                        Condition.InPosition(detection_cond[0].ID), Condition.MatchTime(100, 96)], None, None, 0))
+
                         break
                     elif len(detection_cond) > 0 and detection_cond[0].attempts > 0:
-                        detection_cond[0].attempts -= 1
+                        print(f"Detection attempts: {detection_cond[0].attempts}")
 
-                    # if a condition wasn't set, it will attemp indefinetly
+                        last_moving_step.conditions.remove(detection_cond[0])
+                        detection_cond[0].attempts -= 1
+                        last_moving_step.conditions.append(detection_cond[0])
+
+                   # if a condition wasn't set, it will attemp indefinetly
                     self.steps.insert(0, Step(None, Move.Detection(100), [], [], [
                                       Condition.InPosition(None), Condition.MatchTime(100, 96)], None, None, 0))
 
-                    if step.movement is None:
-                        step.movement = last_moving_step.movement
-                        step.movement.executed = False
-                    elif step.movement._type == MoveType.SPLINE.name:
+
+                    step = last_moving_step
+                    
+                    position_cond = [cond for cond in step.conditions if cond._type == ConditionType.POSITION]
+                    if len(position_cond) == 0:
+                        step.conditions.extend([Condition.InPosition(None), Condition.MatchTime(100, 96)])
+                    step.movement.executed = False
+
+                    if step.movement._type == MoveType.SPLINE.name:
                         data = bytearray(step.movement.data)
                         size = data[0]
-                        direction = str(data[1])
+                        direction = chr(data[1])
                         index = 1+1+4+4*3*(size-1)
                         x, y, theta = struct.unpack(
                             '3f', data[index:index+12])
@@ -190,7 +213,7 @@ class Execute:
                         self.steps.insert(1, step2)
 
                     Variables.processing_detection.set()
-
+                    # Move.move_done.clear()
                     self.steps.insert(1, step)
 
                     break
@@ -205,7 +228,8 @@ class Execute:
                     self.sima.send_start()
 
                 # Conditions that are continouosly checked during step execution
-                if len(step.conditions) == 0:
+                if len(step.conditions) == 0 or \
+                    (len(step.conditions) == 1 and step.conditions[0]._type == ConditionType.DETECTION):
                     next_step_id = None
                     break
                 elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False:

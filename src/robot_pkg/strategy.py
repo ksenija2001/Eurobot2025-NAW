@@ -39,18 +39,25 @@ class Strategy:
         self.square = Square(square).name
         self.mood = Mood(mood).name
 
+        self.reached_home_step = False
+
         self.steps: list[Step] = []
 
     def __eq__(self, other):
         return self.color == other.color and self.square == other.square and self.mood == other.mood
 
     def __call__(self, task_steps: list = None, ID=None, m: Move = None, a: list = [], s: list = [], c: list[Condition] = [], sima_id: int = None, sima: list = [], p=0) -> Any:
+        if ID == 100:
+            self.reached_home_step = True
+        
         if task_steps is None:
             if ConditionType.CINCH not in [cond._type for cond in c]:
                 if len(s) > 0:
                     c.append(Condition.ServoMoving(None))
 
-                if ID is None or ID < 100:
+                # Don't add to empty steps and to steps after home
+                if (m is not None or len(s) > 0) and \
+                    not self.reached_home_step:
                     c.append(Condition.MatchTime(100, 96))
 
                 if m is not None and ConditionType.POSITION not in [cond._type for cond in c]:
@@ -78,7 +85,7 @@ class Strategy:
                     else:
                         servos.append(servo)
 
-                step = Step(ID, m, a, servos, [], sima_id, sima, p)
+                step = Step(ID, m, a, servos, c, sima_id, sima, p)
                 self.steps.append(step)
 
                 position_cond = [
@@ -86,7 +93,7 @@ class Strategy:
 
                 if len(position_cond) > 0:
                     task_steps[-1].conditions.append(position_cond[0])
-                else:
+                elif not self.reached_home_step:
                     task_steps[-1].conditions.append(
                         Condition.InPosition(None))
             else:
