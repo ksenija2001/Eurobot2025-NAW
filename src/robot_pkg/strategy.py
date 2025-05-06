@@ -6,6 +6,7 @@ from robot_pkg.move import Move, MoveType
 from robot_pkg.conditions import ConditionType, Condition
 
 
+
 class Color(Enum):
     BLUE = 'blue'
     YELLOW = 'yellow'
@@ -34,6 +35,7 @@ class Mood(Enum):
 
 
 class Strategy:
+
     def __init__(self, color: str = "yellow", square: str = "upper", mood: str = "passive"):
         self.color = Color(color).name
         self.square = Square(square).name
@@ -47,17 +49,13 @@ class Strategy:
         return self.color == other.color and self.square == other.square and self.mood == other.mood
 
     def __call__(self, task_steps: list = None, ID=None, m: Move = None, a: list = [], s: list = [], c: list[Condition] = [], sima_id: int = None, sima: list = [], p=0) -> Any:
-        if ID == 100:
-            self.reached_home_step = True
-        
         if task_steps is None:
             if ConditionType.CINCH not in [cond._type for cond in c]:
                 if len(s) > 0:
                     c.append(Condition.ServoMoving(None))
 
                 # Don't add to empty steps and to steps after home
-                if (m is not None or len(s) > 0) and \
-                    not self.reached_home_step:
+                if (m is not None or len(s) > 0):
                     c.append(Condition.MatchTime(100, 96))
 
                 if m is not None and ConditionType.POSITION not in [cond._type for cond in c]:
@@ -93,7 +91,7 @@ class Strategy:
 
                 if len(position_cond) > 0:
                     task_steps[-1].conditions.append(position_cond[0])
-                elif not self.reached_home_step:
+                else:
                     task_steps[-1].conditions.append(
                         Condition.InPosition(None))
             else:

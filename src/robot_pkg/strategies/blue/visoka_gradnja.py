@@ -20,16 +20,19 @@ visoka_gradnja = Strategy(color=Color.BLUE,
 
 visoka_gradnja(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(1000, 1000, 1.57, 100), Position(
-            1500, 1500, 0, 100), Position(900, 900.5, 0, 200)],
+        sima1_coor=[Position(1000, 1000, 1.57, 100),
+                    Position(1500, 1500, 0, 100),
+                    Position(900, 900.5, 0, 200)],
         sima2_coor=[],
         sima3_coor=[],
-        sima4_coor=[Position(125, -400, 0, 0), Position(1000, -600, 0, 35), Position(1800, -550, 0, 35)])
+        sima4_coor=[Position(125, -400, 0, 0),
+                    Position(1000, -600, 0, 35),
+                    Position(1800, -550, 0, 35)])
 )
 
 visoka_gradnja(
     task_steps=init_position(
-        Area.BLUE_HOME.x - 77.5,
+        Area.BLUE_HOME.x + 77.5,
         Area.BLUE_HOME.y - 48,
         3.14,
         'left corner')
@@ -184,7 +187,7 @@ visoka_gradnja(task_steps=lift_two_on_one(300, -200))
 
 
 visoka_gradnja(m=Move.RotateTo(1.57, 10, 5),
-               s=[Servo.BackLift(BackGripLift.DOWN, 30)],
+               s=[Servo.BackLift(BackGripLift.DOWN)],
                task_steps=init_front_servos())
 
 visoka_gradnja(m=Move.Distance(200, 500, 500),
@@ -197,19 +200,22 @@ visoka_gradnja(task_steps=two_level())
 visoka_gradnja(task_steps=drop_two_level())
 
 
+
 ##########
 ## HOME ##
 ##########
+
 visoka_gradnja(ID=100,
-               task_steps=open_all())
+      m=Move.Distance(150, 1000, 1000),
+      task_steps=open_all())
 
-visoka_gradnja(m=Move.Spline([Area.BLUE_HOME.x],
-                             [Area.BLUE_HOME.y-250],
-                             [-2.35],
-                             800,
-                             'r'),
-               task_steps=init_all_servos(),
-               c=[Condition.InPosition(102)])
+visoka_gradnja(m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y - 450, 'f', 1100, 1500, 15, 15),
+      task_steps=init_all_servos())
 
-# KEEP AT BOTTOM OF STARTEGY - ensures points for home are given when movement is done
-visoka_gradnja(ID=102, p=10)
+# Wait for 99s to enter area
+visoka_gradnja(c=[Condition.MatchTime(101, 99)])
+
+visoka_gradnja(ID=101,
+      m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y -
+                250, 'f', 1100, 1500, 15, 15),
+      p=10)

@@ -91,7 +91,8 @@ basic(task_steps=pickup_front_full_stack(200))
 basic(m=Move.Distance(-350, 1500, 500),
       task_steps=two_level())
 basic(task_steps=drop_one_level(p=-4))
-basic(m=Move.RotateTo(3.14, 15, 15))
+basic(m=Move.RotateTo(0, 15, 15),
+      task_steps=close_back())
 basic(task_steps=pickup_back_full_stack(-220))
 
 #############################################
@@ -132,9 +133,9 @@ basic(m=Move.To(Area.BLUE_2.x,
 
 basic(m=Move.RotateTo(1.57, 10, 5),
       s=[Servo.BackLift(BackGripLift.DOWN)])
+basic(task_steps=open_back())
 
-basic(m=Move.Distance(250, 500, 300),
-      task_steps=open_back())
+basic(m=Move.Distance(250, 500, 300))
 
 ###################################
 ## BUILD TWO LEVELS ON TOP OF IT ##
@@ -213,7 +214,7 @@ basic(task_steps=two_level())
 ## LIFT UPPER ON CONSTRUCTION IN BLUE AREA 2 ##
 ###############################################
 
-basic(task_steps=drop_one_level())
+basic(task_steps=drop_one_level(p=-4))
 
 basic(m=Move.RotateTo(-1.57, 15, 10),
       task_steps=init_back_servos())

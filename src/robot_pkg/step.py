@@ -33,7 +33,7 @@ class Step:
                 time.sleep(0.01)
         
         if len(not_sent) > 0:
-            time.sleep(0.2)
+            time.sleep(0.25)
 
     def servo(self, curr_pose:Position=Position()):
         not_moving = [servo for servo in self.servos if not servo.executed]

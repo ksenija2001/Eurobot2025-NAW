@@ -18,17 +18,25 @@ semi = Strategy(color=Color.YELLOW, square=Square.CENTER, mood=Mood.SEMI)
 
 semi(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(1000, 1000, 1.57, 100), Position(
-            1500, 1500, 0, 100), Position(900, 900.5, 0, 200)],
-        sima2_coor=[],
+        sima1_coor=[Position(1000, 1000, 1.57, 100),
+                    Position(1500, 1500, 0, 100),
+                    Position(900, 900.5, 0, 200)],
+        sima2_coor=[Position(125, -276, 0, 0), 
+                    Position(300, -276, 0, 50), 
+                    Position(900, -600, 0, 50), 
+                    Position(1200, -580, 0, 50)],
         sima3_coor=[],
-        sima4_coor=[Position(125, -400, 0, 0), Position(1000, -600, 0, 35), Position(1800, -550, 0, 35)])
+        sima4_coor=[Position(125, -400, 0, 0),
+                    Position(1000, -600, 0, 35),
+                    Position(1800, -550, 0, 35)])
 )
-semi(task_steps=init_position(Area.BLUE_3.x - 48,
-                              Area.BLUE_3.y - 77.5, # NE ZNAM TREBA LI OVDE +
-                              -1.57,
+
+# TODO back more and close grippers beause of vertical projection
+semi(task_steps=init_position(Area.YELLOW_3.x - 48,
+                              Area.YELLOW_3.y + 77.5, # NE ZNAM TREBA LI OVDE +
+                              1.57,
                               'middle',
-                              -0.5))
+                              -3.14+0.5))
 
 #####################
 ## PICK-UP STACK 6 ##
@@ -62,7 +70,7 @@ semi(task_steps=leave_banner(back_distance=-150))
 
 semi(m=Move.Spline([Area.YELLOW_3.x],
                    [Area.YELLOW_3.y-25],
-                   [3.14],
+                   [0],
                    350, 'f'),
 
      task_steps=two_level())
@@ -96,7 +104,7 @@ semi(m=Move.To(Area.YELLOW_3.x - 175,
      task_steps=two_level())
 
 semi(task_steps=drop_one_level(-100, p=-4))
-semi(m=Move.RotateTo(3.14, 15, 5))  # MOZE BRZE AKO NIJE PREBLIZU
+semi(m=Move.RotateTo(0, 15, 5))  # MOZE BRZE AKO NIJE PREBLIZU
 
 semi(task_steps=lift_one_on_two())
 
@@ -104,12 +112,12 @@ semi(task_steps=lift_one_on_two())
 ## PICK-UP STACK 3 ##
 #####################
 
-semi(m=Move.RotateTo(-0.707, 15, 10),
+semi(m=Move.RotateTo(2.35, 15, 10),
      task_steps=init_front_servos())
 
 semi(m=Move.Spline([1200, MaterialStack.STACK3.x+290],
                    [1250, MaterialStack.STACK3.y],
-                   [0.1, 0],
+                   [3.15, 3.14],
                    900,
                    'f'))
 
@@ -147,7 +155,7 @@ semi(m=Move.Distance(-100, 500, 500),
 
 semi(task_steps=drop_two_level(-200))
 
-semi(m=Move.RotateTo(0, 10, 5))
+semi(m=Move.RotateTo(3.14, 10, 5))
 
 #################################
 ## PICK-UP STACK 5             ##
@@ -178,7 +186,7 @@ semi(m=Move.Distance(100, 500, 300),
 ## RETURN FOR LEFT STACK IN YELLOW AREA 2 ##
 ##########################################
 
-semi(m=Move.Spline([Area.YELLOW_2.x - 25],
+semi(m=Move.Spline([Area.YELLOW_2.x + 25],
                    [Area.YELLOW_2.y + 450],
                    [-1.57],
                    400,
@@ -190,7 +198,7 @@ semi(task_steps=lift_one_on_two(150))
 ## RETURN FOR LEFT STACK 2 IN FRONT OF AREA 4 ##
 ################################################
 
-semi(m=Move.RotateTo(0, 15, 15))
+semi(m=Move.RotateTo(3.14, 15, 15))
 
 semi(m=Move.Spline([MaterialStack.STACK5.x - 25],
                    [MaterialStack.STACK5.y + 150],
@@ -203,21 +211,24 @@ semi(task_steps=pickup_front_full_stack())
 semi(task_steps=two_level())
 semi(task_steps=lift_two_on_one())
 
+semi(c=[Condition.Timeout(100, 0.1),])
+
+
 ##########
 ## HOME ##
 ##########
-
 semi(ID=100,
-     task_steps=open_all())
+      m=Move.Distance(150, 1000, 1000),
+      task_steps=open_all())
 
-semi(m=Move.Spline([Area.YELLOW_HOME.x],
-                   [Area.YELLOW_HOME.y-250],
-                   [-1.57],
-                   800,
-                   'r'),
-     task_steps=init_all_servos(),
-     c=[Condition.InPosition(102)])
+semi(m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y - 450, 'f', 1100, 1500, 15, 15),
+      task_steps=init_all_servos())
+
+# Wait for 99s to enter area
+semi(c=[Condition.MatchTime(101, 99)])
 
 
-# KEEP AT BOTTOM OF STARTEGY - ensures points for home are given when movement is done
-semi(ID=102, p=10)
+semi(ID=101,
+      m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y -
+                250, 'f', 1100, 1500, 15, 15),
+      p=10)

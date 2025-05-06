@@ -24,6 +24,7 @@ semi(
         sima3_coor=[],
         sima4_coor=[Position(125, -400, 0, 0), Position(1000, -600, 0, 35), Position(1800, -550, 0, 35)])
 )
+# TODO back more and close grippers beause of vertical projection
 semi(task_steps=init_position(Area.BLUE_3.x + 48,
                               Area.BLUE_3.y - 77.5,
                               -1.57,
@@ -202,6 +203,9 @@ semi(m=Move.Spline([MaterialStack.STACK6.x + 25],
 semi(task_steps=pickup_front_full_stack())
 semi(task_steps=two_level())
 semi(task_steps=lift_two_on_one())
+
+semi(c=[Condition.Timeout(100, 0.1),])
+
 
 ##########
 ## HOME ##

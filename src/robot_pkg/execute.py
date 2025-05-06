@@ -49,6 +49,7 @@ class Execute:
         next_step_id = None
         last_moving_step = None
         step = None
+        reached_home_step = False
 
         while self.running:
            # next_step_id will be None while the strategy is executing linearly
@@ -76,6 +77,8 @@ class Execute:
                 continue
 
             if step.ID == 100:
+                reached_home_step = True
+
                 data = bytearray(step.movement.data)
                 distance, v, a = struct.unpack('3f', data)
 
@@ -211,6 +214,14 @@ class Execute:
                             None), Condition.MatchTime(100, 96)], None, None, 0)
 
                         self.steps.insert(1, step2)
+                    elif step.movement._type == MoveType.DISTANCE.name:
+                        data = bytearray(step.movement.data)
+                        p, v, a = struct.unpack('3f', data)
+
+                        p += 100 * abs(p)/p
+
+                        move = Move.Distance(p, v, a)
+                        step.movement = move
 
                     Variables.processing_detection.set()
                     # Move.move_done.clear()
@@ -232,7 +243,8 @@ class Execute:
                     (len(step.conditions) == 1 and step.conditions[0]._type == ConditionType.DETECTION):
                     next_step_id = None
                     break
-                elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False:
+                elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False and \
+                    not (checked[ConditionType.TIME] == 100 and reached_home_step):
                     self._logger.info(
                         f"Condition met TYPE: {ConditionType.TIME}")
                     next_step_id = checked[ConditionType.TIME]
