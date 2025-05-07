@@ -25,7 +25,7 @@ void server_deinit();
 
 void server_accept();
 
-void server_read();
+int32_t server_read();
 void server_write(char* msg, const uint32_t len);
 
 #endif  //SERVER_H

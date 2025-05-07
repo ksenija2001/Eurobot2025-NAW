@@ -29,4 +29,8 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 
+run:
+	sudo lsof -t -i :9999 | xargs -r sudo kill -9
+	./server
+
 .PHONY: all clean

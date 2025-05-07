@@ -16,6 +16,9 @@ void server_init(){
     }
     printf("OK\n");
 
+    int opt = 1;
+    setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(SERVER_PORT);
@@ -61,11 +64,13 @@ void server_accept(){
         printf("OK\n");
 }
 
-void server_read(){
-    uint32_t size = read(client_socket_fd, server_buffer, SERVER_BUFFER_SIZE - 1);
+int32_t server_read(){
+    int32_t size = read(client_socket_fd, server_buffer, SERVER_BUFFER_SIZE - 1);
     server_buffer[size] = '\0';
 
     printf("\nCLIENT: %s\n", server_buffer);
+
+    return size;
 }
 
 void server_write(char* msg, const uint32_t len){
