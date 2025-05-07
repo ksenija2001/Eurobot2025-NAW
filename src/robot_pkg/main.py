@@ -81,6 +81,9 @@ def main_func():
     try:
         # pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
         while running.is_set():
+            if Variables.match_start_time != float('inf') and \
+                 time.time() - Variables.match_start_time > 100:
+                break
             time.sleep(0.01)
 
         #     # Listen for pause flag on can

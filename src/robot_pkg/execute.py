@@ -73,6 +73,8 @@ class Execute:
                     len(step.outputs) == 0 and \
                     len(step.conditions) < 1:
 
+                Variables.points += step.points
+                self.display.add_points(step.points)
                 next_step_id = None
                 continue
 
@@ -94,9 +96,16 @@ class Execute:
                 if cond._type == ConditionType.BACK:
                     to_break = True
 
+
                     back_sensor_state = I_O.sensor_states[SensorType.BACK.value]
+                    
+                    print(f"BACK SENSORS: {back_sensor_state}")
+
                     next_step_id = cond.check(
                         [None, None, None, None, None, None, back_sensor_state])
+                    
+                    print(f"Next step ID: {next_step_id}")
+
                     if next_step_id != False:
                         self._logger.info(
                             f"Condition met TYPE: {ConditionType.BACK}")

@@ -84,10 +84,8 @@ basic(task_steps=pickup_front_full_stack(200))
 
 basic(m=Move.Distance(-350, 800, 500),
       task_steps=two_level())
-basic(task_steps=drop_one_level(backout_distance=-175, p=-4))
-basic(m=Move.RotateTo(0, 15, 15),
-      task_steps=close_back())
-basic(task_steps=pickup_back_full_stack(-245))
+
+basic(task_steps=separate_two_level())
 
 #############################################
 ## MOVE TO YELLOW AREA 4 AND LIFT ONE ON TWO ##
@@ -96,8 +94,8 @@ basic(task_steps=pickup_back_full_stack(-245))
 basic(m=Move.To(MaterialStack.STACK5.x + 10,
                 MaterialStack.STACK5.y + 200,
                 'f', 1000, 800, 10, 5),
-      s=[Servo.BackLift(BackGripLift.UP)])   # HOVER)])
-basic(m=Move.RotateTo(-1.57, 15, 10))  # 5, 5))
+      s=[Servo.BackLift(BackGripLift.UP)]) 
+basic(m=Move.RotateTo(-1.57, 15, 10)) 
 
 basic(task_steps=lift_one_on_two(forward_distance=245))
 
@@ -123,11 +121,7 @@ basic(m=Move.To(Area.YELLOW_2.x,
                 'r', 1000, 500, 10, 5),
       task_steps=two_level())
 
-basic(m=Move.RotateTo(1.57, 10, 5),
-      s=[Servo.BackLift(BackGripLift.DOWN)])
-basic(task_steps=open_back())
-
-basic(m=Move.Distance(250, 500, 300))
+basic(task_steps=drop_back_one_level(rotation=1.57))
 
 ###################################
 ## BUILD TWO LEVELS ON TOP OF IT ##
@@ -184,10 +178,7 @@ basic(m=Move.Spline([Area.YELLOW_2.x],
 ## DROP TWO LEVELS IN YELLOW AREA 2                  ##
 #####################################################
 
-basic(s=[Servo.BackLift(BackGripLift.DOWN)])
-
-basic(m=Move.Distance(390, 500, 500),
-      task_steps=open_back())
+basic(task_steps=drop_back_one_level(forward_distance=390, p=-4))
 
 basic(task_steps=drop_two_level())
 
@@ -221,12 +212,7 @@ basic(task_steps=lift_one_on_two(forward_distance=380+205, backout_distance=-200
 ## LEAVE ONE LEVEL FROM BACK IN BLUE AREA 2 ##
 ##############################################
 
-basic(m=Move.RotateTo(1.57, 10, 5),
-      task_steps=init_front_servos())
-
-basic(m=Move.Distance(-100, 500, 300),
-      task_steps=open_back(),
-      p=Points.LEVEL1)
+basic(task_steps=drop_back_one_level(rotation=1.57, forward_distance=-100))
 
 basic(m=Move.Distance(100, 500, 300),
       c=[Condition.InPosition(100),])
@@ -269,27 +255,29 @@ basic(m=Move.RotateTo(1.57, 15, 10))
 
 basic(task_steps=pickup_back_full_stack())
 
-###################################
-## SEPARATE STACK IN YELLOW AREA 3 ##
-###################################
+########################################
+## LEAVE STACK 6 IN FRONT OF YELLOW AREA 3 ##
+########################################
 
-basic(m=Move.Spline([Area.YELLOW_3.x - 550],
+basic(m=Move.Spline([Area.YELLOW_3.x - 450],
                     [Area.YELLOW_3.y],
                     [0],
                     400,
                     'f'),
       task_steps=two_level())
-basic(s=[Servo.BackLift(BackGripLift.DOWN)])
 
-basic(m=Move.Distance(390, 500, 500),
-      task_steps=open_back())
+basic(task_steps=drop_back_one_level(forward_distance=390, p=-4))
+
+########################################
+## BUILD THREE LEVELS FROM STACK 10 AND STACK 6 IN YELLOW AREA 3 ##
+########################################
 
 basic(task_steps=drop_two_level())
 
 basic(m=Move.RotateTo(-3.14, 15, 10),
       task_steps=init_front_servos())
 
-basic(task_steps=pickup_front_full_stack(300))
+basic(task_steps=pickup_front_full_stack(325))
 
 basic(task_steps=two_level())
 
@@ -302,17 +290,15 @@ basic(task_steps=pickup_back_full_stack())
 
 basic(task_steps=lift_one_on_two(forward_distance=380+200))
 
+basic(task_steps=init_front_servos())
+
 ##############################################
 ## LEAVE ONE LEVEL FROM BACK IN YELLOW AREA 3 ##
 ##############################################
 
-basic(m=Move.RotateTo(3.14, 10, 5))
+basic(task_steps=drop_back_one_level(rotation=3.14, forward_distance=-100))
 
-basic(m=Move.Distance(-100, 500, 300),
-      task_steps=open_back(),
-      p=Points.LEVEL1)
-
-basic(m=Move.Distance(100, 500, 300),
+basic(m=Move.Distance(300, 500, 300),
       task_steps=init_front_servos())
 
 basic(m=Move.RotateTo(-1.57, 15, 10))
@@ -322,60 +308,113 @@ basic(m=Move.RotateTo(-1.57, 15, 10))
 ################################
 
 basic(m=Move.Spline([MaterialStack.STACK7.x - 225],
-                    [MaterialStack.STACK7.y],
+                    [MaterialStack.STACK7.y - 10],
                     [0],
                     400,
                     'f'),
       task_steps=init_front_servos())
 
-basic(task_steps=pickup_front_full_stack())
+basic(task_steps=pickup_front_full_stack(100))
 
 basic(m=Move.Distance(-150, 500, 500))
 
-basic(m=Move.RotateTo(3.14, 10, 5))
+# basic(m=Move.RotateTo(3.14, 10, 5))
 
 ####################################
 ## LIFT STACK 7 ON ONE LEVEL IN YELLOW AREA 3 ##
 ####################################
 
-basic(m=Move.Spline([Area.YELLOW_3.x - 350],
+basic(m=Move.Spline([Area.YELLOW_3.x - 650],
                     [Area.YELLOW_3.y],
                     [0],
-                    400,
-                    'f'),
+                    300,
+                    'r'),
       task_steps=two_level())
 
-basic(task_steps=lift_two_on_one())
+basic(task_steps=lift_two_on_one(forward_distance=440))
+
+basic(m=Move.RotateTo(3.14, 15, 15),
+      task_steps=init_front_servos())
 
 #####################
 ## PICK-UP STACK 8 ##
 #####################
 
-basic(m=Move.RotateTo(1.57, 15, 15))
-basic(m=Move.Spline([MaterialStack.STACK8.x - 175],
-                    [MaterialStack.STACK8.y],
-                    [0],
-                    400, 'f'),
-      task_steps=init_front_servos())
+# basic(m=Move.RotateTo(1.57, 15, 15))
+# basic(m=Move.Spline([MaterialStack.STACK8.x - 175],
+#                     [MaterialStack.STACK8.y],
+#                     [0],
+#                     400, 'f'),
+#       task_steps=init_front_servos())
 
-basic(task_steps=pickup_front_full_stack())
+# basic(task_steps=pickup_front_full_stack(ID=6))
 
-basic(m=Move.Distance(-100, 500, 500))
+# basic(m=Move.Distance(-150, 500, 500))
 
-basic(m=Move.RotateTo(3.14, 10, 5))
+# basic(m=Move.RotateTo(0, 10, 5))
 
-basic(m=Move.Spline([Area.YELLOW_3.x - 450],
-                    [Area.YELLOW_3.y],
-                    [0],
-                    400,
+#####################
+## PICK-UP STACK 2 ##
+#####################
+
+basic(m=Move.Spline([1800, MaterialStack.STACK2.x-10],
+                    [1250, MaterialStack.STACK2.y - 400],
+                    [3.14, 1.57],
+                    500,
                     'f'),
+      task_steps=close_front())
+
+basic(task_steps=pickup_front_full_stack(300))
+
+#####################
+## LEAVE IN YELLOW AREA 2 ##
+#####################
+
+basic(m=Move.Spline([Area.YELLOW_2.x],
+                    [Area.YELLOW_2.y + 50],
+                    [1.57],
+                    400,
+                    'r'),
+      s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
+         Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN)],
       task_steps=two_level())
 
-basic(task_steps=drop_two_level())
+# basic(task_steps=drop_back_one_level(forward_distance=390, p=-4))
+basic(c=[Condition.BackSensors(10)])
+basic(p=4)
 
-basic(m=Move.RotateTo(3.14, 15, 15),
+# No point if STACK 10 wasn't there
+basic(ID=10)
+
+basic(m=Move.Distance(300, 500 ,300))
+basic(m=Move.RotateTo(-1.57, 10, 5))
+basic(task_steps=drop_two_level(-350))
+
+# TODO NAPRAVITI - NE MOGU DA POGODIM KOORDINATU
+#####################
+## PICK-UP STACK 5 IF THERE ##
+#####################
+
+# basic(m=Move.RotateTo(3.14, 15, 15))
+# basic(m=Move.To(MaterialStack.STACK5.x, MaterialStack.STACK5.y-450, 'f', 1000, 800, 15, 10),
+#       task_steps=init_front_servos())
+
+# basic(m=Move.RotateTo(-1.57, 10, 10))
+
+# basic(task_steps=pickup_front_full_stack(ID=11))
+
+# #####################
+# ## LEAVE TWO LEVEL IN YELLOW AREA 4 ##
+# #####################
+
+# basic(task_steps=two_level())
+
+# basic(task_steps=drop_two_level())
+
+
+# basic(ID=11)
+basic(m=Move.Distance(-100, 500, 300),
       c=[Condition.InPosition(100),])
-
 
 ####################################
 ## NO STACK 9 ALTERNATIVE - ID=5 ##

@@ -163,7 +163,7 @@ def pickup_back_full_stack(back_distance=-200, id=None):
 
     s = Strategy()
 
-    s(m=Move.Distance(back_distance, 1000, 300),
+    s(m=Move.Distance(back_distance, 1000, 400),
       s=[Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN),
          Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
          Servo.BackLift(BackGripLift.DOWN)])
@@ -187,7 +187,7 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
 
     s = Strategy()
 
-    s(m=Move.Distance(forward_distance, 700, 300),  # 300 SA RAZLOGOM
+    s(m=Move.Distance(forward_distance, 700, 400),  # 300 SA RAZLOGOM
       s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
          Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
          Servo.FrontVacuum(Vacuum.DOWN),
@@ -466,6 +466,20 @@ def leave_banner(back_distance=-250, forward_distance=125):
 
     return s.steps
 
+def separate_two_level():
+    '''
+        Separate one stack by building two levels, 
+        keeping the upper level in center gripper and lower level in back grippers.
+    '''
+
+    s = Strategy()
+
+    s(task_steps=drop_one_level(backout_distance=-175, p=-4))
+    s(m=Move.RotateTo(0, 15, 15),
+        task_steps=close_back())
+    s(task_steps=pickup_back_full_stack(-245))
+
+    return s.steps
 
 def back_lift_one_on_one():
     '''
@@ -485,20 +499,27 @@ def back_lift_one_on_stack():
     pass
 
 
-def drop_back_one_level():
+def drop_back_one_level(rotation=0, forward_distance=250, p=0):
     '''
        Drop one level with back servos.
        Forwards out.
        Points: 4
     '''
 
-    # blue3(m=Move.Distance(-300, 300, 300))
-    # blue3(s=[Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN),
-    #         Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
-    #         Servo.FrontSideGrip(FrontSideLeft.CLOSED, FrontSideRight.CLOSED),
-    #         Servo.BackLift(BackGripLift.UP-40)])
+    s = Strategy()
 
-    pass
+    if (rotation != 0):
+        s(m=Move.RotateTo(rotation, 10, 5),
+        s=[Servo.BackLift(BackGripLift.DOWN)])
+    else:
+        s(s=[Servo.BackLift(BackGripLift.DOWN)])
+
+    s(task_steps=open_back())
+
+    s(m=Move.Distance(forward_distance, 500, 500),
+        p=Points.LEVEL1 + p)
+
+    return s.steps
 
 
 def drop_back_two_level():
