@@ -56,7 +56,7 @@ semi(task_steps=pickup_front_full_stack())
 ## LEAVE BANNER IN YELLOW AREA 5 ##
 #################################
 
-semi(m=Move.Spline([Area.YELLOW_5.x - 75],
+semi(m=Move.Spline([Area.YELLOW_5.x - 85],
                    [Area.YELLOW_5.y + 175],
                    [1.57],
                    400,
@@ -133,7 +133,7 @@ semi(task_steps=pickup_front_full_stack(200))
 ## PICK-UP STACK 2 WITH BACK ##
 ###############################
 
-semi(m=Move.Spline([MaterialStack.STACK2.x],
+semi(m=Move.Spline([MaterialStack.STACK2.x + 15],
                    [MaterialStack.STACK2.y-325],
                    [-1.57],
                    450,
@@ -207,11 +207,13 @@ semi(task_steps=lift_one_on_two(150))
 semi(m=Move.RotateTo(3.14, 15, 15))
 
 semi(m=Move.Spline([MaterialStack.STACK5.x - 25],
-                   [MaterialStack.STACK5.y + 150],
+                   [MaterialStack.STACK5.y + 250],
                    [-1.57],
                    400,
                    'f'),
      task_steps=init_front_servos())
+
+semi(m=Move.RotateTo(-1.57, 15, 10))
 
 semi(task_steps=pickup_front_full_stack())
 semi(task_steps=two_level())
