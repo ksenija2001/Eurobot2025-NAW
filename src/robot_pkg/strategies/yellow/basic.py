@@ -30,7 +30,7 @@ basic(
 
 basic(task_steps=init_position(
     Area.YELLOW_2.x + 77.5,
-    Area.YELLOW_2.y + 48, 
+    Area.YELLOW_2.y + 48,
     0.0,
     'middle'))
 
@@ -55,7 +55,7 @@ basic(m=Move.Spline([MaterialStack.STACK5.x - 10],
 
 basic(m=Move.RotateTo(-1.57, 10, 10))
 
-basic(task_steps=pickup_front_full_stack(280)) # 270
+basic(task_steps=pickup_front_full_stack(280))  # 270
 
 #####################################
 ## BUILD TWO LEVELS IN YELLOW AREA 4 ##
@@ -94,8 +94,8 @@ basic(task_steps=separate_two_level())
 basic(m=Move.To(MaterialStack.STACK5.x + 10,
                 MaterialStack.STACK5.y + 200,
                 'f', 1000, 800, 10, 5),
-      s=[Servo.BackLift(BackGripLift.UP)]) 
-basic(m=Move.RotateTo(-1.57, 15, 10)) 
+      s=[Servo.BackLift(BackGripLift.UP)])
+basic(m=Move.RotateTo(-1.57, 15, 10))
 
 basic(task_steps=lift_one_on_two(forward_distance=245))
 
@@ -187,7 +187,7 @@ basic(task_steps=drop_two_level())
 ## AND BUILD TWO LEVELS              ##
 #######################################
 
-basic(m=Move.RotateTo(1.57, 15, 10), # PAZI
+basic(m=Move.RotateTo(1.57, 15, 10),  # PAZI
       task_steps=init_front_servos())
 
 basic(task_steps=pickup_front_full_stack(300))
@@ -201,7 +201,7 @@ basic(task_steps=two_level())
 
 basic(task_steps=drop_one_level(p=-4))
 
-basic(m=Move.RotateTo(-1.57, 15, 10), # PAZI
+basic(m=Move.RotateTo(-1.57, 15, 10),  # PAZI
       task_steps=init_back_servos())
 
 basic(task_steps=pickup_back_full_stack())
@@ -220,7 +220,6 @@ basic(m=Move.Distance(100, 500, 300),
 ########################
 ## END OF MAIN BRANCH ##
 ########################
-
 
 
 #############################################
@@ -386,33 +385,29 @@ basic(p=4)
 # No point if STACK 10 wasn't there
 basic(ID=10)
 
-basic(m=Move.Distance(300, 500 ,300))
+basic(m=Move.Distance(300, 500, 300))
 basic(m=Move.RotateTo(-1.57, 10, 5))
-basic(task_steps=drop_two_level(-350))
+basic(task_steps=drop_two_level(-200))
 
-# TODO NAPRAVITI - NE MOGU DA POGODIM KOORDINATU
-#####################
-## PICK-UP STACK 5 IF THERE ##
-#####################
+basic(m=Move.RotateTo(3.14, 10, 5))
 
-# basic(m=Move.RotateTo(3.14, 15, 15))
-# basic(m=Move.To(MaterialStack.STACK5.x, MaterialStack.STACK5.y-450, 'f', 1000, 800, 15, 10),
-#       task_steps=init_front_servos())
+#################################
+## PICK-UP STACK 5             ##
+#################################
 
-# basic(m=Move.RotateTo(-1.57, 10, 10))
+basic(m=Move.Spline([MaterialStack.STACK5.x - 25],
+                    [MaterialStack.STACK5.y + 250],
+                    [-1.57],
+                    400,
+                    'f'),
+      task_steps=init_front_servos())
 
-# basic(task_steps=pickup_front_full_stack(ID=11))
+basic(task_steps=pickup_front_full_stack(300, ID=11))
+basic(task_steps=two_level())
+basic(task_steps=drop_two_level(-250))
 
-# #####################
-# ## LEAVE TWO LEVEL IN YELLOW AREA 4 ##
-# #####################
+basic(ID=11)
 
-# basic(task_steps=two_level())
-
-# basic(task_steps=drop_two_level())
-
-
-# basic(ID=11)
 basic(m=Move.Distance(-100, 500, 300),
       c=[Condition.InPosition(100),])
 
@@ -458,7 +453,7 @@ basic(m=Move.Spline([MaterialStack.STACK3.x + 215],
                     450,
                     'r'))
 
-basic(task_steps=pickup_back_full_stack())#id=6))
+basic(task_steps=pickup_back_full_stack())  # id=6))
 # TODO nema STACK 8 - ostaviti dvospratnicu od STACK 1 u BLUE AREA 2
 
 basic(m=Move.Distance(250, 1000, 500),

@@ -21,9 +21,9 @@ semi(
         sima1_coor=[Position(1000, 1000, 1.57, 100),
                     Position(1500, 1500, 0, 100),
                     Position(900, 900.5, 0, 200)],
-        sima2_coor=[Position(125, -276, 0, 0), 
-                    Position(300, -276, 0, 50), 
-                    Position(900, -600, 0, 50), 
+        sima2_coor=[Position(125, -276, 0, 0),
+                    Position(300, -276, 0, 50),
+                    Position(900, -600, 0, 50),
                     Position(1200, -580, 0, 50)],
         sima3_coor=[],
         sima4_coor=[Position(125, -400, 0, 0),
@@ -33,7 +33,7 @@ semi(
 
 # TODO back more and close grippers beause of vertical projection
 semi(task_steps=init_position(Area.YELLOW_3.x - 48,
-                              Area.YELLOW_3.y + 77.5, # NE ZNAM TREBA LI OVDE +
+                              Area.YELLOW_3.y + 77.5,  # NE ZNAM TREBA LI OVDE +
                               1.57,
                               'middle',
                               -3.14+0.5))
@@ -71,7 +71,7 @@ semi(task_steps=leave_banner(back_distance=-150))
 semi(m=Move.Spline([Area.YELLOW_3.x],
                    [Area.YELLOW_3.y-25],
                    [0],
-                   350, 'f'),
+                   500, 'f'),
 
      task_steps=two_level())
 
@@ -90,30 +90,36 @@ semi(m=Move.RotateTo(0.0, 10, 5))
 
 semi(task_steps=pickup_front_full_stack())
 
-semi(m=Move.Distance(-200, 500, 300))
+semi(m=Move.Distance(-100, 500, 300))
+
+semi(task_steps=two_level())
+semi(task_steps=drop_one_level(p=-4))
+semi(m=Move.RotateTo(3.14, 15, 15),
+     task_steps=init_back_servos())
+semi(task_steps=pickup_back_full_stack())
 
 #########################################
 ## DROP HALF OF STACK 8 in YELLOW AREA 3 ##
 ## AND LIFT OTHER HALF ON TWO LEVEL    ##
 #########################################
 
-semi(m=Move.To(Area.YELLOW_3.x - 175,
-               Area.YELLOW_3.y-25,
-               'f',
-               1500, 1000, 10, 5),
-     task_steps=two_level())
-
-semi(task_steps=drop_one_level(-100, p=-4))
-semi(m=Move.RotateTo(0, 15, 5))  # MOZE BRZE AKO NIJE PREBLIZU
+semi(m=Move.Spline([Area.YELLOW_3.x - 175],
+                   [Area.YELLOW_3.y-25],
+                   [0],
+                   400,
+                   'f'))
 
 semi(task_steps=lift_one_on_two())
+
+semi(m=Move.RotateTo(2.35, 5, 5),
+     task_steps=init_front_servos())
+
+semi(m=Move.Distance(100, 1000, 500),
+     task_steps=open_back())
 
 #####################
 ## PICK-UP STACK 3 ##
 #####################
-
-semi(m=Move.RotateTo(2.35, 15, 10),
-     task_steps=init_front_servos())
 
 semi(m=Move.Spline([1200, MaterialStack.STACK3.x+290],
                    [1250, MaterialStack.STACK3.y],
@@ -148,7 +154,7 @@ semi(m=Move.Spline([Area.YELLOW_2.x],
                    [-1.57],
                    350,
                    'f'),
-     s=[Servo.BackLift(BackGripLift.UP)])
+     s=[Servo.BackLift(BackGripLift.UP2)])
 
 semi(m=Move.Distance(-100, 500, 500),
      task_steps=two_level())
@@ -168,12 +174,12 @@ semi(m=Move.Spline([MaterialStack.STACK5.x - 25],
                    'f'),
      task_steps=init_front_servos())
 
-semi(task_steps=pickup_front_full_stack(300))
+semi(task_steps=pickup_front_full_stack(300, ID=5))
 semi(task_steps=two_level())
 semi(task_steps=drop_one_level(-250))
 
 #################################
-## LEAVE STACK 2 FORM BACK     ##
+## LEAVE STACK 2 FROM BACK     ##
 #################################
 
 semi(m=Move.RotateTo(1.57, 3, 3),
@@ -213,22 +219,70 @@ semi(task_steps=lift_two_on_one())
 
 semi(c=[Condition.Timeout(100, 0.1),])
 
+###########################
+## END OF MAIN BRANCH    ##
+###########################
+
+##########################################
+## ALTERNATIVE WHEN THERE IS NO STACK 5 ##
+##########################################
+
+semi(ID=5)
+
+#################################
+## LEAVE STACK 2 FROM BACK     ##
+#################################
+# Facing AREA 4
+semi(m=Move.Distance(-150, 1000, 500))
+
+semi(m=Move.RotateTo(1.57, 3, 3),
+     s=[Servo.BackLift(BackGripLift.DOWN)])
+
+semi(m=Move.Distance(150, 500, 300),
+     task_steps=open_back())
+
+semi(m=Move.RotateTo(-1.57, 15, 10),
+     task_steps=init_front_servos())
+
+semi(task_steps=pickup_front_full_stack())
+
+semi(task_steps=two_level())
+
+semi(task_steps=drop_one_level())
+
+semi(m=Move.RotateTo(1.57, 15, 10))
+
+##########################################
+## RETURN FOR LEFT STACK IN YELLOW AREA 2 ##
+##########################################
+
+semi(m=Move.Spline([Area.YELLOW_2.x + 25],
+                   [Area.YELLOW_2.y + 450],
+                   [-1.57],
+                   400,
+                   'f'))
+
+semi(task_steps=lift_one_on_two(150))
+
+semi(c=[Condition.Timeout(100, 0.1),])
+# TODO CHECK TIME
+
 
 ##########
 ## HOME ##
 ##########
 semi(ID=100,
-      m=Move.Distance(150, 1000, 1000),
-      task_steps=open_all())
+     m=Move.Distance(150, 1000, 1000),
+     task_steps=open_all())
 
 semi(m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y - 450, 'f', 1100, 1500, 15, 15),
-      task_steps=init_all_servos())
+     task_steps=init_all_servos())
 
 # Wait for 99s to enter area
 semi(c=[Condition.MatchTime(101, 99)])
 
 
 semi(ID=101,
-      m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y -
-                250, 'f', 1100, 1500, 15, 15),
-      p=10)
+     m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y -
+               250, 'f', 1100, 1500, 15, 15),
+     p=10)
