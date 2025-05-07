@@ -18,17 +18,19 @@ semi = Strategy(color=Color.YELLOW, square=Square.CENTER, mood=Mood.SEMI)
 
 semi(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(1000, 1000, 1.57, 100),
-                    Position(1500, 1500, 0, 100),
-                    Position(900, 900.5, 0, 200)],
-        sima2_coor=[Position(125, -276, 0, 0),
-                    Position(300, -276, 0, 50),
-                    Position(900, -600, 0, 50),
-                    Position(1200, -580, 0, 50)],
-        sima3_coor=[],
-        sima4_coor=[Position(125, -400, 0, 0),
-                    Position(1000, -600, 0, 35),
-                    Position(1800, -550, 0, 35)])
+        sima1_coor=[Position(125, -1605, 0, 0),
+                    Position(1000, -1300, 0, 50),
+                    Position(1800, -1400, 0, 50)],
+        sima2_coor=[Position(125, -1724, 0, 0),
+                    Position(300, -1724, 0, 50),
+                    Position(900, -1400, 0, 50),
+                    Position(1300, -1360, 0, 50)],
+        sima3_coor=[Position(125, -1815, 0, 0),
+                    Position(500, -1815, 0, 50),
+                    Position(900, -1500, 0, 50)],
+        sima4_coor=[Position(125, -1915, 0, 0),
+                    Position(1300, -1915, 0, 20),
+                    Position(1300, -1415, 0, 4)])
 )
 
 # TODO back more and close grippers beause of vertical projection
@@ -56,6 +58,7 @@ semi(task_steps=pickup_front_full_stack())
 ## LEAVE BANNER IN YELLOW AREA 5 ##
 #################################
 
+# TODO provera da li moze da se izvuce iz detekcije
 semi(m=Move.Spline([Area.YELLOW_5.x - 85],
                    [Area.YELLOW_5.y + 175],
                    [1.57],
@@ -68,12 +71,16 @@ semi(task_steps=leave_banner(back_distance=-150))
 ## DROP STACK 6 IN YELLOW AREA 3 ##
 #################################
 
-semi(m=Move.Spline([Area.YELLOW_3.x],
-                   [Area.YELLOW_3.y-25],
-                   [0],
-                   500, 'f'),
-
+semi(m=Move.To(Area.YELLOW_3.x, Area.YELLOW_3.y-25, 'f', 1000, 500, 10, 10),
      task_steps=two_level())
+
+semi(m=Move.RotateTo(0, 10, 10))
+
+# semi(m=Move.Spline([Area.YELLOW_3.x],
+#                    [Area.YELLOW_3.y-25],
+#                    [0],
+#                    500, 'f'),
+#      task_steps=two_level())
 
 semi(task_steps=drop_two_level())
 
@@ -103,6 +110,7 @@ semi(task_steps=pickup_back_full_stack())
 ## AND LIFT OTHER HALF ON TWO LEVEL    ##
 #########################################
 
+# TODO testirati da li je bolje move to
 semi(m=Move.Spline([Area.YELLOW_3.x - 175],
                    [Area.YELLOW_3.y-25],
                    [0],
@@ -127,6 +135,7 @@ semi(m=Move.Spline([1200, MaterialStack.STACK3.x+290],
                    900,
                    'f'))
 
+# TODO slucaj kada 3 nije tamo , ide se na 5 frontom nakon skupljenog stacka 2
 semi(task_steps=pickup_front_full_stack(200))
 
 ###############################
@@ -161,7 +170,7 @@ semi(m=Move.Distance(-100, 500, 500),
 
 semi(task_steps=drop_two_level(-200))
 
-semi(m=Move.RotateTo(3.14, 10, 5))
+semi(m=Move.RotateTo(3.14, 15, 10))
 
 #################################
 ## PICK-UP STACK 5             ##
@@ -213,7 +222,7 @@ semi(m=Move.Spline([MaterialStack.STACK5.x - 25],
                    'f'),
      task_steps=init_front_servos())
 
-semi(m=Move.RotateTo(-1.57, 15, 10))
+# semi(m=Move.RotateTo(-1.57, 15, 10))
 
 semi(task_steps=pickup_front_full_stack())
 semi(task_steps=two_level())
@@ -250,6 +259,7 @@ semi(task_steps=pickup_front_full_stack())
 
 semi(task_steps=two_level())
 
+semi(m=Move.Distance(100, 500, 500))
 semi(task_steps=drop_one_level())
 
 semi(m=Move.RotateTo(1.57, 15, 10))

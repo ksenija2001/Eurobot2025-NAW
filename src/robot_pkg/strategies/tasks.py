@@ -195,7 +195,7 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
          Servo.CenterLift(CenterLift.DOWN),
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontVacuumLift(VacuumLift.HOVER)])
-    
+
     s(c=[Condition.FrontSensors(ID)])
 
     s(s=[Servo.FrontCenterGrip(FrontCenterLeft.GRIP, FrontCenterRight.GRIP),
@@ -447,7 +447,7 @@ def front_lift_stack():
     return s.steps
 
 
-def leave_banner(back_distance=-250, forward_distance=125):
+def leave_banner(back_distance=-200, forward_distance=125):
     '''
          Leave banner by hitting the back wall.
          Forwards out.
@@ -466,6 +466,7 @@ def leave_banner(back_distance=-250, forward_distance=125):
 
     return s.steps
 
+
 def separate_two_level():
     '''
         Separate one stack by building two levels, 
@@ -480,6 +481,7 @@ def separate_two_level():
     s(task_steps=pickup_back_full_stack(-245))
 
     return s.steps
+
 
 def back_lift_one_on_one():
     '''
@@ -510,7 +512,7 @@ def drop_back_one_level(rotation=0, forward_distance=250, p=0):
 
     if (rotation != 0):
         s(m=Move.RotateTo(rotation, 10, 5),
-        s=[Servo.BackLift(BackGripLift.DOWN)])
+          s=[Servo.BackLift(BackGripLift.DOWN)])
     else:
         s(s=[Servo.BackLift(BackGripLift.DOWN)])
 

@@ -20,14 +20,19 @@ visoka_gradnja = Strategy(color=Color.BLUE,
 
 visoka_gradnja(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(1000, 1000, 1.57, 100),
-                    Position(1500, 1500, 0, 100),
-                    Position(900, 900.5, 0, 200)],
-        sima2_coor=[],
-        sima3_coor=[],
-        sima4_coor=[Position(125, -400, 0, 0),
-                    Position(1000, -600, 0, 35),
-                    Position(1800, -550, 0, 35)])
+        sima1_coor=[Position(2875, -1605, 180, 0),
+                    Position(2000, -1300, 0, 50),
+                    Position(1200, -1400, 0, 50)],
+        sima2_coor=[Position(2875, -1724, 180, 0),
+                    Position(2700, -1724, 0, 50),
+                    Position(2100, -1400, 0, 50),
+                    Position(1700, -1360, 0, 50)],
+        sima3_coor=[Position(2875, -1815, 180, 0),
+                    Position(2500, -1815, 0, 50),
+                    Position(2100, -1500, 0, 50)],
+        sima4_coor=[Position(2875, -1915, 180, 0),
+                    Position(1700, -1915, 0, 20),
+                    Position(1700, -1415, 0, 4)])
 )
 
 visoka_gradnja(
@@ -200,22 +205,21 @@ visoka_gradnja(task_steps=two_level())
 visoka_gradnja(task_steps=drop_two_level())
 
 
-
 ##########
 ## HOME ##
 ##########
 
 visoka_gradnja(ID=100,
-      m=Move.Distance(150, 1000, 1000),
-      task_steps=open_all())
+               m=Move.Distance(150, 1000, 1000),
+               task_steps=open_all())
 
 visoka_gradnja(m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y - 450, 'f', 1100, 1500, 15, 15),
-      task_steps=init_all_servos())
+               task_steps=init_all_servos())
 
 # Wait for 99s to enter area
 visoka_gradnja(c=[Condition.MatchTime(101, 99)])
 
 visoka_gradnja(ID=101,
-      m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y -
-                250, 'f', 1100, 1500, 15, 15),
-      p=10)
+               m=Move.To(Area.BLUE_HOME.x, Area.BLUE_HOME.y -
+                         250, 'f', 1100, 1500, 15, 15),
+               p=10)
