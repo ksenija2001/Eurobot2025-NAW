@@ -232,13 +232,16 @@ class Execute:
                         target_pose_x = start_pose.x + math.cos(start_pose.theta) * p
                         target_pose_y = start_pose.y + math.sin(start_pose.theta) * p
 
-                        distance_from_start = math.sqrt((curr_pose.x - start_pose.x)**2 + (curr_pose.y - start_pose.y)**2)
+                        direction = 'f' if p > 0 else 'r'
+                        
+                        move = Move.To(target_pose_x, target_pose_y, direction, v, a, 10, 5)
+                        # distance_from_start = math.sqrt((curr_pose.x - start_pose.x)**2 + (curr_pose.y - start_pose.y)**2)
 
                         # p += 100 * abs(p)/p
 
-                        new_p = p - distance_from_start * abs(p)/p + 100 * abs(p)/p
+                        # new_p = p - distance_from_start * abs(p)/p + 100 * abs(p)/p
 
-                        move = Move.Distance(new_p, v, a)
+                        # move = Move.Distance(new_p, v, a)
                         step.movement = move
 
                     Variables.processing_detection.set()
@@ -296,7 +299,7 @@ class Execute:
                 Variables.points += step.points
                 self.display.add_points(step.points)
 
-                time.sleep(0.035)
+                time.sleep(0.025)
                 self._logger.info("-------------------------------")
 
                 # if len(self.steps) == 0:

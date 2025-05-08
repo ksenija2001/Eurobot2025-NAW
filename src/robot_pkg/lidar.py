@@ -44,7 +44,7 @@ class Lidar:
             if len(detection_queue) > 0:
                 lidar_msg = detection_queue.pop()
 
-                if abs(Move.pose.speed) > 20 and not Variables.processing_detection.is_set() and not I_O.sensor_states[SensorType.CINCH.value]:
+                if abs(Move.pose.speed) > 10 and not Variables.processing_detection.is_set() and not I_O.sensor_states[SensorType.CINCH.value]:
                     detection_side = struct.unpack('B', lidar_msg.data)[0]
                     if detection_side == 70 and Move.pose.speed > 0: # 'F' - FRONT
                         # Lidar.last_detection_time = time.time()

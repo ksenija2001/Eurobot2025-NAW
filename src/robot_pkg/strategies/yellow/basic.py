@@ -459,7 +459,7 @@ basic(m=Move.Spline([MaterialStack.STACK3.x + 215],
                     450,
                     'r'))
 
-basic(task_steps=pickup_back_full_stack(-180))  # id=6))
+basic(task_steps=pickup_back_full_stack(-160))  # id=6))
 # TODO nema STACK 3 - ostaviti dvospratnicu od STACK 1 u BLUE AREA 2
 
 basic(m=Move.Distance(250, 1000, 500),
@@ -515,7 +515,7 @@ basic(m=Move.To(MaterialStack.STACK7.x-300, MaterialStack.STACK7.y-15, 'f', 1500
 
 basic(m=Move.RotateTo(0, 15, 15))
 
-basic(task_steps=pickup_front_full_stack(ID=7))
+basic(task_steps=pickup_front_full_stack(forward_distance=200, ID=7))
 
 basic(m=Move.Distance(-150, 500, 500))
 
