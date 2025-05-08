@@ -796,9 +796,6 @@ uint8_t Choose_Beacon(sVector3_t* position, sVector3_t* point){
 }
 
 void Get_Beacons(){
-	float reliability;
-	uint8_t index;
-
 	memset(new_robot.vector, 0, sizeof(new_robot.vector));
 
 	if (color == 'y'){
@@ -817,7 +814,7 @@ void Get_Beacons(){
 
 		beacons[4][0].vector[2] /= beacon_indexes[4];
 
-		reliability = triangulationPierlot(&new_robot, beacons[0][0], beacons[2][0], beacons[4][0]);
+		triangulationPierlot(&new_robot, beacons[0][0], beacons[2][0], beacons[4][0]);
 	} else if (color == 'b'){
 		for (uint8_t i=1; i<beacon_indexes[1]; ++i)
 			beacons[1][0].vector[2] += beacons[1][i].vector[2];
@@ -834,42 +831,23 @@ void Get_Beacons(){
 
 		beacons[5][0].vector[2] /= beacon_indexes[5];
 
-		reliability = triangulationPierlot(&new_robot, beacons[1][0], beacons[3][0], beacons[5][0]);
-	}
-//
-//	float x_diff = self.x - new_robot.vector[0];
-//	float y_diff = self.y - new_robot.vector[1];
-//	float pose_diff = sqrt(x_diff*x_diff + y_diff*y_diff);
-	if (speed < 10 && ang_speed < 0.1 && speed_cnt > 0){
-		++speed_cnt;
-		self_lidar.x = 0.5*self_lidar.x + 0.5*new_robot.vector[0];
-		self_lidar.y = 0.5*self_lidar.y + 0.5*new_robot.vector[1];
-		self_lidar.theta = 0.5*self_lidar.theta + 0.5*new_robot.vector[2];
-	} else if (speed < 10 && ang_speed < 0.1 && speed_cnt == 0) {
-		++speed_cnt;
-		self_lidar.x = new_robot.vector[0];
-		self_lidar.y = new_robot.vector[1];
-		self_lidar.theta = new_robot.vector[2];
-	}
-	else {
-		speed_cnt = 0;
+		triangulationPierlot(&new_robot, beacons[1][0], beacons[3][0], beacons[5][0]);
 	}
 
-	if (speed_cnt == 5){ // standing still long enough
-		convert_x.f = self_lidar.x;
-		convert_y.f = self_lidar.y;
-		convert_t.f = self_lidar.theta;
+	convert_x.f = new_robot.vector[0];
+	convert_y.f = new_robot.vector[1];
+	convert_t.f = new_robot.vector[2];
 
-		uint8_t bytes[13] = {0};
-		for (uint8_t i = 0; i < 4; ++i)
-		{
-			bytes[i] = convert_x.u[i];
-			bytes[i+4] = convert_y.u[i];
-			bytes[i+8] = convert_t.u[i];
-		}
-
-//		FDCAN_Send_Data(0x4F0, FDCAN_DLC_BYTES_16, 13, bytes);
+	uint8_t bytes[13] = {0};
+	for (uint8_t i = 0; i < 4; ++i)
+	{
+		bytes[i] = convert_x.u[i];
+		bytes[i+4] = convert_y.u[i];
+		bytes[i+8] = convert_t.u[i];
 	}
+
+	// TODO check how often lidar odometry is published
+//	FDCAN_Send_Data(0x4FE, FDCAN_DLC_BYTES_16, 13, bytes);
 
 	for (uint8_t i=0; i<6; ++i){
 		beacon_indexes[i] = 0;
@@ -900,7 +878,6 @@ void Get_Beacons(){
 //			reliability = 1;
 //		}
 //	}
-
 
 }
 

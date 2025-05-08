@@ -53,7 +53,7 @@
 #define RPLIDAR_VARBITSCALE_X16_DEST_VAL 3328
 
 // Triangulation
-#define MIN_POINTS 15
+#define MIN_POINTS 10
 #define 	adjust_value_to_bounds(value, max)   ( ( value > max ) ? max : ( ( value < -max ) ? -max : value ) )
 #define 	cot(x)   ( 1 / tan(x) )
 #define 	Cot(x)   cot(x)
