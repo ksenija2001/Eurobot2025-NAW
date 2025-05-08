@@ -195,11 +195,12 @@ class Execute:
 
                    # if a condition wasn't set, it will attemp indefinetly
                     self.steps.insert(0, Step(None, Move.Detection(100), [], [], [
-                                      Condition.InPosition(None), Condition.MatchTime(100, 96)], None, None, 0))
+                                      Condition.InPosition(next_step_id), Condition.MatchTime(100, 96)], None, None, 0))
 
 
                     step = last_moving_step
-                    
+                    next_step_id = None
+                                        
                     position_cond = [cond for cond in step.conditions if cond._type == ConditionType.POSITION]
                     if len(position_cond) == 0:
                         step.conditions.extend([Condition.InPosition(None), Condition.MatchTime(100, 96)])
@@ -299,7 +300,7 @@ class Execute:
                 Variables.points += step.points
                 self.display.add_points(step.points)
 
-                time.sleep(0.025)
+                time.sleep(0.01) # 0.025
                 self._logger.info("-------------------------------")
 
                 # if len(self.steps) == 0:

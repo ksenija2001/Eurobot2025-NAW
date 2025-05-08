@@ -49,6 +49,7 @@ class Move:
     running:Event = Event()
     move_done:Event = Event()
     pose = Position()
+    detection_enabled = {'front':False, 'back':False}
    
     def __init__(self):
         self.send_queue = None
@@ -80,8 +81,8 @@ class Move:
             
             if len(odom_queue) > 0:
                 odom_msg = odom_queue.pop()
+                [x, y, theta, left, right, trans, ang, trans_acc, ang_acc] = struct.unpack('9f', odom_msg.data[:36])
 
-                [x, y, theta, left, right, trans, ang, gyr_ang] = struct.unpack('8f', odom_msg.data)
                 Move.pose.x = x
                 Move.pose.y = y
                 Move.pose.theta = theta
@@ -89,7 +90,10 @@ class Move:
                 Move.pose.left_inc = left
                 Move.pose.right_inc = right
 
-                Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}")
+                Move.detection_enabled['front'] = odom_msg.data[36]
+                Move.detection_enabled['back'] = odom_msg.data[37]
+
+                Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}, front: {Move.detection_enabled['front']}, back: {Move.detection_enabled['back']}")
             
             time.sleep(0.001)  # 1ms
     

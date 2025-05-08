@@ -20,16 +20,16 @@ visoka_gradnja = Strategy(color=Color.YELLOW,
 
 visoka_gradnja(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(125, -1605, 0, 0),
-                    Position(1000, -1300, 0, 50),
-                    Position(1800, -1400, 0, 50)],
-        sima2_coor=[Position(125, -1724, 0, 0),
-                    Position(300, -1724, 0, 50),
-                    Position(900, -1400, 0, 50),
-                    Position(1300, -1360, 0, 50)],
-        sima3_coor=[Position(125, -1815, 0, 0),
-                    Position(500, -1815, 0, 50),
-                    Position(900, -1500, 0, 50)],
+        sima1_coor=[Position(125, 276, 0, 0),
+                    Position(300, 276, 0, 50),
+                    Position(900, 600, 0, 50),
+                    Position(1300, 580, 0, 50)],
+        sima2_coor=[Position(125, 395, 0, 0),
+                    Position(1600, 700, 0, 50),
+                    Position(1750, 570, 0, 50)],
+        sima3_coor=[Position(125, 165, 0, 0),
+                    Position(300, 165, 0, 50),
+                    Position(850, 600, 0, 50)],
         sima4_coor=[Position(125, -1915, 0, 0),
                     Position(1300, -1915, 0, 20),
                     Position(1300, -1415, 0, 4)])
@@ -99,7 +99,7 @@ visoka_gradnja(task_steps=leave_banner())
 ##############################################
 
 visoka_gradnja(m=Move.To(MaterialStack.STACK5.x - 50,
-                         325 - 20,
+                         325,
                          'f', 1000, 500, 10, 5),
                task_steps=init_back_servos())
 
@@ -131,7 +131,7 @@ visoka_gradnja(m=Move.Distance(-250, 1000, 500))
 ##############################################
 
 visoka_gradnja(m=Move.To(MaterialStack.STACK5.x - 50,
-                         325 - 20,
+                         325,   #- 20,
                          'f', 1500, 500, 10, 3),
                task_steps=two_level())
 
@@ -144,9 +144,9 @@ visoka_gradnja(task_steps=push_two_level(push_distance=135))
 ## PICK-UP STACK 2 ##
 #####################
 
-visoka_gradnja(m=Move.To(MaterialStack.STACK2.x,
+visoka_gradnja(m=Move.To(MaterialStack.STACK2.x + 10,
                          MaterialStack.STACK2.y - 350,
-                         'f', 1000, 1500, 15, 15),
+                         'f', 1000, 1000, 15, 15),
                task_steps=init_front_servos())
 
 visoka_gradnja(m=Move.RotateTo(1.57, 15, 3))
@@ -158,7 +158,7 @@ visoka_gradnja(task_steps=pickup_front_full_stack(275))
 ###############################
 
 visoka_gradnja(m=Move.Spline([MaterialStack.STACK3.x + 225],
-                             [MaterialStack.STACK3.y],
+                             [MaterialStack.STACK3.y + 10],
                              [0],
                              450,
                              'r'))
@@ -172,7 +172,7 @@ visoka_gradnja(m=Move.Distance(100, 500, 300))
 ##########################
 
 visoka_gradnja(m=Move.To(MaterialStack.STACK5.x - 50,
-                         325 - 20,
+                         325 + 20,
                          'f', 1000, 500, 10, 5),
                task_steps=two_level())
 
@@ -191,16 +191,20 @@ visoka_gradnja(task_steps=lift_two_on_one(300, -200))
 ##############################################
 
 
-visoka_gradnja(m=Move.RotateTo(1.57, 10, 5),
-               s=[Servo.BackLift(BackGripLift.DOWN)],
+visoka_gradnja(m=Move.RotateTo(-1.57, 10, 5),
                task_steps=init_front_servos())
+
+visoka_gradnja(m=Move.Distance(-100, 500, 300))
+
+visoka_gradnja(m=Move.RotateTo(1.57, 5 ,5),
+            s=[Servo.BackLift(BackGripLift.DOWN)])
 
 visoka_gradnja(m=Move.Distance(200, 500, 500),
                s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
                   Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN)])
 
 visoka_gradnja(m=Move.RotateTo(-1.57, 15, 10))
-visoka_gradnja(task_steps=pickup_front_full_stack(280))
+visoka_gradnja(task_steps=pickup_front_full_stack(320))
 visoka_gradnja(task_steps=two_level())
 visoka_gradnja(task_steps=drop_two_level())
 
@@ -212,17 +216,18 @@ visoka_gradnja(c=[Condition.Timeout(100, 0.1),])
 ## HOME ##
 ##########
 visoka_gradnja(ID=100,
-               m=Move.Distance(150, 1000, 1000),
-               task_steps=open_all())
+      m=Move.Distance(150, 1000, 1000),
+      task_steps=open_all())
 
-visoka_gradnja(m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y - 450, 'f', 1100, 1500, 15, 15),
-               task_steps=init_all_servos())
+visoka_gradnja(m=Move.To(Area.YELLOW_HOME.x+300, Area.YELLOW_HOME.y - 550, 'f', 1100, 1500, 15, 15),
+      task_steps=init_all_servos())
 
 # Wait for 99s to enter area
 visoka_gradnja(c=[Condition.MatchTime(101, 99)])
 
 
 visoka_gradnja(ID=101,
-               m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y -
-                         250, 'f', 1100, 1500, 15, 15),
-               p=10)
+      m=Move.To(Area.YELLOW_HOME.x+300, 
+                  Area.YELLOW_HOME.y - 300, 
+                  'f', 1100, 1500, 15, 15),
+      p=10)

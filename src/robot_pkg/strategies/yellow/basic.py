@@ -90,7 +90,7 @@ basic(task_steps=pickup_front_full_stack(200))
 basic(m=Move.Distance(-350, 800, 500),
       task_steps=two_level())
 
-basic(task_steps=separate_two_level())
+basic(task_steps=separate_two_level(0))
 
 #############################################
 ## MOVE TO YELLOW AREA 4 AND LIFT ONE ON TWO ##
@@ -252,7 +252,7 @@ basic(task_steps=(pickup_front_full_stack(300)))
 
 basic(m=Move.To(MaterialStack.STACK6.x,
                 MaterialStack.STACK6.y + 250,
-                'r', 1500, 1000, 15, 10),
+                'r', 1000, 700, 10, 10),
       task_steps=init_back_servos())
 
 basic(m=Move.RotateTo(1.57, 15, 10))
@@ -263,12 +263,13 @@ basic(task_steps=pickup_back_full_stack())
 ## LEAVE STACK 6 IN FRONT OF YELLOW AREA 3 ##
 ########################################
 
-basic(m=Move.Spline([Area.YELLOW_3.x - 450],
-                    [Area.YELLOW_3.y],
-                    [0],
-                    400,
-                    'f'),
+basic(m=Move.To(Area.YELLOW_3.x - 450,
+                    Area.YELLOW_3.y,
+                    'f',
+                    500, 500, 5, 5),
       task_steps=two_level())
+
+basic(m=Move.RotateTo(0, 5, 5))
 
 basic(task_steps=drop_back_one_level(forward_distance=390, p=-4))
 
@@ -318,7 +319,7 @@ basic(m=Move.Spline([MaterialStack.STACK7.x - 225],
                     'f'),
       task_steps=init_front_servos())
 
-basic(task_steps=pickup_front_full_stack(100))
+basic(task_steps=pickup_front_full_stack(150))
 
 basic(m=Move.Distance(-150, 500, 500))
 
@@ -362,10 +363,10 @@ basic(m=Move.RotateTo(3.14, 15, 15),
 #####################
 
 # TODO proveriti da li je oko 85s
-basic(m=Move.Spline([1500, MaterialStack.STACK2.x-10],
+basic(m=Move.Spline([1500, MaterialStack.STACK2.x],
                     [1250, MaterialStack.STACK2.y - 400],
                     [3.14, 1.57],
-                    800,
+                    550,
                     'f'),
       task_steps=close_front())
 
@@ -401,14 +402,14 @@ basic(m=Move.RotateTo(3.14, 10, 5))
 ## PICK-UP STACK 5             ##
 #################################
 
-basic(m=Move.Spline([MaterialStack.STACK5.x - 25],
+basic(m=Move.Spline([MaterialStack.STACK5.x],
                     [MaterialStack.STACK5.y + 250],
                     [-1.57],
                     400,
                     'f'),
       task_steps=init_front_servos())
 
-basic(task_steps=pickup_front_full_stack(300, ID=11))
+basic(task_steps=pickup_front_full_stack(250, ID=11))
 basic(task_steps=two_level())
 basic(task_steps=drop_two_level(-250))
 
@@ -530,7 +531,8 @@ basic(task_steps=drop_two_level())
 
 basic(ID=7)
 
-basic(m=Move.Distance(-100, 500, 300),
+basic(m=Move.Distance(-400, 500, 300),
+      task_steps=init_front_servos(),
       c=[Condition.InPosition(100),])
 
 # TODO dodati deo gde kupi jos jedan stack od negde
@@ -543,7 +545,7 @@ basic(ID=100,
       m=Move.Distance(150, 1000, 1000),
       task_steps=open_all())
 
-basic(m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y - 550, 'f', 1100, 1500, 15, 15),
+basic(m=Move.To(Area.YELLOW_HOME.x+300, Area.YELLOW_HOME.y - 600, 'f', 1100, 1500, 15, 15),
       task_steps=init_all_servos())
 
 # Wait for 99s to enter area
@@ -551,6 +553,7 @@ basic(c=[Condition.MatchTime(101, 99)])
 
 
 basic(ID=101,
-      m=Move.To(Area.YELLOW_HOME.x, Area.YELLOW_HOME.y -
-                250, 'f', 1100, 1500, 15, 15),
+      m=Move.To(Area.YELLOW_HOME.x+300, 
+                  Area.YELLOW_HOME.y - 300, 
+                  'f', 1100, 1500, 15, 15),
       p=10)

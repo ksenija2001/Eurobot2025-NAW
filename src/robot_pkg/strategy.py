@@ -29,6 +29,7 @@ class Mood(Enum):
     AGGRESSIVE = 'aggressive'
     SEMI = 'semi'
     RUDE = 'rude'
+    HOMO = 'homo'
 
     def __eq__(self, other: str):
         return self.name.lower() == other
