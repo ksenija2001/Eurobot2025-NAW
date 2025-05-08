@@ -82,7 +82,7 @@ def main_func():
         # pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
         while running.is_set():
             if Variables.match_start_time != float('inf') and \
-                 time.time() - Variables.match_start_time > 100:
+                 time.time() - Variables.match_start_time > 100.9:
                 break
             time.sleep(0.01)
 

@@ -122,7 +122,7 @@ basic(task_steps=(pickup_front_full_stack(330, ID=5)))
 ################################################
 
 basic(m=Move.To(Area.YELLOW_2.x,
-                Area.YELLOW_2.y,
+                Area.YELLOW_2.y + 20,
                 'r', 1000, 500, 10, 5),
       task_steps=two_level())
 
@@ -160,7 +160,7 @@ basic(m=Move.Spline([MaterialStack.STACK3.x + 215],
                     450,
                     'r'))
 
-basic(task_steps=pickup_back_full_stack())
+basic(task_steps=pickup_back_full_stack(-180))
 
 basic(m=Move.Distance(250, 1000, 500),
       s=[Servo.BackLift(BackGripLift.UP2)])
@@ -172,7 +172,7 @@ basic(m=Move.Distance(250, 1000, 500),
 # TODO brzi spline i slaganje tek kada stigne zbog obima
 # PAZI -J
 basic(m=Move.Spline([Area.YELLOW_2.x],
-                    [Area.YELLOW_2.y + 550],
+                    [Area.YELLOW_2.y + 570],
                     [-1.57],
                     500,
                     'f'),
@@ -428,8 +428,8 @@ basic(ID=5)
 ################################################
 
 basic(m=Move.To(Area.YELLOW_2.x,
-                Area.YELLOW_2.y,
-                'r', 1000, 500, 10, 5))
+                Area.YELLOW_2.y + 20,
+                'r', 1000, 1000, 15, 10))
 
 basic(m=Move.RotateTo(1.57, 10, 5),
       s=[Servo.BackLift(BackGripLift.DOWN)])
@@ -454,12 +454,12 @@ basic(task_steps=pickup_front_full_stack())
 ################################
 
 basic(m=Move.Spline([MaterialStack.STACK3.x + 215],
-                    [MaterialStack.STACK3.y - 30],
+                    [MaterialStack.STACK3.y - 15],
                     [0],
                     450,
                     'r'))
 
-basic(task_steps=pickup_back_full_stack())  # id=6))
+basic(task_steps=pickup_back_full_stack(-180))  # id=6))
 # TODO nema STACK 3 - ostaviti dvospratnicu od STACK 1 u BLUE AREA 2
 
 basic(m=Move.Distance(250, 1000, 500),
@@ -471,7 +471,7 @@ basic(m=Move.Distance(250, 1000, 500),
 
 # TODO brzi spline i slaganje tek kada stigne zbog obima
 basic(m=Move.Spline([Area.YELLOW_2.x],
-                    [Area.YELLOW_2.y + 550],
+                    [Area.YELLOW_2.y + 450],
                     [-1.57],
                     500,
                     'f'),
@@ -486,7 +486,7 @@ basic(s=[Servo.BackLift(BackGripLift.DOWN)])
 
 basic(task_steps=open_back())
 
-basic(task_steps=lift_two_on_one(forward_distance=390))
+basic(task_steps=lift_two_on_one(forward_distance=420, back_distance=-200))
 
 #######################################
 ## PICK-UP STACK 3 WHERE IT WAS LEFT ##
@@ -496,12 +496,12 @@ basic(task_steps=lift_two_on_one(forward_distance=390))
 basic(m=Move.RotateTo(1.57, 15, 10),
       task_steps=init_front_servos())
 
-basic(task_steps=pickup_front_full_stack(300))
+basic(task_steps=pickup_front_full_stack(250))
 
 basic(m=Move.RotateTo(-1.57, 10, 5),
       task_steps=two_level())
 
-basic(m=Move.Distance(100, 500, 500))
+basic(m=Move.Distance(300, 500, 500))
 
 basic(task_steps=drop_two_level())
 
@@ -510,7 +510,7 @@ basic(task_steps=drop_two_level())
 ##############################################
 
 # Proveriti vreme
-basic(m=Move.To(MaterialStack.STACK7.x-300, MaterialStack.STACK7.y, 'f', 1500, 1500, 15, 10),
+basic(m=Move.To(MaterialStack.STACK7.x-300, MaterialStack.STACK7.y-15, 'f', 1500, 1500, 15, 10),
       task_steps=(init_front_servos()))
 
 basic(m=Move.RotateTo(0, 15, 15))
@@ -521,7 +521,7 @@ basic(m=Move.Distance(-150, 500, 500))
 
 basic(m=Move.RotateTo(1.57, 10, 5))
 
-basic(m=Move.Distance(300, 500, 500),
+basic(m=Move.Distance(400, 500, 500),
       task_steps=two_level())
 
 basic(m=Move.RotateTo(0, 10, 5))

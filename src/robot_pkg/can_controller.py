@@ -14,6 +14,9 @@ class CanNetwork:
         can.rc['interface'] = interface
         can.rc['channel'] = channel
         can.rc['fd'] = True
+        # can.rc['bitrate_switch'] = True
+        # can.rc['bitrate'] = 1_000_000
+        # can.rc['dbitrate'] = 8_000_000
 
         self.bus = can.Bus()
 

@@ -6,7 +6,7 @@ from robot_pkg.display import Display
 from robot_pkg.step import Step
 from robot_pkg.strategy import Strategy
 from robot_pkg.servo import Servo
-from robot_pkg.move import Move, MoveType
+from robot_pkg.move import Move, MoveType, Position
 from robot_pkg.in_out import I_O, SensorType
 from robot_pkg.consts import Variables
 from robot_pkg.conditions import ConditionType, Condition
@@ -50,6 +50,7 @@ class Execute:
         last_moving_step = None
         step = None
         reached_home_step = False
+        start_pose = None
 
         while self.running:
            # next_step_id will be None while the strategy is executing linearly
@@ -148,6 +149,7 @@ class Execute:
 
             # Activate servos and send outputs that do not depend on current position
             if step.movement is not None:
+                start_pose = Position(Move.pose.x, Move.pose.y, Move.pose.theta, 0)
                 last_moving_step = step
                 step.move()
             step.servo()
@@ -227,9 +229,16 @@ class Execute:
                         data = bytearray(step.movement.data)
                         p, v, a = struct.unpack('3f', data)
 
-                        p += 100 * abs(p)/p
+                        target_pose_x = start_pose.x + math.cos(start_pose.theta) * p
+                        target_pose_y = start_pose.y + math.sin(start_pose.theta) * p
 
-                        move = Move.Distance(p, v, a)
+                        distance_from_start = math.sqrt((curr_pose.x - start_pose.x)**2 + (curr_pose.y - start_pose.y)**2)
+
+                        # p += 100 * abs(p)/p
+
+                        new_p = p - distance_from_start * abs(p)/p + 100 * abs(p)/p
+
+                        move = Move.Distance(new_p, v, a)
                         step.movement = move
 
                     Variables.processing_detection.set()
@@ -287,7 +296,7 @@ class Execute:
                 Variables.points += step.points
                 self.display.add_points(step.points)
 
-                time.sleep(0.05)
+                time.sleep(0.035)
                 self._logger.info("-------------------------------")
 
                 # if len(self.steps) == 0:
