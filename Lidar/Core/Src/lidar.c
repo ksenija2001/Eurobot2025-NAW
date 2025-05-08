@@ -84,8 +84,8 @@ sDetection_t detection = {
 
 uint8_t process_beacon = 0;
 uint8_t process_opponent = 0;
-uint8_t det = 0;
-uint8_t last_det = 0;
+int8_t det = 0;
+int8_t last_det = 0;
 
 sVector3_t new_robot = {0};
 uint8_t color = 0;
@@ -629,6 +629,14 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 			(point.vector[1] <= 1900 && point.vector[1] >= 100)) {
 
 			det = Process_Detection(distance, angle);
+//			det += (curr_det != 0) ? 1 : -1;
+//
+//			if (det < 0) det = 0;
+//
+//			if (det > 10){
+//				uint8_t msg[1] = {det};
+//				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
+//			}
 
 			// React only on new detections
 			if (det != 0 && det != last_det){
@@ -925,6 +933,6 @@ void Get_Opponent(){
 		bytes[j+12] = convert_t.u[j];
 	}
 
-	FDCAN_Send_Data(0x6CE, FDCAN_DLC_BYTES_16, 16, bytes);
+//	FDCAN_Send_Data(0x6CE, FDCAN_DLC_BYTES_16, 16, bytes);
 }
 

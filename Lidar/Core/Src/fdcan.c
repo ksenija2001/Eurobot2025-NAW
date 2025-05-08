@@ -32,8 +32,8 @@ uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan)
 	HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
 
-	HAL_FDCAN_ConfigTxDelayCompensation(hfdcan, 9, 0);
-	HAL_FDCAN_EnableTxDelayCompensation(hfdcan);
+//	HAL_FDCAN_ConfigTxDelayCompensation(hfdcan, 9, 0);
+//	HAL_FDCAN_EnableTxDelayCompensation(hfdcan);
 
 	sFilterConfig.IdType = FDCAN_STANDARD_ID;			  // Use standard IDs
 	sFilterConfig.FilterIndex = 0;						  // Filter index 0
@@ -74,6 +74,9 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				speed = 0.5*speed + 0.5*self.speed;
 				ang_speed = 0.5*ang_speed + 0.5*self.ang_speed;
 
+				detection.front = abs(speed)/3.33 + 400;
+				detection.back  = abs(speed)/3.33 + 400;
+
 				break;
 			case 0x4C0: // Start/Stop Lidar
 				uint8_t status = RxData[0];
@@ -102,7 +105,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 uint8_t FDCAN_Send_Data(uint32_t id, uint32_t dlc, uint8_t size, uint8_t *data)
 {
-//	 send_status = HAL_ERROR;
+	 send_status = HAL_ERROR;
 
 	// Configure TX Header for FDCAN
 	TxHeader.Identifier = id;
@@ -110,14 +113,24 @@ uint8_t FDCAN_Send_Data(uint32_t id, uint32_t dlc, uint8_t size, uint8_t *data)
 	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
 	TxHeader.DataLength = dlc;
 	TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	TxHeader.BitRateSwitch = FDCAN_BRS_ON;
+	TxHeader.BitRateSwitch = FDCAN_BRS_OFF; //ON;
 	TxHeader.FDFormat = FDCAN_FD_CAN;
 	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	TxHeader.MessageMarker = 0;
 
 	memcpy(TxData, data, size);
 
-	send_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData);
+	if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0){
+		send_status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData);
+		if (send_status != HAL_OK){
+			Error_Handler();
+		}
+	} else {
+		uint32_t txFifoRequest = HAL_FDCAN_GetLatestTxFifoQRequestBuffer(&hfdcan1);
+		if (HAL_FDCAN_IsTxBufferMessagePending(&hfdcan1, txFifoRequest)) {
+			HAL_FDCAN_AbortTxRequest(&hfdcan1, txFifoRequest);
+		}
+	}
 
 	return send_status;
 }
