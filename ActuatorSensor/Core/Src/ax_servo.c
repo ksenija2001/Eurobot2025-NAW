@@ -34,9 +34,11 @@ void AX_Transmit(UART_HandleTypeDef* huart, uint8_t *tx_buffer, uint8_t tx_lengt
 
 	if (rx_length > 0){
 		HAL_HalfDuplex_EnableReceiver(huart);
-//		__HAL_UART_CLEAR_IT(huart, UART_CLEAR_OREF);
-		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_ORE);
-		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_FE);
+		__HAL_UART_CLEAR_IT(huart, UART_CLEAR_OREF);
+		__HAL_UART_CLEAR_IT(huart, UART_CLEAR_FEF);
+
+//		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_ORE);
+//		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_FE);
 		HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buffer, rx_length);
 	}
 }
@@ -125,8 +127,11 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 //		huart->RxState = HAL_UART_STATE_READY;
 
 	} else {
-		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_ORE);
-		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_FE);
+//		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_ORE);
+//		__HAL_UART_CLEAR_FLAG(huart, UART_FLAG_FE);
+		__HAL_UART_CLEAR_IT(huart, UART_CLEAR_OREF);
+		__HAL_UART_CLEAR_IT(huart, UART_CLEAR_FEF);
+
 		HAL_UARTEx_ReceiveToIdle_DMA(huart, rx_buffer, rx_len);
 	}
 
