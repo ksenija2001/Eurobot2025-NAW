@@ -32,8 +32,8 @@ uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan)
 	HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
 
-//	HAL_FDCAN_ConfigTxDelayCompensation(hfdcan, 9, 0);
-//	HAL_FDCAN_EnableTxDelayCompensation(hfdcan);
+	HAL_FDCAN_ConfigTxDelayCompensation(hfdcan, 9, 0);
+	HAL_FDCAN_EnableTxDelayCompensation(hfdcan);
 
 	sFilterConfig.IdType = FDCAN_STANDARD_ID;			  // Use standard IDs
 	sFilterConfig.FilterIndex = 0;						  // Filter index 0
@@ -70,6 +70,8 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 				self.theta = Bytes2Float(RxData, 8);
 				self.speed = Bytes2Float(RxData, 20);
 				self.ang_speed = Bytes2Float(RxData, 24);
+				self.enable_front_det = RxData[36];
+				self.enable_back_det = RxData[37];
 
 				speed = 0.5*speed + 0.5*self.speed;
 				ang_speed = 0.5*ang_speed + 0.5*self.ang_speed;
@@ -113,7 +115,7 @@ uint8_t FDCAN_Send_Data(uint32_t id, uint32_t dlc, uint8_t size, uint8_t *data)
 	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
 	TxHeader.DataLength = dlc;
 	TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	TxHeader.BitRateSwitch = FDCAN_BRS_OFF; //ON;
+	TxHeader.BitRateSwitch = FDCAN_BRS_ON;
 	TxHeader.FDFormat = FDCAN_FD_CAN;
 	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	TxHeader.MessageMarker = 0;

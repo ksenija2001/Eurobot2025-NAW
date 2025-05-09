@@ -84,8 +84,8 @@ sDetection_t detection = {
 
 uint8_t process_beacon = 0;
 uint8_t process_opponent = 0;
-int8_t det = 0;
-int8_t last_det = 0;
+uint8_t front_det = 0;
+uint8_t back_det = 0;
 
 sVector3_t new_robot = {0};
 uint8_t color = 0;
@@ -610,7 +610,9 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 
 	if (last_angle > 357 && last_angle < 360){
 		if (pc_index > 20) process_opponent = 1;
-		last_det = 0;  // reset detection
+//		last_det = 0;  // reset detection
+		front_det = 0;
+		back_det = 0;
 	} else if ((last_angle > 357 && last_angle < 360) || process_opponent == 2){
 		memset(point_cloud, 0, sizeof(point_cloud));
 		pc_index = 0;
@@ -628,23 +630,29 @@ void Process_Distance(float distance, float angle, uint8_t new_scan){
 		if ((point.vector[0] <= 2900 && point.vector[0] >= 100) &&
 			(point.vector[1] <= 1900 && point.vector[1] >= 100)) {
 
-			det = Process_Detection(distance, angle);
-//			det += (curr_det != 0) ? 1 : -1;
-//
-//			if (det < 0) det = 0;
-//
-//			if (det > 10){
-//				uint8_t msg[1] = {det};
-//				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
-//			}
+			uint8_t curr_det = Process_Detection(distance, angle);
+			if (curr_det == 'F') ++front_det;
+			else if (curr_det == 'B') ++ back_det;
 
-			// React only on new detections
-			if (det != 0 && det != last_det){
-				uint8_t msg[1] = {det};
+			if (front_det > 5){
+				front_det = 0;
+				uint8_t msg[1] = {'F'};
 				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
 			}
 
-			last_det = det;
+			if (back_det > 5){
+				back_det = 0;
+				uint8_t msg[1] = {'B'};
+				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
+			}
+
+//			// React only on new detections
+//			if (det != 0 && det != last_det){
+//				uint8_t msg[1] = {det};
+//				FDCAN_Send_Data(0x4CF, FDCAN_DLC_BYTES_1, 1, msg);
+//			}
+//
+//			last_det = det;
 
 			// Opponent point cloud
 			point_cloud[pc_index++] = point;

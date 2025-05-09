@@ -77,6 +77,8 @@ typedef struct {
 	float theta;
 	float speed;
 	float ang_speed;
+	uint8_t enable_front_det;
+	uint8_t enable_back_det;
 } sOdom_t;
 
 // Response descriptor struct
