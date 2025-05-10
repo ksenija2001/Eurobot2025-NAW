@@ -70,6 +70,7 @@ homologue(task_steps=drop_two_level())
 ##########
 ## HOME ##
 ##########
+
 homologue(ID=100,
       m=Move.Distance(150, 1000, 1000),
       task_steps=open_all())

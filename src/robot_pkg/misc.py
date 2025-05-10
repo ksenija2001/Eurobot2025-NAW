@@ -11,7 +11,7 @@ STACK3_X, STACK3_Y, STACK3_THETA = 0.0, 0.0, 90.0
 STACK4_X, STACK4_Y, STACK4_THETA = 0.0, 0.0, -90.0
 STACK9_X, STACK9_Y, STACK9_THETA = 0.0, 0.0, 90.0
 
-GRIP_GAIN = 7
+GRIP_GAIN = 8
 OPEN_GAIN = 8
 
 # class Gripper:
@@ -22,7 +22,7 @@ OPEN_GAIN = 8
 
 class FrontCenterRight:
     OPEN = 180 - 39 + OPEN_GAIN - 10
-    GRIP = 180 - 39 - GRIP_GAIN + 2 - 10
+    GRIP = 180 - 39 - GRIP_GAIN + 2 - 5
     NEUTRAL = 180 - 90
     CLOSED = 180 - 110
 
@@ -34,7 +34,7 @@ class FrontCenterLeft:
 
 class FrontSideRight:
     OPEN = 45 - OPEN_GAIN - 8
-    GRIP = 45 + GRIP_GAIN + 2
+    GRIP = 45 + GRIP_GAIN + 1
     NEUTRAL = 90
     CLOSED = 110
 
@@ -46,25 +46,25 @@ class FrontSideLeft:
 
 class BackCenterRight:
     OPEN = 36 - OPEN_GAIN 
-    GRIP = 36 + GRIP_GAIN
+    GRIP = 36 + GRIP_GAIN - 2
     NEUTRAL = 90
-    CLOSED = 110
+    CLOSED = 100
 
 class BackCenterLeft:
     OPEN = 180 - 45 + OPEN_GAIN 
-    GRIP = 180 - 45 - GRIP_GAIN
+    GRIP = 180 - 45 - GRIP_GAIN + 2
     NEUTRAL = 180 - 90
-    CLOSED = 180 - 110
+    CLOSED = 180 - 100
 
 class BackSideRight:
     OPEN = 42 - OPEN_GAIN 
-    GRIP = 42 + GRIP_GAIN
+    GRIP = 42 + GRIP_GAIN - 2 - 2
     NEUTRAL = 90
     CLOSED = 110
 
 class BackSideLeft:
     OPEN = 180 - 42 + OPEN_GAIN
-    GRIP = 180 - 42 - GRIP_GAIN
+    GRIP = 180 - 42 - GRIP_GAIN + 2
     NEUTRAL = 180 - 90
     CLOSED = 180 - 110
 
@@ -111,11 +111,11 @@ class FrontGripLift:
     DOWN = 0
 
 class BackGripLift:
-    UP = 300 
+    UP = 300 - 5
     UP2 = 275
     HOLD = 210
     HOVER = 20
-    DOWN = 0
+    DOWN = 0 + 5
 
 BACK_LIFT_BANNER, BACK_LIFT_DOWN, BACK_LIFT_UP = 0, 0, 300
 BACK_CENTER_GRIP_OPEN, BACK_CENTER_GRIP_CLOSED = 30, 50

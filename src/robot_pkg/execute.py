@@ -264,7 +264,7 @@ class Execute:
                 if len(step.conditions) == 0 or \
                     (len(step.conditions) == 1 and step.conditions[0]._type == ConditionType.DETECTION):
                     next_step_id = None
-                    break
+                    
                 elif ConditionType.TIME in checked and checked[ConditionType.TIME] != False and \
                     not (checked[ConditionType.TIME] == 100 and reached_home_step):
                     self._logger.info(

@@ -60,7 +60,7 @@ basic(m=Move.Spline([MaterialStack.STACK5.x - 10],
 
 basic(m=Move.RotateTo(-1.57, 10, 10))
 
-basic(task_steps=pickup_front_full_stack(280))  # 270
+basic(task_steps=pickup_front_full_stack(300))  # 270
 
 #####################################
 ## BUILD TWO LEVELS IN YELLOW AREA 4 ##
@@ -142,7 +142,7 @@ basic(task_steps=init_front_servos())
 ##  PICKUP STACK 2 ##
 #####################
 
-basic(m=Move.To(MaterialStack.STACK2.x-10,
+basic(m=Move.To(MaterialStack.STACK2.x,
                 MaterialStack.STACK2.y - 365,
                 'f', 1500, 1500, 15, 15),
       task_steps=close_front())
@@ -257,7 +257,7 @@ basic(m=Move.To(MaterialStack.STACK6.x,
 
 basic(m=Move.RotateTo(1.57, 15, 10))
 
-basic(task_steps=pickup_back_full_stack())
+basic(task_steps=pickup_back_full_stack(-500))
 
 ########################################
 ## LEAVE STACK 6 IN FRONT OF YELLOW AREA 3 ##
@@ -271,7 +271,7 @@ basic(m=Move.To(Area.YELLOW_3.x - 450,
 
 basic(m=Move.RotateTo(0, 5, 5))
 
-basic(task_steps=drop_back_one_level(forward_distance=390, p=-4))
+basic(task_steps=drop_back_one_level(rotation=0, forward_distance=390, p=-4))
 
 ########################################
 ## BUILD THREE LEVELS FROM STACK 10 AND STACK 6 IN YELLOW AREA 3 ##
@@ -430,7 +430,7 @@ basic(ID=5)
 
 basic(m=Move.To(Area.YELLOW_2.x,
                 Area.YELLOW_2.y + 20,
-                'r', 1000, 1000, 15, 10))
+                'r', 1000, 500, 10, 5))
 
 basic(m=Move.RotateTo(1.57, 10, 5),
       s=[Servo.BackLift(BackGripLift.DOWN)])
@@ -442,7 +442,7 @@ basic(m=Move.Distance(250, 500, 300))
 ##  PICKUP STACK 2 ##
 #####################
 
-basic(m=Move.To(MaterialStack.STACK2.x - 15,
+basic(m=Move.To(MaterialStack.STACK2.x,
                 MaterialStack.STACK2.y - 365,
                 'f', 1500, 1500, 15, 15),
       task_steps=init_front_servos())
@@ -460,7 +460,7 @@ basic(m=Move.Spline([MaterialStack.STACK3.x + 215],
                     450,
                     'r'))
 
-basic(task_steps=pickup_back_full_stack(-160))  # id=6))
+basic(task_steps=pickup_back_full_stack())#-160))  # id=6))
 # TODO nema STACK 3 - ostaviti dvospratnicu od STACK 1 u BLUE AREA 2
 
 basic(m=Move.Distance(250, 1000, 500),
@@ -510,11 +510,16 @@ basic(task_steps=drop_two_level())
 ## PIKC-UP STACK 7 ##
 ##############################################
 
+basic(m=Move.RotateTo(0, 15, 15))
+
+basic(m=Move.Distance(800, 1000, 1000))
 # Proveriti vreme
-basic(m=Move.To(MaterialStack.STACK7.x-300, MaterialStack.STACK7.y-15, 'f', 1500, 1500, 15, 10),
+basic(m=Move.To(MaterialStack.STACK7.x-300, 
+                  MaterialStack.STACK7.y-15, 
+                  'f', 1500, 1500, 15, 10),
       task_steps=(init_front_servos()))
 
-basic(m=Move.RotateTo(0, 15, 15))
+basic(m=Move.RotateTo(0, 10, 5))
 
 basic(task_steps=pickup_front_full_stack(forward_distance=200, ID=7))
 

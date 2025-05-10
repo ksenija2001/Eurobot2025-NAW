@@ -131,7 +131,7 @@ visoka_gradnja(m=Move.Distance(-250, 1000, 500))
 ##############################################
 
 visoka_gradnja(m=Move.To(MaterialStack.STACK5.x - 50,
-                         325,   #- 20,
+                         325 + 10,   #- 20,
                          'f', 1500, 500, 10, 3),
                task_steps=two_level())
 
@@ -164,7 +164,7 @@ visoka_gradnja(m=Move.Spline([MaterialStack.STACK3.x + 225],
                              'r'))
 
 visoka_gradnja(m=Move.RotateTo(0.0, 15, 5))
-visoka_gradnja(task_steps=pickup_back_full_stack())
+visoka_gradnja(task_steps=pickup_back_full_stack(ID=8))
 visoka_gradnja(m=Move.Distance(100, 500, 300))
 
 ##########################
@@ -183,11 +183,11 @@ visoka_gradnja(m=Move.RotateTo(0.0, 5, 5))
 ## STACKS IN YELLOW AREA 2 - THIRD TIME     ##
 ##############################################
 
-visoka_gradnja(task_steps=lift_two_on_one(300, -200))
+visoka_gradnja(task_steps=lift_two_on_one(280, -200))
 
 ##############################################
 ## LEAVE TWO LEVELS ON PREVIOUSLY SEPARATED ##
-## STACKS IN BLUE AREA 2 - FOURTH TIME      ##
+## STACKS IN YELLOW AREA 2 - FOURTH TIME      ##
 ##############################################
 
 
@@ -211,6 +211,33 @@ visoka_gradnja(task_steps=drop_two_level())
 
 visoka_gradnja(c=[Condition.Timeout(100, 0.1),])
 
+###############################################
+## ID=8 ALTERNATIVE WHEN THERE IS NO STACK 3 ##
+###############################################
+
+visoka_gradnja(ID=8)
+
+##########################
+## MOVE TO YELLOW AREA 2  ##
+##########################
+
+visoka_gradnja(m=Move.To(MaterialStack.STACK5.x + 50,
+                         325 + 20,
+                         'f', 1000, 500, 10, 5),
+               task_steps=two_level())
+
+visoka_gradnja(m=Move.RotateTo(0, 5, 5))
+
+##############################################
+## LEAVE TWO LEVELS ON PREVIOUSLY SEPARATED ##
+## STACKS IN YELLOW AREA 2 - THIRD TIME       ##
+##############################################
+
+visoka_gradnja(task_steps=lift_two_on_one(280, -250))
+
+visoka_gradnja(c=[Condition.Timeout(100, 0.1),])
+
+
 
 ##########
 ## HOME ##
@@ -219,11 +246,13 @@ visoka_gradnja(ID=100,
       m=Move.Distance(150, 1000, 1000),
       task_steps=open_all())
 
-visoka_gradnja(m=Move.To(Area.YELLOW_HOME.x+300, Area.YELLOW_HOME.y - 550, 'f', 1100, 1500, 15, 15),
+visoka_gradnja(m=Move.To(Area.YELLOW_HOME.x+300, 
+                  Area.YELLOW_HOME.y - 550, 
+                  'f', 1100, 1500, 15, 15),
       task_steps=init_all_servos())
 
 # Wait for 99s to enter area
-visoka_gradnja(c=[Condition.MatchTime(101, 99)])
+visoka_gradnja(c=[Condition.MatchTime(101, 98)])
 
 
 visoka_gradnja(ID=101,

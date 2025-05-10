@@ -227,7 +227,7 @@ class Servo:
         return servo
 
     @classmethod
-    def BackLift(cls, position:int, speed:int=50, activate_pose=Position()):
+    def BackLift(cls, position:int, speed:int=30, activate_pose=Position()):
         servo1 = cls()
         servo2 = cls()
 
