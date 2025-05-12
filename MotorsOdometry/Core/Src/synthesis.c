@@ -65,60 +65,63 @@ void synthesis_stop(){
 	synthesis.phase = -1;
 }
 
-uint8_t synthesis_is_stuck(){
-	if(fabs(odom.trans_vel - synthesis.NEXT_STATE.pData[1]) > 1000){
-		if(odom.x > 2700){
-			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ // theta 0
-//				odom.x = 3000 - FRONT_HALF_DISTANCE;
-//				odom.theta = 0;
-				return 1;
-			}
-			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ // theta PI
-//				odom.x = 3000 - BACK_HALF_DISTANCE;
-//				odom.theta = M_PI;
-				return 1;
-			}
-		}
-		else if(odom.x < 300){
-			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ //tehta 0
-//				odom.x = BACK_HALF_DISTANCE;
-//				odom.theta = 0;
-				return 1;
-			}
-			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ //theta PI
-//				odom.x = FRONT_HALF_DISTANCE;
-//				odom.theta = M_PI;
-				return 1;
-			}
-		}
-		else if(odom.y > 1300){
-			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
-//				odom.y = 2000-FRONT_HALF_DISTANCE;
-//				odom.theta = M_PI_2;
-				return 1;
-			}
-			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
-//				odom.y = 2000-BACK_HALF_DISTANCE;
-//				odom.theta = -M_PI_2;
-				return 1;
-			}
-		}
-
-		else if(odom.y < 300){
-			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
-//				odom.y = BACK_HALF_DISTANCE;
-//				odom.theta = M_PI_2;
-				return 1;
-			}
-			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
-//				odom.y = FRONT_HALF_DISTANCE;
-//				odom.theta = -M_PI_2;
-				return 1;
-			}
-		}
-
+uint8_t synthesis_is_stuck(){//1000
+	if(fabs(odom.trans_vel - synthesis.NEXT_STATE.pData[1]) > 750 && fabs(odom.trans_vel) < 100){
+		return 1;
 	}
 	return 0;
+//		if(odom.x > 2600){
+//			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ // theta 0
+////				odom.x = 3000 - FRONT_HALF_DISTANCE;
+////				odom.theta = 0;
+//				return 1;
+//			}
+//			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ // theta PI
+////				odom.x = 3000 - BACK_HALF_DISTANCE;
+////				odom.theta = M_PI;
+//				return 1;
+//			}
+//		}
+//		else if(odom.x < 400){
+//			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ //tehta 0
+////				odom.x = BACK_HALF_DISTANCE;
+////				odom.theta = 0;
+//				return 1;
+//			}
+//			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ //theta PI
+////				odom.x = FRONT_HALF_DISTANCE;
+////				odom.theta = M_PI;
+//				return 1;
+//			}
+//		}
+//		else if(odom.y > 1200){
+//			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
+////				odom.y = 2000-FRONT_HALF_DISTANCE;
+////				odom.theta = M_PI_2;
+//				return 1;
+//			}
+//			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
+////				odom.y = 2000-BACK_HALF_DISTANCE;
+////				odom.theta = -M_PI_2;
+//				return 1;
+//			}
+//		}
+//
+//		else if(odom.y < 400){
+//			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
+////				odom.y = BACK_HALF_DISTANCE;
+////				odom.theta = M_PI_2;
+//				return 1;
+//			}
+//			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
+////				odom.y = FRONT_HALF_DISTANCE;
+////				odom.theta = -M_PI_2;
+//				return 1;
+//			}
+//		}
+//
+//	}
+
 }
 
 void synthesis_calc_coef(float T){
@@ -316,6 +319,7 @@ void synthesis_calc_target_points(float P, float Vmax, float Amax, char type){ /
 
 void synthesis_activate_detection(float backing_distance){
 	if(synthesis.phase >= 0 && synthesis.target[synthesis.phase].type == 't'){
+		odom.detection_activated = 1;
 		if(odom.trans_vel > 0) backing_distance = -backing_distance;
 		synthesis.start.x = odom.x;
 		synthesis.start.y = odom.y;
@@ -340,7 +344,7 @@ void synthesis_activate_detection(float backing_distance){
 
 //		calc_traj_coef();
 		//synthesis.total_time = synthesis_calc_T(P, Amax);
-		synthesis.target[synthesis.target_len].T = 1;
+		synthesis.target[synthesis.target_len].T = 1.3;
 		synthesis.target[synthesis.target_len].P = backing_distance;
 		synthesis.target[synthesis.target_len].V = 0;
 		synthesis.target[synthesis.target_len].A = 0;		 //accel = 0
@@ -352,7 +356,7 @@ void synthesis_activate_detection(float backing_distance){
 	}
 	else{
 		uint8_t data[1] = {0x01};
-		FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
+		FDCAN_Send_Data(0x4AE, FDCAN_DLC_BYTES_1, 1, data);
 	}
 
 }
@@ -581,8 +585,11 @@ void synthesis_compute(){
 			//deactivate synthesis if there is no more steps
 			if(*phase == synthesis.target_len){
 				*phase = -1;
+				if(odom.detection_activated){
+					odom.detection_activated = 0;
+				}
 				uint8_t data[1] = {0x01};
-				FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
+				FDCAN_Send_Data(0x4AE, FDCAN_DLC_BYTES_1, 1, data);
 				goto end;
 			}
 			//set current state to be same as last step target state
@@ -613,6 +620,19 @@ void synthesis_compute(){
 		float left_time = synthesis.start_time + synthesis.target[*phase].T - (float)HAL_GetTick()/1000;
 		//translation
 		if(*type == 't'){
+			if(odom.trans_vel > 20 && !odom.detection_activated){
+				odom.detection_enable_front = 1;
+				odom.detection_enable_back = 0;
+			}
+			else if(odom.trans_vel < -20 && !odom.detection_activated){
+				odom.detection_enable_front = 0;
+				odom.detection_enable_back = 1;
+			}
+			else{
+				odom.detection_enable_front = 0;
+				odom.detection_enable_back = 0;
+			}
+
 			synthesis.distance_from_start = distance(odom.x, odom.y, synthesis.start.x, synthesis.start.y);
 			synthesis.angle.error = normalize(odom.theta - synthesis.end.theta);
 			synthesis.distance.error = calc_distance_from_traj();
@@ -643,14 +663,20 @@ void synthesis_compute(){
 			Set_Speed(&right_motor, rs*1.05);
 
 			if(synthesis_is_stuck()){
+				if(odom.detection_activated){
+					odom.detection_activated = 0;
+				}
 				uint8_t data[1] = {0x01};
-				FDCAN_Send_Data(0x4DE, FDCAN_DLC_BYTES_1, 1, data);
+				FDCAN_Send_Data(0x4AE, FDCAN_DLC_BYTES_1, 1, data);
 				*phase = -1;
 				goto end;
 			}
 		}
 		//rotation
 		else if(*type == 'r'){
+			odom.detection_enable_back = 0;
+			odom.detection_enable_front = 0;
+
 			float dTheta = odom.theta - synthesis.last_angle;
 			synthesis.last_angle = odom.theta;
 			dTheta = normalize(dTheta);

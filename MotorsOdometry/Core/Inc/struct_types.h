@@ -19,7 +19,7 @@ typedef struct {
 } sTIM_t;
 
 typedef struct {
-	ADC_HandleTypeDef* adc;
+//	ADC_HandleTypeDef* adc;
 	uint32_t output;
 } sADC_t;
 

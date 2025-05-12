@@ -38,6 +38,7 @@ typedef struct{
 	float t_accel;
 	float t_deccel;
 	float end_angle;
+	uint8_t detecion;
 } sSpline_t;
 
 void spline_move(float *x, float *y, float *theta, uint8_t num_of_points, float max_speed, char direction);

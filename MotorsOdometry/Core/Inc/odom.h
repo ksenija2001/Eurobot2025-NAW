@@ -15,6 +15,7 @@
 
 #define PPR         8015.655//8192      // 4*2048 inc
 #define FILTER      0.1       // determines how much of the new value will affect the new state
+#define LIDAR_FILTER 0.05
 #define WHEEL_HALF_DISTANCE	101.08
 #define FRONT_HALF_DISTANCE 146
 #define BACK_HALF_DISTANCE 125
@@ -34,6 +35,10 @@ typedef struct {
 
 	float trans_acc;
 	float ang_acc;
+
+	uint8_t detection_enable_front;
+	uint8_t detection_enable_back;
+	uint8_t detection_activated;
 } sOdom_t;
 
 typedef struct {
@@ -71,6 +76,8 @@ void Init_Encoder(sEncoderWheel_t* wheel, TIM_HandleTypeDef* htim);
 extern sEncoderWheel_t left;
 extern sEncoderWheel_t right;
 extern sOdom_t odom;
+extern sOdom_t lidar_odom;
+extern uint8_t lidar_update;
 
 
 #endif /* INC_ODOM_H_ */

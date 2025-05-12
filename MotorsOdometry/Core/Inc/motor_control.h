@@ -16,7 +16,7 @@
 /* PWM timer settings */
 #define ARR 28799
 #define ARR_MAX ( (int32_t)(ARR * 0.85) )
-#define ARR_MIN ( (int32_t)(ARR * 0.092) )
+#define ARR_MIN ( (int32_t)(ARR * 0.096/*0.092*/) )
 
 /* Motor characteristics */
 #define RPM_MAX 9300//9380
@@ -30,7 +30,7 @@
 
 typedef struct {
 	sIO_t EN;
-	sIO_t RPM;
+//	sIO_t RPM;
 	sIO_t PWM;
 	sIO_t Direction;
 } sMotorIO_t;
@@ -38,12 +38,10 @@ typedef struct {
 typedef struct {
 	sMotorIO_t IO;
 	sTIM_t TIM;
-	sADC_t ADC;
-	int16_t currRPM;
 } sMotorConfig_t;
 
 /* Motor utility functions */
-uint8_t Init_Motor(sMotorConfig_t* motor, TIM_HandleTypeDef* htim, ADC_HandleTypeDef* hadc);
+uint8_t Init_Motor(sMotorConfig_t* motor, TIM_HandleTypeDef* htim);
 void Enable_Motor(sMotorConfig_t* motor, uint8_t enable);
 void Stop_Motor(sMotorConfig_t* motor);
 void Set_Duty_Cycle(sMotorConfig_t* motor, uint16_t duty_cycle);

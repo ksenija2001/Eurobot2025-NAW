@@ -8,6 +8,7 @@ void spline_init(){
 	spline.distance.Kd = 1;
 	spline.angle.Kp = 60;
 	spline.angle.Kd = 200;
+	spline.detecion = 0;
 }
 
 int8_t spline_state(){
@@ -101,19 +102,19 @@ float spline_find_theta(float x0, float y0, float x, float y){
 }
 
 void spline_activate_detection(){
+	odom.detection_activated = 1;
+//	spline.detecion = 1;
 	spline.num_of_beziers = spline.index + 1;
+	float reverse = 0;
+	if(spline.direction == 'r') reverse = M_PI;
 
-//	spline.x_bezier[0].p[0] = odom.x;
-//	spline.x_bezier[0].p[1] = odom.x + PARAM_DISTANCE*cos(odom.theta + reverse);
-	spline.x_bezier[0].p[2] = odom.x;
-	spline.x_bezier[0].p[3] = odom.x + 100*cos(odom.theta);
+	spline.x_bezier[spline.index].p[2] = odom.x;
+	spline.x_bezier[spline.index].p[3] = odom.x + 100*cos(odom.theta + reverse);
 
-//	spline.y_bezier[0].p[0] = odom.y;
-//	spline.y_bezier[0].p[1] = odom.y + PARAM_DISTANCE*sin(odom.theta + reverse);
-	spline.y_bezier[0].p[2] = odom.y;
-	spline.y_bezier[0].p[3] = odom.y + 100*sin(odom.theta);
+	spline.y_bezier[spline.index].p[2] = odom.y;
+	spline.y_bezier[spline.index].p[3] = odom.y + 100*sin(odom.theta + reverse);
 
-	spline.end_angle = odom.theta;
+	spline.end_angle = normalize(odom.theta + reverse);
 }
 
 void spline_move(float *x, float *y, float *theta, uint8_t num_of_points, float max_speed, char direction){
@@ -155,7 +156,7 @@ void spline_move(float *x, float *y, float *theta, uint8_t num_of_points, float 
 
 	spline.speed_coef = max_speed / spline_find_max_speed();
 	spline.t_accel = max_speed / 10000.0;
-	spline.t_deccel = max_speed / 10000.0;
+	spline.t_deccel = max_speed / 8000.0;
 	spline.end_angle = theta[num_of_points - 1];
 	spline.index = 0;
 }
@@ -166,6 +167,19 @@ float x[2], y[2];
 
 void spline_compute(){
 	if(spline.index >= 0){
+		if(odom.trans_vel > 20 && !odom.detection_activated){
+			odom.detection_enable_front = 1;
+			odom.detection_enable_back = 0;
+		}
+		else if(odom.trans_vel < -20 && !odom.detection_activated){
+			odom.detection_enable_front = 0;
+			odom.detection_enable_back = 1;
+		}
+		else{
+			odom.detection_enable_front = 0;
+			odom.detection_enable_back = 0;
+		}
+
 		t = spline_find_t(spline.x_bezier[spline.index].p, spline.y_bezier[spline.index].p, spline.x_bezier[spline.index].order);
 		if(t < 0.01) t = 0.01;
 		t += T_INCREMENT;
@@ -217,13 +231,26 @@ void spline_compute(){
 		}
 		Set_Speed(&left_motor,   left_velocity - spline.distance.reg - spline.angle.reg);
 		Set_Speed(&right_motor, right_velocity + spline.distance.reg + spline.angle.reg);
+		if(t > 0.95 && odom.detection_activated){
+			spline.index = -1;
+			float reverse = -1;
+			if(spline.direction == 'r'){
+				reverse = 1;
+			}
+			synthesis_start_distance(100*reverse, 500, 1000);
+		}
+
 		if (t > 0.995){
 			if(spline.index < spline.num_of_beziers){
 				spline.index++;
 			}
 			if(spline.index == spline.num_of_beziers){
 				spline.index = -1;
-				synthesis_start_rotateTo(spline.end_angle, 1, 1);
+				if(!odom.detection_activated)
+					synthesis_start_rotateTo(spline.end_angle, 1, 1);
+				else{
+
+				}
 			}
 
 		}

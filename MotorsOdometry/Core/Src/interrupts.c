@@ -22,35 +22,35 @@ void TIM6_IT(void){
 
 	Odometry();
 
-	Float2Bytes(tx_buffer, 0, odom.x);
-	Float2Bytes(tx_buffer, 4, odom.y);
-	Float2Bytes(tx_buffer, 8, odom.theta);
-	Float2Bytes(tx_buffer, 12,(float)left.inc);
-	Float2Bytes(tx_buffer, 16, (float)right.inc);
-	Float2Bytes(tx_buffer, 20, odom.trans_vel);
-	Float2Bytes(tx_buffer, 24, odom.ang_vel);
-	Float2Bytes(tx_buffer, 28, odom.trans_acc);
-	Float2Bytes(tx_buffer, 32, odom.ang_acc);
-//	Float2Bytes(tx_buffer, 28, odom.gyr_angular);
+	if(counter%50 == 0){ //50ms
+		Float2Bytes(tx_buffer, 0, odom.x);
+		Float2Bytes(tx_buffer, 4, odom.y);
+		Float2Bytes(tx_buffer, 8, odom.theta);
+		Float2Bytes(tx_buffer, 12,(float)left.inc);
+		Float2Bytes(tx_buffer, 16, (float)right.inc);
+		Float2Bytes(tx_buffer, 20, odom.trans_vel);
+		Float2Bytes(tx_buffer, 24, odom.ang_vel);
+		Float2Bytes(tx_buffer, 28, odom.trans_acc);
+		Float2Bytes(tx_buffer, 32, odom.ang_acc);
 
-
-	if(counter%100 == 0) //100ms
-		FDCAN_Send_Data(0x6FF, FDCAN_DLC_BYTES_32, 32, tx_buffer);
-	//}
-
-
-//	if(counter % RPM_TIME == 0){
-//		Int162Bytes(tx_buffer, 0, left_motor.currRPM);
-//		Int162Bytes(tx_buffer, 2, right_motor.currRPM);
-//
-//		FDCAN_Send_Data(0x4DF, FDCAN_DLC_BYTES_4, 4, tx_buffer);
-//	}
+		tx_buffer[36] = odom.detection_enable_front;
+		tx_buffer[37] = odom.detection_enable_back;
+		FDCAN_Send_Data(0x6FF, FDCAN_DLC_BYTES_48, 38, tx_buffer);
+	}
 }
 
 void TIM7_IT(void){
+//	if(STOP){
+//		spline_stop();
+//		synthesis_stop();
+//		STOP = 0;
+//	}
+
 	if(spline_state() == -1 && synthesis_state() == -1){
 		Set_RPM(&left_motor, 0);
 		Set_RPM(&right_motor, 0);
+		odom.detection_enable_back = 0;
+		odom.detection_enable_front = 0;
 	}
 	else{
 		synthesis_compute();
