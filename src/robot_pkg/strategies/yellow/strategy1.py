@@ -7,12 +7,15 @@ from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.strategies.tasks import *
 
 strategy1 = Strategy(color=Color.YELLOW,
-                     square=Square.LOWER, mood=Mood.PASSIVE)
+                     square=Square.UPPER, mood=Mood.HOMO)
+
 
 strategy1(m=Move.ResetOdom(0, 0, 1.57),
           task_steps=init_front_servos())
 
 strategy1(task_steps=pickup_front_full_stack())
+
 strategy1(task_steps=two_level())
 
 strategy1(task_steps=lift_two_on_one())
+# strategy1(task_steps=drop_two_level())

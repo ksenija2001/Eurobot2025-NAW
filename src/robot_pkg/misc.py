@@ -20,55 +20,11 @@ OPEN_GAIN = 8
 #     NEUTRAL = 90
 #     CLOSED = 110
 
-class FrontCenterRight:
-    OPEN = 180 - 39 + OPEN_GAIN - 10
-    GRIP = 180 - 39 - GRIP_GAIN + 2 - 5
-    NEUTRAL = 180 - 90
-    CLOSED = 180 - 110
-
-class FrontCenterLeft:
-    OPEN = 40 - OPEN_GAIN
-    GRIP = 40 + GRIP_GAIN 
-    NEUTRAL = 90
-    CLOSED = 110
-
-class FrontSideRight:
-    OPEN = 45 - OPEN_GAIN - 8
-    GRIP = 45 + GRIP_GAIN + 1
-    NEUTRAL = 90
-    CLOSED = 110
-
-class FrontSideLeft:
-    OPEN = 180 - 42 + OPEN_GAIN + 10
-    GRIP = 180 - 42 - GRIP_GAIN - 2
-    NEUTRAL = 180 - 90
-    CLOSED = 180 - 110
-
-class BackCenterRight:
-    OPEN = 36 - OPEN_GAIN 
-    GRIP = 36 + GRIP_GAIN - 2
-    NEUTRAL = 90
-    CLOSED = 100
-
-class BackCenterLeft:
-    OPEN = 180 - 45 + OPEN_GAIN 
-    GRIP = 180 - 45 - GRIP_GAIN + 2
-    NEUTRAL = 180 - 90
-    CLOSED = 180 - 100
-
-class BackSideRight:
-    OPEN = 42 - OPEN_GAIN 
-    GRIP = 42 + GRIP_GAIN - 2 - 2
-    NEUTRAL = 90
-    CLOSED = 110
-
-class BackSideLeft:
-    OPEN = 180 - 42 + OPEN_GAIN
-    GRIP = 180 - 42 - GRIP_GAIN + 2
-    NEUTRAL = 180 - 90
-    CLOSED = 180 - 110
-
-
+class FrontCenterGripper:
+    OPEN = 160
+    NEUTRAL = 150 
+    GRIP = 140 
+    CLOSED = 120 
 
 class VacuumLift:
     UP = 290
@@ -82,14 +38,14 @@ class VacuumLift:
     DOWN = 0
 
 class CenterLift:
-    UP = 265
-    LIFT2 = 200
-    DROP1 = 160
-    POSITION2 = 140
-    DROP2 = 140
-    HOLD2 = 90
-    HOVER = 15
-    DOWN = 0
+    UP = 600 #265*3
+    LIFT2 = 550 #200*3
+    DROP1 = 160*3
+    POSITION2 = 360 #140*3
+    DROP2 = 140*3
+    HOLD2 = 240 #90*3
+    HOVER = 15*3
+    DOWN = 9
 
 class CenterSwing:
     UP = 240
@@ -110,7 +66,7 @@ class FrontGripLift:
     HOVER = 20
     DOWN = 0
 
-class BackGripLift:
+class BackLift:
     UP = 300 - 5
     UP2 = 275
     HOLD = 210

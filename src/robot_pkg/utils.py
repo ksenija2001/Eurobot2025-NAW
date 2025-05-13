@@ -23,16 +23,13 @@ readline.parse_and_bind("tab: complete")
 readline.set_completer(completer)
 
 servo_dict = {
-    ServoType.BACK_LEFT_LIFT.value: Servo.BackLift,
     ServoType.CENTER_LIFT.value: Servo.CenterLift,
     ServoType.CENTER_SWING.value: Servo.CenterSwing,
     ServoType.LEFT_GRIP_LIFT.value: Servo.FrontGripLift,
     ServoType.LEFT_VACUUM.value: Servo.FrontVacuum,
     ServoType.LEFT_VACUUM_LIFT.value: Servo.FrontVacuumLift,
-    ServoType.BACK_CENTER_LEFT_GRIPPER.value: Servo.BackCenterGrip,
     ServoType.FRONT_CENTER_LEFT_GRIPPER.value: Servo.FrontCenterGrip,
-    ServoType.BACK_LEFT_GRIPPER.value: Servo.BackSideGrip,
-    ServoType.FRONT_LEFT_GRIPPER.value: Servo.FrontSideGrip
+    ServoType.BACK_SWING.value: Servo.BackSwing
 }
 
 def user_cmd(running:Event):

@@ -65,6 +65,7 @@ class Move:
     def _receive(cls, running:Event):
         move_done_queue = can_handler.msg_receive_queues[IDs.GET_MOVE_DONE.value]
         odom_queue = can_handler.msg_receive_queues[IDs.GET_ODOM.value]
+        cnt = 0
         while running.is_set():
             if len(move_done_queue) > 0:
                 move_msg = move_done_queue.pop()
@@ -93,7 +94,10 @@ class Move:
                 Move.detection_enabled['front'] = odom_msg.data[36]
                 Move.detection_enabled['back'] = odom_msg.data[37]
 
-                Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}, front: {Move.detection_enabled['front']}, back: {Move.detection_enabled['back']}")
+                cnt += 1
+                if cnt == 100:
+                    cnt = 0
+                    Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}, front: {Move.detection_enabled['front']}, back: {Move.detection_enabled['back']}")
             
             time.sleep(0.001)  # 1ms
     
