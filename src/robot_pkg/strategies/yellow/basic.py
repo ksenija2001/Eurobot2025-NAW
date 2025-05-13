@@ -18,19 +18,15 @@ basic = Strategy(color=Color.YELLOW, square=Square.LOWER, mood=Mood.PASSIVE)
 
 basic(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(125, -1605, 0, 0),
-                    Position(1000, -1300, 0, 50),
-                    Position(1800, -1400, 0, 50)],
-        sima2_coor=[Position(125, -1724, 0, 0),
-                    Position(300, -1724, 0, 50),
-                    Position(900, -1400, 0, 50),
-                    Position(1300, -1360, 0, 50)],
-        sima3_coor=[Position(125, -1815, 0, 0),
-                    Position(500, -1815, 0, 50),
-                    Position(900, -1500, 0, 50)],
-        sima4_coor=[Position(125, -1915, 0, 0),
-                    Position(1300, -1915, 0, 20),
-                    Position(1300, -1415, 0, 4)])
+        sima1_coor=[Position(125,  276, 0, 0),
+                    Position(1300, 550, 0, 40)],
+        sima2_coor=[Position(125,  395, 0, 0),
+                    Position(1800, 620, 0, 45)],
+        sima3_coor=[Position(125,  165, 0, 0),
+                    Position(1000, 450, 0, 50)],
+        sima4_coor=[Position(125,  95,  0, 0),
+                    Position(1175, 155, 0, 50),
+                    Position(1350, 600, 0, 30)])
 )
 
 basic(task_steps=init_position(

@@ -20,19 +20,15 @@ visoka_gradnja = Strategy(color=Color.YELLOW,
 
 visoka_gradnja(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(125, 276, 0, 0),
-                    Position(300, 276, 0, 50),
-                    Position(900, 600, 0, 50),
-                    Position(1300, 580, 0, 50)],
-        sima2_coor=[Position(125, 395, 0, 0),
-                    Position(1600, 700, 0, 50),
-                    Position(1750, 570, 0, 50)],
-        sima3_coor=[Position(125, 165, 0, 0),
-                    Position(300, 165, 0, 50),
-                    Position(850, 600, 0, 50)],
-        sima4_coor=[Position(125, -1915, 0, 0),
-                    Position(1300, -1915, 0, 20),
-                    Position(1300, -1415, 0, 4)])
+        sima1_coor=[Position(125,  276, 0, 0),
+                    Position(1300, 550, 0, 40)],
+        sima2_coor=[Position(125,  395, 0, 0),
+                    Position(1800, 620, 0, 45)],
+        sima3_coor=[Position(125,  165, 0, 0),
+                    Position(1000, 450, 0, 50)],
+        sima4_coor=[Position(125,  95,  0, 0),
+                    Position(1175, 155, 0, 50),
+                    Position(1350, 600, 0, 30)])
 )
 
 visoka_gradnja(
@@ -248,8 +244,7 @@ visoka_gradnja(ID=100,
 
 visoka_gradnja(m=Move.To(Area.YELLOW_HOME.x+300, 
                   Area.YELLOW_HOME.y - 550, 
-                  'f', 1100, 1500, 15, 15),
-      task_steps=init_all_servos())
+                  'f', 1100, 1500, 15, 15))
 
 # Wait for 99s to enter area
 visoka_gradnja(c=[Condition.MatchTime(101, 98)])
