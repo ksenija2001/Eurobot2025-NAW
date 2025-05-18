@@ -117,25 +117,55 @@ class FieldVisualizer:
         """
             Draw all defined areas
         """
-
-        areas = Area.get_all_areas()
-        for name, area in areas:
-            color = 'yellow' if 'YELLOW' in name else 'blue'
-            circle = patches.Circle((area.x, area.y), 225,
-                                    facecolor=color, edgecolor='black', alpha=0.5)
-            self.ax.add_patch(circle)
-            self.ax.text(area.x, area.y, str(area).split('.')[-1],
-                         ha='center', va='center', fontsize=8)
+        for name, area in Area.get_all_areas():
+            # Determine color and style based on availability
+            if area.visited:
+                color = 'lightyellow' if 'YELLOW' in name else 'lightblue'
+                alpha = 0.2
+                mark_visited = True
+            else:
+                color = 'yellow' if 'YELLOW' in name else 'blue'
+                alpha = 0.2
+                mark_visited = False
+            
+            if '4' in name or '5' in name:
+                width, height = 450, 150
+            else:
+                width, height = 450, 450
+            
+            x, y = area.x - width/2, area.y - height/2
+            rect = patches.Rectangle((x, y), width, height, linewidth=2, edgecolor='red' if self.current_target == area else 'black',
+                                  facecolor=color, alpha=alpha)
+            self.ax.add_patch(rect)
+            
+            self.ax.text(area.x, area.y, name, ha='center', va='center', fontsize=8)
+            if mark_visited:
+                self.ax.text(area.x, area.y, "✗", ha='center', va='center', 
+                            fontsize=24, color='red', alpha=0.7)
 
     def _draw_stacks(self):
         """Draw all material stacks"""
         for name, stack in MaterialStack.get_all_unvisited_stacks():
-            color = 'orange'
-            circle = patches.Circle((stack.x, stack.y), 150,
-                                    facecolor=color, edgecolor='black', alpha=0.7)
-            self.ax.add_patch(circle)
-            self.ax.text(stack.x, stack.y, str(stack).split('.')[-1],
-                         ha='center', va='center', fontsize=8)
+            # Determine color and style
+            if stack.visited:
+                color = 'sandybrown'
+                alpha = 0.2
+                mark_visited = True
+            else:
+                color = 'sienna'
+                alpha = 0.7
+                mark_visited = False
+            
+            # Draw stack
+            rect = patches.Rectangle((stack.x-225, stack.y-50), 450, 100, rotation_point='center', angle=stack.theta*180/np.pi+90,
+                                  facecolor=color, edgecolor='black', alpha=alpha)
+            self.ax.add_patch(rect)
+            
+            # Add text and visited mark
+            self.ax.text(stack.x, stack.y, name, ha='center', va='center', fontsize=8)
+            if mark_visited:
+                self.ax.text(stack.x, stack.y, "✗", ha='center', va='center',
+                            fontsize=20, color='red', alpha=0.7)
 
     # def _update_animation(self, frame):
     #     # Get latest positions from Move.pose and Lidar.opponent
