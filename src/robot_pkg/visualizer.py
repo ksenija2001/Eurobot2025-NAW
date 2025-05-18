@@ -2,17 +2,32 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.animation import FuncAnimation
 import numpy as np
+<<<<<<< Updated upstream
 from robot_pkg.play_elements import Area, MaterialStack
 from robot_pkg.move import Move, Opponent
 from robot_pkg.lidar import Lidar
+=======
+import socket
+import struct
+from robot_pkg.play_elements import Area, MaterialStack, Position, ElementPosition
+from threading import Thread
+>>>>>>> Stashed changes
 
 class FieldVisualizer:
     def __init__(self):
         self.fig, self.ax = plt.subplots(figsize=(12, 8))
+<<<<<<< Updated upstream
         self.field_length = 3000  # mm
         self.field_width = 2000   # mm
         self.robot_pos = None
         self.opponent_pos = None
+=======
+        self.field_length = w  # mm
+        self.field_width = h   # mm
+        self.robot_pos: Position = Position()
+        self.opponent_pos: Position = Position()
+
+>>>>>>> Stashed changes
         self.robot_marker = None
         self.opponent_marker = None
         self.robot_arrow = None
@@ -23,9 +38,83 @@ class FieldVisualizer:
         self.current_target = None
         
         self._setup_field()
+<<<<<<< Updated upstream
         self.animation = FuncAnimation(self.fig, self.update_animation, interval=100)
         self.opponent = Opponent() # DELETE THIS
         
+=======
+
+        self.animation = FuncAnimation(
+            self.fig, self.update_positions, interval=100)
+
+    def receive_opponent_info(self):
+        while self.running:
+            try:
+                
+                msg = self.connection.recv(64)
+
+                # print(f"Received: {msg}")
+                key = str(msg[0])
+                print(f"Key: {key}")
+                if key == '79':
+                    print(f"Opponent")
+                    pose = struct.unpack('3f', msg[1:])
+                    self.opponent_pos.x = pose[0]
+                    self.opponent_pos.y = pose[1]
+                    self.opponent_pos.theta = pose[2]
+                elif key == '82':
+                    print(f"Robot")
+                    pose = struct.unpack('3f', msg[1:])
+                    self.robot_pos.x = pose[0]
+                    self.robot_pos.y = pose[1]
+                    self.robot_pos.theta = pose[2]
+                elif key == '83':
+                    length = int(msg[1])
+                    data = str(msg[1:length+2].decode('utf-8'))
+                    print(f"Stack: {data}")
+                    for name, stack in vars(MaterialStack).items():
+                        print(f"Stack name: {name}")
+                        if name in data:
+                            if '10' in data:
+                                print(f"Stack value: {MaterialStack.STACK10}")
+                                MaterialStack.STACK10.visited = True
+                            else:
+                                print(f"Stack value: {stack}")
+                                stack.visited = True
+                            self._draw_stacks()
+                            break
+                elif key == '65':
+                    length = int(msg[1])
+                    data = str(msg[1:length+2].decode('utf-8'))
+                    print(f"Area: {data}")
+                    for name, area in vars(Area).items():
+                        if name in data:
+                            print(f"Area value: {area}")
+                            area.visited = True
+                            self._draw_areas()
+                            # print(name, area.visited)
+                            break
+                        # print(name, area.visited)
+            except Exception as e:
+                print(e)
+
+    def _setup_connection(self):
+        print(f"Started connecting...")
+        try:
+            self.pc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.pc_socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.pc_socket.bind(('10.166.197.207', 9999))
+
+            self.pc_socket.listen(1)
+
+            self.connection, address = self.pc_socket.accept()
+
+            print("Computer connected")
+        except Exception as e:
+            print(e)
+
+>>>>>>> Stashed changes
     def _setup_field(self):
         self.ax.set_xlim(0, self.field_length)
         self.ax.set_ylim(0, self.field_width)
@@ -61,7 +150,7 @@ class FieldVisualizer:
             
             # Draw rectangle
             x, y = area.x - width/2, area.y - height/2
-            rect = patches.Rectangle((x, y), width, height, linewidth=2, edgecolor='red' if self.current_target == area else 'black',
+            rect = patches.Rectangle((x, y), width, height, linewidth=2, edgecolor='black',
                                   facecolor=color, alpha=alpha)
             self.ax.add_patch(rect)
             
@@ -77,8 +166,13 @@ class FieldVisualizer:
         self._setup_field()  # Redraw to update highlights
 
     def _draw_stacks(self):
+<<<<<<< Updated upstream
         for name, stack in MaterialStack.get_all_stacks():  # Need to add this method
             # Determine color and style
+=======
+        """Draw all material stacks"""
+        for name, stack in MaterialStack.get_all_stacks():
+>>>>>>> Stashed changes
             if stack.visited:
                 color = 'sandybrown'
                 alpha = 0.2

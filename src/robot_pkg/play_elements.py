@@ -1,6 +1,44 @@
+<<<<<<< Updated upstream
 from robot_pkg.move import Position, PositionType
+=======
 
+
+class ElementPosition:
+    def __init__(self, x: float = 0, y: float = 0, theta: float = 0):
+        self.x = x
+        self.y = y
+        self.theta = theta
+
+        self.visited = False
+
+    def distance_to(self, x, y):
+        """Calculate Euclidean distance to another point"""
+        return ((self.x - x) ** 2 + (self.y - y) ** 2) ** 0.5
+
+    def __repr__(self):
+        return f"{self.x}, {self.y}"
+
+class Position:
+    def __init__(self, x: float = 0, y: float = 0, theta: float = 0, speed: float = 0):
+        self.x = x
+        self.y = y
+        self.theta = theta
+        self.speed = speed
+        self.left_inc = 0
+        self.right_inc = 0
+>>>>>>> Stashed changes
+
+    def reset(self, x, y, theta, speed=0):
+        self.x = x
+        self.y = y
+        self.theta = theta
+        self.speed = speed
+
+    def __repr__(self):
+        return f"{self.x}, {self.y}"
+    
 class Area:
+<<<<<<< Updated upstream
     YELLOW_HOME = Position(150 +225, 2000-225,  1.57, PositionType.HOME)
     YELLOW_4    = Position(550 +225,       75, -1.57, PositionType.FIELD)
     YELLOW_2    = Position(1000+225,      225, -1.57, PositionType.FIELD)
@@ -12,6 +50,19 @@ class Area:
     BLUE_3     = Position(     225, 1100-225,  3.14, PositionType.FIELD)
     BLUE_4     = Position(2000+225,       75, -1.57, PositionType.FIELD)
     BLUE_2     = Position(2000-225,      225, -1.57, PositionType.FIELD)
+=======
+    YELLOW_HOME = ElementPosition(150 +225, 2000-225,  1.57)
+    YELLOW_4    = ElementPosition(550 +225,       75, -1.57)
+    YELLOW_2    = ElementPosition(1000+225,      225, -1.57)
+    YELLOW_5    = ElementPosition(3000-225,       75, -1.57)
+    YELLOW_3    = ElementPosition(3000-225, 1100-225,     0)
+
+    BLUE_HOME  = ElementPosition(2850-225, 2000-225,  1.57)
+    BLUE_5     = ElementPosition(     225,       75, -1.57)
+    BLUE_3     = ElementPosition(     225, 1100-225,  3.14)
+    BLUE_4     = ElementPosition(2000+225,       75, -1.57)
+    BLUE_2     = ElementPosition(2000-225,      225, -1.57)
+>>>>>>> Stashed changes
 
     @classmethod
     def get_all_areas(cls):
@@ -43,6 +94,7 @@ class Area:
                 if isinstance(area, Position) and color in name and area.visited]
 
 class MaterialStack:
+<<<<<<< Updated upstream
     STACK1  = Position(2175, 1725,  1.57, PositionType.STACK)
     STACK2  = Position( 825, 1725,  1.57, PositionType.STACK)
 
@@ -50,11 +102,31 @@ class MaterialStack:
     STACK4  = Position(  75,  400,  3.14, PositionType.STACK)
     STACK5  = Position( 775,  250, -1.57, PositionType.STACK)
     STACK9  = Position(1100,  950,  1.57, PositionType.STACK)
+=======
+    STACK1  = ElementPosition(2175, 1725,  1.57)
+    STACK2  = ElementPosition( 825, 1725,  1.57)
+
+    STACK3  = ElementPosition(  75, 1325,  3.14)
+    STACK4  = ElementPosition(  75,  400,  3.14)
+    STACK5  = ElementPosition( 775,  250, -1.57)
+    STACK9  = ElementPosition(1100,  950,  1.57)
+
+    STACK8  = ElementPosition( 3000-75, 1325,     0)
+    STACK7  = ElementPosition( 3000-75,  400,     0)
+    STACK6  = ElementPosition(3000-775,  250, -1.57)
+    STACK10 = ElementPosition(    1900,  950,  1.57)
+>>>>>>> Stashed changes
 
     STACK8  = Position( 3000-75, 1325,     0, PositionType.STACK)
     STACK7  = Position( 3000-75,  400,     0, PositionType.STACK)
     STACK6  = Position(3000-775,  250, -1.57, PositionType.STACK)
     STACK10 = Position(    1900,  950,  1.57, PositionType.STACK)
+    @classmethod
+    def get_all_stacks(cls):
+        """Get all stacks regardless of visited status"""
+        return [(name, value) for name, value in cls.__dict__.items() 
+               if isinstance(value, ElementPosition)]
+    
     @classmethod
     def get_all_unvisited_stacks(cls):
         '''
