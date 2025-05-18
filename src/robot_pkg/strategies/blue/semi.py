@@ -18,19 +18,15 @@ semi = Strategy(color=Color.BLUE, square=Square.CENTER, mood=Mood.SEMI)
 
 semi(
     task_steps=sima_coordinates(
-        sima1_coor=[Position(2875, -1605, 180, 0),
-                    Position(2000, -1300, 0, 50),
-                    Position(1200, -1400, 0, 50)],
-        sima2_coor=[Position(2875, -1724, 180, 0),
-                    Position(2700, -1724, 0, 50),
-                    Position(2100, -1400, 0, 50),
-                    Position(1700, -1360, 0, 50)],
-        sima3_coor=[Position(2875, -1815, 180, 0),
-                    Position(2500, -1815, 0, 50),
-                    Position(2100, -1500, 0, 50)],
-        sima4_coor=[Position(2875, -1915, 180, 0),
-                    Position(1700, -1915, 0, 20),
-                    Position(1700, -1415, 0, 4)])
+        sima1_coor=[Position(125,  -276, 0, 0),
+                    Position(1300, -550, 0, 40)],
+        sima2_coor=[Position(125,  -395, 0, 0),
+                    Position(1800, -620, 0, 45)],
+        sima3_coor=[Position(125,  -165, 0, 0),
+                    Position(1000, -450, 0, 50)],
+        sima4_coor=[Position(125,  -95,  0, 0),
+                    Position(1175, -155, 0, 50),
+                    Position(1350, -850, 0, 30)])
 )
 
 # TODO back more and close grippers beause of vertical projection

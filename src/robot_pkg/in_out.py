@@ -9,7 +9,8 @@ from robot_pkg.consts import Variables
 
 class ActuatorType(Enum):
     PUMP = 4
-    VALVE = 3
+    MAGNET = 3
+    VALVE = 2
 
 class SensorType(Enum):
     CINCH = 8
@@ -84,6 +85,16 @@ class I_O:
         pump._type = ActuatorType.PUMP.name
 
         return pump
+    
+    @classmethod
+    def Magnet(cls, state:bool, send_pose:Position=Position()):
+        magnet = cls()
+        magnet.pin = ActuatorType.MAGNET.value
+        magnet.state = state
+        magnet.send_pose = send_pose
+        magnet._type = ActuatorType.MAGNET.name
+
+        return magnet
 
     @classmethod
     def Valve(cls, state:bool, send_pose:Position=Position()):

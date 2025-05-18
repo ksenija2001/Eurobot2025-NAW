@@ -12,8 +12,7 @@ from robot_pkg.consts import Variables
 from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.main import log_handler
 from robot_pkg.sima_communication import SIMA
-from robot_pkg.misc import FrontCenterLeft, FrontCenterRight, FrontSideLeft, FrontSideRight, \
-    BackCenterLeft, BackCenterRight, BackSideLeft, BackSideRight
+# from robot_pkg.misc import FrontCenterLeft, FrontCenterRight
 
 
 class Execute:
@@ -326,24 +325,24 @@ class Execute:
 
         self.sima.stop_threads()
 
-        actuators = [I_O.Pump(0), I_O.Valve(0)]
+        actuators = [I_O.Pump(0), I_O.Valve(0), I_O.Magnet(0)]
 
         for actuator in actuators:
             actuator._execute()
             time.sleep(0.01)
 
-        grippers = [Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
-                    Servo.FrontSideGrip(FrontSideLeft.OPEN,
-                                        FrontSideRight.OPEN),
-                    Servo.BackCenterGrip(
-                        BackCenterLeft.OPEN, BackCenterRight.OPEN),
-                    Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN)]
+        # grippers = [Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
+        #             Servo.FrontSideGrip(FrontSideLeft.OPEN,
+        #                                 FrontSideRight.OPEN),
+        #             Servo.BackCenterGrip(
+        #                 BackCenterLeft.OPEN, BackCenterRight.OPEN),
+        #             Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN)]
 
-        for gripper in grippers:
-            if type(gripper) is tuple:
-                gripper[0]._execute()
-                time.sleep(0.01)
-                gripper[1]._execute()
-            else:
-                gripper._execute()
-            time.sleep(0.01)
+        # for gripper in grippers:
+        #     if type(gripper) is tuple:
+        #         gripper[0]._execute()
+        #         time.sleep(0.01)
+        #         gripper[1]._execute()
+        #     else:
+        #         gripper._execute()
+        #     time.sleep(0.01)
