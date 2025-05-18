@@ -12,7 +12,8 @@ dependencies = [
     'python-can',
     'pigpio',
     'smbus',
-    'raspberrypi-tm1637'
+    'raspberrypi-tm1637',
+    'matplotlib'
 ]
 
 

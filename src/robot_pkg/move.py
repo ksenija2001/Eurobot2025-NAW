@@ -1,11 +1,14 @@
 from enum import Enum
 from threading import Thread, Event
-import struct, math
+import struct
+import math
 import time
 
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
 from robot_pkg.consts import Variables
+from robot_pkg.lidar import Lidar
+
 
 class MoveType(Enum):
     RESET = 0
@@ -18,51 +21,47 @@ class MoveType(Enum):
     SPLINE = 7
     STOP = 8
 
+
 class Position:
-    def __init__(self, x:float=0, y:float=0, theta:float=0, speed:float=0):
+    def __init__(self, x: float = 0, y: float = 0, theta: float = 0, speed: float = 0):
         self.x = x
         self.y = y
         self.theta = theta
         self.speed = speed
         self.left_inc = 0
         self.right_inc = 0
-    
-    def reset(self, x, y, theta):
+
+    def reset(self, x, y, theta, speed=0):
         self.x = x
         self.y = y
         self.theta = theta
-        self.speed = 0
-    
-    def __le__(self, other):
-        return self.x <= other.x and self.y <= other.y
-    
-    def __ge__(self, other):
-        return self.x >= other.x and self.y >= other.y
+        self.speed = speed
 
     def __repr__(self):
         return f"{self.x}, {self.y}"
 
+
 class Move:
     _logger = log_handler.get_logger("move")
     _odom_logger = log_handler.get_logger("odom")
-    _thread:Thread = None
-    running:Event = Event()
-    move_done:Event = Event()
+    _thread: Thread = None
+    running: Event = Event()
+    move_done: Event = Event()
     pose = Position()
-    detection_enabled = {'front':False, 'back':False}
-   
+    detection_enabled = {'front': False, 'back': False}
+
     def __init__(self):
         self.send_queue = None
-        self.data:bytes 
+        self.data: bytes
         self.executed = False
-        self._type:str = ""
+        self._type: str = ""
         self.v = 0
         self.a = 0
         self.w = 0
         self.alpha = 0
-        
+
     @classmethod
-    def _receive(cls, running:Event):
+    def _receive(cls, running: Event):
         move_done_queue = can_handler.msg_receive_queues[IDs.GET_MOVE_DONE.value]
         odom_queue = can_handler.msg_receive_queues[IDs.GET_ODOM.value]
         while running.is_set():
@@ -78,10 +77,11 @@ class Move:
                 else:
                     # Movement unssuccsesful
                     pass
-            
+
             if len(odom_queue) > 0:
                 odom_msg = odom_queue.pop()
-                [x, y, theta, left, right, trans, ang, trans_acc, ang_acc] = struct.unpack('9f', odom_msg.data[:36])
+                [x, y, theta, left, right, trans, ang, trans_acc,
+                    ang_acc] = struct.unpack('9f', odom_msg.data[:36])
 
                 Move.pose.x = x
                 Move.pose.y = y
@@ -90,13 +90,20 @@ class Move:
                 Move.pose.left_inc = left
                 Move.pose.right_inc = right
 
+                msg = bytes(odom_msg.data[0:12])
+                data = ['R']
+                data.extend(msg)
+
+                Lidar.opponent._send_opponent_info(data)
+
                 Move.detection_enabled['front'] = odom_msg.data[36]
                 Move.detection_enabled['back'] = odom_msg.data[37]
 
-                Move._odom_logger.debug(f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}, front: {Move.detection_enabled['front']}, back: {Move.detection_enabled['back']}")
-            
+                Move._odom_logger.debug(
+                    f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}, front: {Move.detection_enabled['front']}, back: {Move.detection_enabled['back']}")
+
             time.sleep(0.001)  # 1ms
-    
+
     @classmethod
     def start_threads(cls):
         Move.running.set()
@@ -115,13 +122,13 @@ class Move:
         Move._logger.info("Move done and Odometry receiving thread stopped.")
 
     @classmethod
-    def ResetOdom(cls, x:float, y:float, theta:float):
+    def ResetOdom(cls, x: float, y: float, theta: float):
         '''
             Sets current odometry to (x,y,theta).
         '''
         move = cls()
         response = 1
-        move.data = struct.pack('3fB', x, y, theta, response) # 1 for response
+        move.data = struct.pack('3fB', x, y, theta, response)  # 1 for response
         move.send_queue = can_handler.msg_send_queues[IDs.RESET_ODOM.value]
         move._type = MoveType.RESET.name
 
@@ -140,7 +147,7 @@ class Move:
         return move
 
     @classmethod
-    def RPM(cls, left_rpm:int, right_rpm:int):
+    def RPM(cls, left_rpm: int, right_rpm: int):
         '''
             Sets target speed[RPM] for both motors.
         '''
@@ -152,7 +159,7 @@ class Move:
         return move
 
     @classmethod
-    def Speed(cls, left_speed:int, right_speed:int):
+    def Speed(cls, left_speed: int, right_speed: int):
         '''
             Sets target speed[mm/s] for both motors.
         '''
@@ -164,7 +171,7 @@ class Move:
         return move
 
     @classmethod
-    def Distance(cls, p:float, v:float, a:float):
+    def Distance(cls, p: float, v: float, a: float):
         '''
             Starts relative movement of distance[mm] from current robot position 
             with respect to velocity and acceleration limits.
@@ -177,7 +184,7 @@ class Move:
         return move
 
     @classmethod
-    def Detection(cls, distance:float):
+    def Detection(cls, distance: float):
         '''
             Starts a backing sequence.
         '''
@@ -188,22 +195,22 @@ class Move:
 
         return move
 
-
     @classmethod
-    def To(cls, x_coor:float, y_coor:float, direction:str, v:float, a:float, w:float, alpha:float):
+    def To(cls, x_coor: float, y_coor: float, direction: str, v: float, a: float, w: float, alpha: float):
         '''
             Starts absolute movement to (x,y) coordinate of table with respect to 
             velocity and acceleration limits.
         '''
         move = cls()
-        move.data = struct.pack('<2fc4f', x_coor, y_coor, direction.encode('ascii'), v, a, w, alpha)
+        move.data = struct.pack('<2fc4f', x_coor, y_coor,
+                                direction.encode('ascii'), v, a, w, alpha)
         move.send_queue = can_handler.msg_send_queues[IDs.SET_XY.value]
         move._type = MoveType.TO_XY.name
 
         return move
 
     @classmethod
-    def Rotate(cls, theta:float, w:float, alpha:float):
+    def Rotate(cls, theta: float, w: float, alpha: float):
         '''
             Starts relative rotation of theta[rad] from current orientation of robot 
             with respect to angular velocity and acceleration limits.
@@ -216,7 +223,7 @@ class Move:
         return move
 
     @classmethod
-    def RotateTo(cls, theta:float, w:float, alpha:float):
+    def RotateTo(cls, theta: float, w: float, alpha: float):
         '''
             Starts absolute rotation to theta[rad] with respect to 
             angular velocity and acceleration limits.
@@ -229,18 +236,19 @@ class Move:
         return move
 
     @classmethod
-    def Spline(cls, x:list, y:list, theta:list, v:float, direction:str):
+    def Spline(cls, x: list, y: list, theta: list, v: float, direction: str):
         '''
             Points (x,y,theta) define a curve the robot will follow with designated speed.
         '''
         move = cls()
         size = len(x)
-        move.data = struct.pack('<Bcf'+'f'*3*size, size, direction.encode('ascii'), v, *[el for tup in list(zip(x, y, theta)) for el in tup])
+        move.data = struct.pack('<Bcf'+'f'*3*size, size, direction.encode(
+            'ascii'), v, *[el for tup in list(zip(x, y, theta)) for el in tup])
         move.send_queue = can_handler.msg_send_queues[IDs.SET_SPLINE.value]
         move._type = MoveType.SPLINE.name
 
         return move
-    
+
     def _execute(self):
         Move.move_done.clear()
 
@@ -248,8 +256,6 @@ class Move:
             theta = float(struct.unpack('f', self.data[8:12])[0])
             packed = [Move.pose.x, Move.pose.y, theta, 1]
             self.data = struct.pack('3fB', *packed)
-            
+
         self.send_queue.append(self.data)
         self.executed = True
-
-
