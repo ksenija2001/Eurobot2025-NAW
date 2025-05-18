@@ -22,7 +22,7 @@ void TIM6_IT(void){
 
 	Odometry();
 
-	if(counter%50 == 0){ //50ms
+	if(counter % 5 == 0){ //5ms
 		Float2Bytes(tx_buffer, 0, odom.x);
 		Float2Bytes(tx_buffer, 4, odom.y);
 		Float2Bytes(tx_buffer, 8, odom.theta);
