@@ -1,4 +1,3 @@
-from robot_pkg.move import Position, PositionType
 
 
 class ElementPosition:
@@ -17,17 +16,17 @@ class ElementPosition:
 
 
 class Area:
-    YELLOW_HOME = ElementPosition(150 + 225, 2000-225,  1.57)
-    YELLOW_4 = ElementPosition(550 + 225,       75, -1.57)
-    YELLOW_2 = ElementPosition(1000+225,      225, -1.57)
-    YELLOW_5 = ElementPosition(3000-225,       75, -1.57)
-    YELLOW_3 = ElementPosition(3000-225, 1100-225,     0)
+    YELLOW_HOME = ElementPosition(150 + 225, 2000-225)
+    YELLOW_4 = ElementPosition(550 + 225,       75)
+    YELLOW_2 = ElementPosition(1000+225,      225)
+    YELLOW_5 = ElementPosition(3000-225,       75)
+    YELLOW_3 = ElementPosition(3000-225, 1100-225)
 
-    BLUE_HOME = ElementPosition(2850-225, 2000-225,  1.57)
-    BLUE_5 = ElementPosition(225,       75, -1.57)
-    BLUE_3 = ElementPosition(225, 1100-225,  3.14)
-    BLUE_4 = ElementPosition(2000+225,       75, -1.57)
-    BLUE_2 = ElementPosition(2000-225,      225, -1.57)
+    BLUE_HOME = ElementPosition(2850-225, 2000-225)
+    BLUE_5 = ElementPosition(225,       75)
+    BLUE_3 = ElementPosition(225, 1100-225)
+    BLUE_4 = ElementPosition(2000+225,       75)
+    BLUE_2 = ElementPosition(2000-225,      225)
 
     @classmethod
     def get_all_areas(cls):
@@ -63,18 +62,18 @@ class Area:
 
 
 class MaterialStack:
-    STACK1 = ElementPosition(2175, 1725,  1.57)
-    STACK2 = ElementPosition(825, 1725,  1.57)
+    STACK1 = ElementPosition(2175, 1725)
+    STACK2 = ElementPosition(825, 1725)
 
-    STACK3 = ElementPosition(75, 1325,  3.14)
-    STACK4 = ElementPosition(75,  400,  3.14)
-    STACK5 = ElementPosition(775,  250, -1.57)
-    STACK9 = ElementPosition(1100,  950,  1.57)
+    STACK3 = ElementPosition(75, 1325)
+    STACK4 = ElementPosition(75,  400)
+    STACK5 = ElementPosition(775,  250)
+    STACK9 = ElementPosition(1100,  950)
 
-    STACK8 = ElementPosition(3000-75, 1325,     0)
-    STACK7 = ElementPosition(3000-75,  400,     0)
-    STACK6 = ElementPosition(3000-775,  250, -1.57)
-    STACK10 = ElementPosition(1900,  950,  1.57)
+    STACK8 = ElementPosition(3000-75, 1325)
+    STACK7 = ElementPosition(3000-75,  400)
+    STACK6 = ElementPosition(3000-775,  250)
+    STACK10 = ElementPosition(1900,  950)
 
     @classmethod
     def get_all_unvisited_stacks(cls):
@@ -82,7 +81,7 @@ class MaterialStack:
         Gets all stacks that are available.
         '''
 
-        return [(name, value) for name, value in vars(cls).items() if isinstance(value, Position) and not value.visited]
+        return [(name, value) for name, value in vars(cls).items() if isinstance(value, ElementPosition) and not value.visited]
 
     @classmethod
     def get_closest_stack(cls, curr_x, curr_y):

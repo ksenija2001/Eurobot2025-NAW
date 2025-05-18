@@ -4,8 +4,7 @@ from threading import Thread, Event
 
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
-from robot_pkg.move import Position
-from robot_pkg.consts import Variables
+from robot_pkg.opponent import Position
 
 class ActuatorType(Enum):
     PUMP = 4

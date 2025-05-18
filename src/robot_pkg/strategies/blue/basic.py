@@ -1,5 +1,6 @@
 from robot_pkg.strategy import Strategy, Color, Square, Mood
-from robot_pkg.move import Move, Position
+from robot_pkg.move import Move
+from robot_pkg.opponent import Position
 from robot_pkg.servo import Servo
 from robot_pkg.in_out import I_O
 from robot_pkg.conditions import ConditionType, Condition

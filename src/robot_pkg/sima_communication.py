@@ -4,7 +4,7 @@ import time
 import struct
 
 from robot_pkg.main import log_handler
-from robot_pkg.move import Position
+from robot_pkg.opponent import Position
 from robot_pkg.consts import IP
 
 

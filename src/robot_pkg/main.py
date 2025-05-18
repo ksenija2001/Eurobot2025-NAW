@@ -10,15 +10,15 @@ from robot_pkg.can_controller import CanNetwork
 can_handler = CanNetwork(channel='can0', interface='socketcan', max_queue_size=10)
 can_handler.init_queues(10)
 
+from robot_pkg.move import Move
 from robot_pkg.lidar import Lidar
 from robot_pkg.servo import Servo
-from robot_pkg.move import Move
 from robot_pkg.in_out import I_O
 from robot_pkg.utils import user_cmd,choose_strategy
 from robot_pkg.execute import Execute
 from robot_pkg.battery import Battery
 from robot_pkg.consts import Variables
-from robot_pkg.sima_communication import SIMA
+from robot_pkg.opponent import Opponent
 
 # paused: Event = Event()
 
@@ -74,25 +74,18 @@ def main_func():
         cmd_thread.daemon = True
         cmd_thread.start()
 
+        Opponent._setup_connection()
+
         running.set()
 
     Lidar.start_threads(Variables.color)
 
     try:
-        # pause_queue = can_handler.msg_receive_queues[IDs.GET_PAUSE.value]
         while running.is_set():
             if Variables.match_start_time != float('inf') and \
                  time.time() - Variables.match_start_time > 100.9:
                 break
             time.sleep(0.01)
-
-        #     # Listen for pause flag on can
-        #     if len(pause_queue) > 0:
-        #         data = pause_queue.pop()
-        #         if data[0]:
-        #             paused.set()
-        #         else:
-        #             paused.clear()
 
     except KeyboardInterrupt:
         print("Cancelling")
@@ -104,6 +97,11 @@ def main_func():
     if execute is not None and execute.thread.is_alive():
         execute.stop()
         time.sleep(1)
+    
+    if Opponent.pc_socket is not None:
+        Opponent.pc_socket.detach()
+        Opponent.pc_socket.close()
+
 
     Lidar.stop_threads()
     Servo.stop_threads()

@@ -7,7 +7,7 @@ import time
 from robot_pkg.main import log_handler, can_handler
 from robot_pkg.can_controller import IDs
 from robot_pkg.consts import Variables
-from robot_pkg.lidar import Lidar
+from robot_pkg.opponent import Opponent, Position
 
 
 class MoveType(Enum):
@@ -21,24 +21,6 @@ class MoveType(Enum):
     SPLINE = 7
     STOP = 8
 
-
-class Position:
-    def __init__(self, x: float = 0, y: float = 0, theta: float = 0, speed: float = 0):
-        self.x = x
-        self.y = y
-        self.theta = theta
-        self.speed = speed
-        self.left_inc = 0
-        self.right_inc = 0
-
-    def reset(self, x, y, theta, speed=0):
-        self.x = x
-        self.y = y
-        self.theta = theta
-        self.speed = speed
-
-    def __repr__(self):
-        return f"{self.x}, {self.y}"
 
 
 class Move:
@@ -91,17 +73,18 @@ class Move:
                 Move.pose.left_inc = left
                 Move.pose.right_inc = right
 
-                msg = bytes(odom_msg.data[0:12])
-                data = ['R']
-                data.extend(msg)
-
-                Lidar.opponent._send_opponent_info(data)
+                data = ['R'.encode('ascii')]
+                data.extend(odom_msg.data[0:12])
 
                 Move.detection_enabled['front'] = odom_msg.data[36]
                 Move.detection_enabled['back'] = odom_msg.data[37]
 
                 cnt += 1
                 if cnt == 100:
+                    # print(f"Odom data: {data}")
+                    op_data = struct.pack('c12B', *data)
+
+                    Opponent._send_opponent_info(op_data)
                     cnt = 0
                     Move._odom_logger.debug(
                         f"x:{x:4.2f}, y:{y:4.2f}, theta:{theta*180/math.pi:4.2f}, l_speed:{left:4.2f}, r_speed:{right:4.2f}, trans:{trans:4.2f}, ang:{ang:4.2f}, front: {Move.detection_enabled['front']}, back: {Move.detection_enabled['back']}")

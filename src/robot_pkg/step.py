@@ -3,7 +3,8 @@ import time
 from robot_pkg.main import log_handler
 from robot_pkg.conditions import Condition
 from robot_pkg.servo import Servo
-from robot_pkg.move import Move, Position
+from robot_pkg.move import Move
+from robot_pkg.opponent import Position
 from robot_pkg.in_out import I_O
 
 class Step:
