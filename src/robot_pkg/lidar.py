@@ -27,7 +27,7 @@ class Lidar:
 
                 Opponent.update_position(x, y, theta, speed)
 
-                data = ['O'.encode('ascii')]
+                data = ['O'.encode('utf-8')]
                 data.extend(lidar_msg.data[0:12])
 
                 # print(f"Opponent data: {data}")

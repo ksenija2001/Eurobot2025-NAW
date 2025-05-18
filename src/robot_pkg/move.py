@@ -73,7 +73,7 @@ class Move:
                 Move.pose.left_inc = left
                 Move.pose.right_inc = right
 
-                data = ['R'.encode('ascii')]
+                data = ['R'.encode('utf-8')]
                 data.extend(odom_msg.data[0:12])
 
                 Move.detection_enabled['front'] = odom_msg.data[36]

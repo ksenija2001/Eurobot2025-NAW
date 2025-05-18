@@ -36,7 +36,7 @@ class Opponent:
             cls.pc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             cls.pc_socket.setsockopt(
                 socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            cls.pc_socket.connect(('10.166.197.67', 9999))
+            cls.pc_socket.connect(('10.166.197.207', 9999))
 
             cls._logger.info("Computer connected")
         except Exception as e:
@@ -90,9 +90,10 @@ class Opponent:
             if not current_area.visited:
                 current_area.visited = True
 
-                data = ['A'.encode('ascii')]
-                s = bytes(area_name, 'ascii')
-                op_data = struct.pack('c', *data) + s
+                s = bytes(area_name, 'utf-8')
+
+                data = ['A'.encode('utf-8'), len(s)]
+                op_data = struct.pack('cB', *data) + s
                 print(f"Area data: {op_data}")
                 cls._send_opponent_info(op_data)
 
@@ -123,9 +124,10 @@ class Opponent:
             if not current_stack.visited:
                 current_stack.visited = True
 
-                data = ['S'.encode('ascii')]
-                s = bytes(stack_name, 'ascii')
-                op_data = struct.pack('c', *data) + s
+                s = bytes(stack_name, 'utf-8')
+
+                data = ['S'.encode('utf-8'), len(s)]
+                op_data = struct.pack('cB', *data) + s
                 print(f"Stack data: {op_data}")
                 cls._send_opponent_info(op_data)
                 # You might want to log this event
