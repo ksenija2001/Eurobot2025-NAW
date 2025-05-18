@@ -1,7 +1,3 @@
-<<<<<<< Updated upstream
-from robot_pkg.move import Position, PositionType
-=======
-
 
 class ElementPosition:
     def __init__(self, x: float = 0, y: float = 0, theta: float = 0):
@@ -26,7 +22,6 @@ class Position:
         self.speed = speed
         self.left_inc = 0
         self.right_inc = 0
->>>>>>> Stashed changes
 
     def reset(self, x, y, theta, speed=0):
         self.x = x
@@ -38,19 +33,7 @@ class Position:
         return f"{self.x}, {self.y}"
     
 class Area:
-<<<<<<< Updated upstream
-    YELLOW_HOME = Position(150 +225, 2000-225,  1.57, PositionType.HOME)
-    YELLOW_4    = Position(550 +225,       75, -1.57, PositionType.FIELD)
-    YELLOW_2    = Position(1000+225,      225, -1.57, PositionType.FIELD)
-    YELLOW_5    = Position(3000-225,       75, -1.57, PositionType.FIELD)
-    YELLOW_3    = Position(3000-225, 1100-225,     0, PositionType.FIELD)
 
-    BLUE_HOME  = Position(2850-225, 2000-225,  1.57, PositionType.FIELD)
-    BLUE_5     = Position(     225,       75, -1.57, PositionType.HOME)
-    BLUE_3     = Position(     225, 1100-225,  3.14, PositionType.FIELD)
-    BLUE_4     = Position(2000+225,       75, -1.57, PositionType.FIELD)
-    BLUE_2     = Position(2000-225,      225, -1.57, PositionType.FIELD)
-=======
     YELLOW_HOME = ElementPosition(150 +225, 2000-225,  1.57)
     YELLOW_4    = ElementPosition(550 +225,       75, -1.57)
     YELLOW_2    = ElementPosition(1000+225,      225, -1.57)
@@ -62,7 +45,6 @@ class Area:
     BLUE_3     = ElementPosition(     225, 1100-225,  3.14)
     BLUE_4     = ElementPosition(2000+225,       75, -1.57)
     BLUE_2     = ElementPosition(2000-225,      225, -1.57)
->>>>>>> Stashed changes
 
     @classmethod
     def get_all_areas(cls):
@@ -94,15 +76,6 @@ class Area:
                 if isinstance(area, Position) and color in name and area.visited]
 
 class MaterialStack:
-<<<<<<< Updated upstream
-    STACK1  = Position(2175, 1725,  1.57, PositionType.STACK)
-    STACK2  = Position( 825, 1725,  1.57, PositionType.STACK)
-
-    STACK3  = Position(  75, 1325,  3.14, PositionType.STACK)
-    STACK4  = Position(  75,  400,  3.14, PositionType.STACK)
-    STACK5  = Position( 775,  250, -1.57, PositionType.STACK)
-    STACK9  = Position(1100,  950,  1.57, PositionType.STACK)
-=======
     STACK1  = ElementPosition(2175, 1725,  1.57)
     STACK2  = ElementPosition( 825, 1725,  1.57)
 
@@ -115,12 +88,13 @@ class MaterialStack:
     STACK7  = ElementPosition( 3000-75,  400,     0)
     STACK6  = ElementPosition(3000-775,  250, -1.57)
     STACK10 = ElementPosition(    1900,  950,  1.57)
->>>>>>> Stashed changes
 
-    STACK8  = Position( 3000-75, 1325,     0, PositionType.STACK)
-    STACK7  = Position( 3000-75,  400,     0, PositionType.STACK)
-    STACK6  = Position(3000-775,  250, -1.57, PositionType.STACK)
-    STACK10 = Position(    1900,  950,  1.57, PositionType.STACK)
+    @classmethod
+    def get_all_stacks(cls):
+        """Get all stacks regardless of visited status"""
+        return [(name, value) for name, value in cls.__dict__.items() 
+               if isinstance(value, ElementPosition)]
+    
     @classmethod
     def get_all_stacks(cls):
         """Get all stacks regardless of visited status"""
