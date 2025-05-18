@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.animation import FuncAnimation
 import numpy as np
-from robot_pkg.play_elements import Area, MaterialStack
-from robot_pkg.move import Move
-from robot_pkg.lidar import Lidar
+import socket
+import struct
+from play_elements import Area, MaterialStack, Position, ElementPosition
+from threading import Thread
 
 
 class FieldVisualizer:
@@ -12,8 +13,9 @@ class FieldVisualizer:
         self.fig, self.ax = plt.subplots(figsize=(12, 8))
         self.field_length = w  # mm
         self.field_width = h   # mm
-        self.robot_pos = None
-        self.opponent_pos = None
+        self.robot_pos: Position = None
+        self.opponent_pos: Position = None
+
         self.robot_marker = None
         self.opponent_marker = None
         self.robot_arrow = None
@@ -21,11 +23,68 @@ class FieldVisualizer:
         self.robot_trail = []
         self.opponent_trail = []
 
+        self.pc_socket = None
+        self.connection = None
+
+        self._setup_connection()
+        self.running = False
+        self.con_thread = Thread(target=self.receive_opponent_info)
+
         # Setup the field
         self._setup_field()
 
         self.animation = FuncAnimation(
             self.fig, self.update_positions, interval=100)
+
+    def receive_opponent_info(self):
+        while self.running:
+            msg = self.connection.recv(64)
+
+            # print(f"Received: {msg}")
+            key = str(msg[0])
+            print(f"Key: {key}")
+            if key == '79':
+                print(f"Opponent")
+                pose = struct.unpack('3f', msg[1:])
+                self.opponent_pos.x = pose[0]
+                self.opponent_pos.y = pose[1]
+                self.opponent_pos.theta = pose[2]
+            elif key == '82':
+                print(f"Robot")
+                pose = struct.unpack('3f', msg[1:])
+                self.robot_pos.x = pose[0]
+                self.robot_pos.y = pose[1]
+                self.robot_pos.theta = pose[2]
+            elif key == '83':
+                print(f"Stack")
+                data = struct.unpack('s', msg[1:])
+                for name, stack in vars(MaterialStack).items():
+                    if name == data:
+                        stack.visited = True
+                        break
+            elif key == '65':
+                print(f"Area")
+                data = struct.unpack('s', msg[1:])
+                for name, area in vars(Area).items():
+                    if name == data:
+                        area.visited = True
+                        break
+
+    def _setup_connection(self):
+        print(f"Started connecting...")
+        try:
+            self.pc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.pc_socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.pc_socket.bind(('10.166.197.67', 9999))
+
+            self.pc_socket.listen(1)
+
+            self.connection, address = self.pc_socket.accept()
+
+            print("Computer connected")
+        except Exception as e:
+            print(e)
 
     def _setup_field(self):
         """
@@ -70,7 +129,7 @@ class FieldVisualizer:
 
     def _draw_stacks(self):
         """Draw all material stacks"""
-        for stack in MaterialStack.get_all_unvisited_stacks():
+        for name, stack in MaterialStack.get_all_unvisited_stacks():
             color = 'orange'
             circle = patches.Circle((stack.x, stack.y), 150,
                                     facecolor=color, edgecolor='black', alpha=0.7)
@@ -78,21 +137,23 @@ class FieldVisualizer:
             self.ax.text(stack.x, stack.y, str(stack).split('.')[-1],
                          ha='center', va='center', fontsize=8)
 
-    def _update_animation(self, frame):
-        # Get latest positions from Move.pose and Lidar.opponent
-        self.update_positions(
-            robot_x=Move.pose.x,
-            robot_y=Move.pose.y,
-            robot_theta=Move.pose.theta,
-            opponent_x=Lidar.opponent.x,
-            opponent_y=Lidar.opponent.y,
-            opponent_theta=Lidar.opponent.theta
-        )
+    # def _update_animation(self, frame):
+    #     # Get latest positions from Move.pose and Lidar.opponent
+    #     self.update_positions(
+    #         robot_x=Move.pose.x,
+    #         robot_y=Move.pose.y,
+    #         robot_theta=Move.pose.theta,
+    #         opponent_x=Lidar.opponent.x,
+    #         opponent_y=Lidar.opponent.y,
+    #         opponent_theta=Lidar.opponent.theta
+    #     )
 
-    def update_positions(self, robot_x, robot_y, robot_theta,
-                         opponent_x=None, opponent_y=None, opponent_theta=None):
+    def update_positions(self, t):
         """Update the positions of the robot and opponent"""
         # Clear previous markers if they exist
+        if self.robot_pos is None or self.opponent_pos is None:
+            return
+
         if self.robot_marker:
             self.robot_marker.remove()
         if self.opponent_marker:
@@ -103,47 +164,46 @@ class FieldVisualizer:
             self.opponent_arrow.remove()
 
         # Update robot position
-        self.robot_marker = patches.Circle((robot_x, robot_y), 100,
+        self.robot_marker = patches.Circle((self.robot_pos.x, self.robot_pos.y), 100,
                                            facecolor='blue', edgecolor='black')
         self.ax.add_patch(self.robot_marker)
 
         # Add direction arrow for robot
         arrow_length = 200
-        dx = arrow_length * np.cos(robot_theta)
-        dy = arrow_length * np.sin(robot_theta)
-        self.robot_arrow = self.ax.arrow(robot_x, robot_y, dx, dy,
+        dx = arrow_length * np.cos(self.robot_pos.theta)
+        dy = arrow_length * np.sin(self.robot_pos.theta)
+        self.robot_arrow = self.ax.arrow(self.robot_pos.x, self.robot_pos.y, dx, dy,
                                          head_width=80, head_length=100, fc='blue', ec='blue')
 
         if len(self.robot_trail) > 100:  # Limit trail length
             self.robot_trail.pop(0)
-        self.robot_trail.append((robot_x, robot_y))
+        self.robot_trail.append((self.robot_pos.x, self.robot_pos.y))
         self.ax.plot(*zip(*self.robot_trail), 'b-', alpha=0.3)  # Blue trail
 
-        self.ax.text(robot_x, robot_y + 150, 'Robot',
+        self.ax.text(self.robot_pos.x, self.robot_pos.y + 150, 'Robot',
                      ha='center', va='center', color='blue')
 
         # Update opponent position if provided
-        if opponent_x != 0 and opponent_y != 0:
-            self.opponent_marker = patches.Circle((opponent_x, opponent_y), 100,
-                                                  facecolor='red', edgecolor='black')
-            self.ax.add_patch(self.opponent_marker)
+        self.opponent_marker = patches.Circle((self.opponent_pos.x, self.opponent_pos.y), 100,
+                                              facecolor='red', edgecolor='black')
+        self.ax.add_patch(self.opponent_marker)
 
-            # Add direction arrow for opponent
-            if opponent_theta != 0:
-                dx = arrow_length * np.cos(opponent_theta)
-                dy = arrow_length * np.sin(opponent_theta)
-                self.opponent_arrow = self.ax.arrow(opponent_x, opponent_y, dx, dy,
-                                                    head_width=80, head_length=100, fc='red', ec='red')
+        # Add direction arrow for opponent
+        if self.opponent_pos.theta != 0:
+            dx = arrow_length * np.cos(self.opponent_pos.theta)
+            dy = arrow_length * np.sin(self.opponent_pos.theta)
+            self.opponent_arrow = self.ax.arrow(self.opponent_pos.x, self.opponent_pos.y, dx, dy,
+                                                head_width=80, head_length=100, fc='red', ec='red')
 
-            if len(self.opponent_trail) > 100:
-                self.opponent_trail.pop(0)
+        if len(self.opponent_trail) > 100:
+            self.opponent_trail.pop(0)
 
-            self.opponent_trail.append((opponent_x, opponent_y))
-            self.ax.plot(*zip(*self.opponent_trail),
-                         'r-', alpha=0.3)  # Red trail
+        self.opponent_trail.append((self.opponent_pos.x, self.opponent_pos.y))
+        self.ax.plot(*zip(*self.opponent_trail),
+                     'r-', alpha=0.3)  # Red trail
 
-            self.ax.text(opponent_x, opponent_y + 150, 'Opponent',
-                         ha='center', va='center', color='red')
+        self.ax.text(self.opponent_pos.x, self.opponent_pos.y + 150, 'Opponent',
+                     ha='center', va='center', color='red')
 
         self.fig.canvas.draw()
 
@@ -156,15 +216,17 @@ class FieldVisualizer:
 # Example usage:
 if __name__ == "__main__":
     # Create visualizer
-    visualizer = FieldVisualizer()
+    visualizer = FieldVisualizer(3000, 2000)
+    visualizer.running = True
+    visualizer.con_thread.start()
 
-    # Example positions (replace with actual data from your system)
-    robot_x, robot_y, robot_theta = 1500, 1000, np.pi/4  # 45 degrees
-    opponent_x, opponent_y, opponent_theta = 2000, 1500, -np.pi/4  # -45 degrees
+    # # Example positions (replace with actual data from your system)
+    # robot_x, robot_y, robot_theta = 1500, 1000, np.pi/4  # 45 degrees
+    # opponent_x, opponent_y, opponent_theta = 2000, 1500, -np.pi/4  # -45 degrees
 
-    # Update positions
-    visualizer.update_positions(robot_x, robot_y, robot_theta,
-                                opponent_x, opponent_y, opponent_theta)
+    # # Update positions
+    # visualizer.update_positions(robot_x, robot_y, robot_theta,
+    #                             opponent_x, opponent_y, opponent_theta)
 
     # Show the visualization
     visualizer.show()
