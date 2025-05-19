@@ -36,7 +36,7 @@ class Opponent:
             cls.pc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             cls.pc_socket.setsockopt(
                 socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            cls.pc_socket.connect(('10.166.197.207', 9999))
+            cls.pc_socket.connect(('10.166.197.67', 9999))
 
             cls._logger.info("Computer connected")
         except Exception as e:

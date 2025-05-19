@@ -13,6 +13,7 @@ class ConditionType(Enum):
     SERVO = 6      # Wait for servo to finish moving
     FRONT = 7      # Check if there are cans in the front
     BACK = 8      # Check if there are cans in the back
+    STACK = 9     # Check if a stack has beenn visited
 
 
 class Condition:
@@ -24,6 +25,7 @@ class Condition:
         self.servo_position = 0
         self.time = 0
         self.attempts = 0
+        self.stack = 0
 
     def check(self, args: list):
         '''
@@ -50,6 +52,9 @@ class Condition:
                 return self.ID
         elif self._type == ConditionType.BACK:
             if not args[6]:
+                return self.ID
+        elif self._type == ConditionType.STACK:
+            if not args[7]:
                 return self.ID
         return False
         # if conditions[self.type](self.value, args):
@@ -164,6 +169,20 @@ class Condition:
         condition = cls()
         condition.ID = step_id
         condition._type = ConditionType.BACK
+
+        return condition
+    
+    @classmethod
+    def CheckStack(cls, stack:int, step_id: int):
+        '''
+            Checks if designated sensors are enabled.
+            If they aren't, jumps to step_id.
+        '''
+
+        condition = cls()
+        condition.ID = step_id
+        condition.stack = stack
+        condition._type = ConditionType.STACK
 
         return condition
 

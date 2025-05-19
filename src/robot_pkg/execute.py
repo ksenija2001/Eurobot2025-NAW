@@ -12,6 +12,7 @@ from robot_pkg.consts import Variables
 from robot_pkg.conditions import ConditionType, Condition
 from robot_pkg.main import log_handler
 from robot_pkg.sima_communication import SIMA
+from robot_pkg.play_elements import MaterialStack
 # from robot_pkg.misc import FrontCenterLeft, FrontCenterRight
 
 
@@ -93,6 +94,30 @@ class Execute:
             # Conditions that need to be checked before start of step
             to_break = False
             for cond in step.conditions:
+                if cond._type == ConditionType.STACK:
+                    to_break = True
+
+                    stacks = [name for name, value in MaterialStack.get_all_unvisited_stacks()]
+                    
+                    stack_present = cond.stack in stacks
+
+                    print(f"{cond.stack}: {stack_present}")
+
+                    next_step_id = cond.check(
+                        [None, None, None, None, None, None, None, stack_present])
+                    
+                    print(f"Next step ID: {next_step_id}")
+
+                    if next_step_id != False:
+                        self._logger.info(
+                            f"Condition met TYPE: {ConditionType.STACK}")
+                    else:
+                        next_step_id = None
+                        
+                    # sensor = [
+                    #     cond for cond in step.conditions if cond._type == ConditionType.BACK][0]
+                    # step.conditions.remove(sensor)
+                    break
                 if cond._type == ConditionType.BACK:
                     to_break = True
 
@@ -102,7 +127,7 @@ class Execute:
                     print(f"BACK SENSORS: {back_sensor_state}")
 
                     next_step_id = cond.check(
-                        [None, None, None, None, None, None, back_sensor_state])
+                        [None, None, None, None, None, None, back_sensor_state, None])
                     
                     print(f"Next step ID: {next_step_id}")
 
@@ -129,7 +154,7 @@ class Execute:
                     print(f"FRONT SENSORS: {front_sensor_state}")
 
                     next_step_id = cond.check(
-                        [None, None, None, None, None, front_sensor_state, None])
+                        [None, None, None, None, None, front_sensor_state, None, None])
 
                     print(f"Next step ID: {next_step_id}")
                     if next_step_id != False:
