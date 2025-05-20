@@ -17,5 +17,10 @@ strategy1(task_steps=pickup_front_full_stack())
 
 strategy1(task_steps=two_level())
 
-# strategy1(task_steps=lift_two_on_one())
 strategy1(task_steps=drop_two_level())
+
+
+strategy1(c=[Condition.Timeout(100, 50)])
+
+
+# # strategy1(task_steps=lift_two_on_one())

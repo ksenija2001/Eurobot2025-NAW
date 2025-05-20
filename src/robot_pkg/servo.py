@@ -41,6 +41,7 @@ class Servo:
     
     def _execute(self):
         while not Servo.servo_in_position[self.id]:
+            print(f"WAITING FOR SERVO {self.id}")
             pass
         
         self.executed = True
@@ -212,7 +213,7 @@ class Servo:
         return servo
 
     @classmethod
-    def BackSwing(cls, position:int, speed:int=100, activate_pose=Position()):
+    def BackSwing(cls, position:int, speed:int=20, activate_pose=Position()):
         servo1 = cls()
 
         servo1.id = ServoType.BACK_SWING.value

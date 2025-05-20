@@ -38,22 +38,18 @@ class Step:
 
     def servo(self, curr_pose:Position=Position()):
         not_moving = [servo for servo in self.servos if not servo.executed]
-        moved = 0
+        # moved = 0
         for servo in not_moving:
             x = abs(curr_pose.x - servo.activate_pose.x)
             y = abs(curr_pose.y - servo.activate_pose.y)
             if x <= 50 or y <= 50:  # if x or y is less than 3mm - activate
                 log_handler.get_logger("servos").info(f"Executing servo {servo._type}")
                 servo._execute()
-
-                # Only tracking AX servos, RC servos are sent individually
-                if servo.id <= 10:
-                    moved += 1
-
+                # moved += 1
                 time.sleep(0.01)
 
-        if moved > 0:
-            Servo.send_positions()
+        # if moved > 0:
+        Servo.send_positions()
 
 if __name__ == "__main__":
     pass
