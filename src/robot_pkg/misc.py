@@ -16,36 +16,40 @@ OPEN_GAIN = 8
 
 # class Gripper:
 #     OPEN = 28
-#     GRIP = 51  # NE POVECAVATI 
+#     GRIP = 51  # NE POVECAVATI
 #     NEUTRAL = 90
 #     CLOSED = 110
 
+
 class FrontCenterGripper:
     OPEN = 160
-    NEUTRAL = 150 
-    GRIP = 140 
-    CLOSED = 120 
+    NEUTRAL = 150
+    GRIP = 140
+    CLOSED = 120
+
 
 class VacuumLift:
     UP = 290
-    HOLD = 230  
+    HOLD = 230
     PUSH = 147
-    HOVER = 120 
-    DROP1 = 105      # Position for dropping one plank 
-    PICKUP2 = 95 # Position for pickinng-up one plank
+    HOVER = 120
+    DROP1 = 105      # Position for dropping one plank
+    PICKUP2 = 95  # Position for pickinng-up one plank
     POSITION2 = 40
     DROP2 = 10
     DOWN = 0
 
+
 class CenterLift:
-    UP = 600 #265*3
-    LIFT2 = 550 #200*3
+    UP = 600  # 265*3
+    LIFT2 = 550  # 200*3
     DROP1 = 160*3
-    POSITION2 = 360 #140*3
+    POSITION2 = 360  # 140*3
     DROP2 = 140*3
-    HOLD2 = 240 #90*3
+    HOLD2 = 240  # 90*3
     HOVER = 15*3
     DOWN = 9
+
 
 class CenterSwing:
     UP = 240
@@ -60,18 +64,19 @@ class Vacuum:
     MIDDLE = 150
     DOWN = 60
 
+
 class FrontGripLift:
     UP = 300
     HOLD = 210
     HOVER = 20
     DOWN = 0
 
-class BackLift:
-    UP = 300 - 5
-    UP2 = 275
-    HOLD = 210
-    HOVER = 20
-    DOWN = 0 + 5
+
+class BackSwing:
+    HOLD = 135
+    PICK = 150
+    DROP = 165
+
 
 BACK_LIFT_BANNER, BACK_LIFT_DOWN, BACK_LIFT_UP = 0, 0, 300
 BACK_CENTER_GRIP_OPEN, BACK_CENTER_GRIP_CLOSED = 30, 50
@@ -80,8 +85,10 @@ FRONT_CENTER_GRIP_OPEN, FRONT_CENTER_GRIP_CLOSED = 30, 50
 FRONT_SIDE_GRIP_OPEN, FRONT_SIDE_GRIP_CLOSED = 30, 50
 FRONT_GRIP_LIFT_UP, FRONT_GRIP_LIFT_HOLD, FRONT_GRIP_LIFT_DOWN = 150, 50, 0
 FRONT_VACUUM_DOWNWARD, FRONT_VACUUM_OUTSTRETCHED, FRONT_VACUUM_UPWARD_HOLDING, FRONT_VACUUM_UPWARD_PLACING = 60, 150, 230, 245
-FRONT_VACUUM_LIFT_UP, FRONT_VACUUM_LIFT_PICKUP, FRONT_VACUUM_LIFT_PLANKS, FRONT_VACUUM_LIFT_DOWN = 300, 80, 200, 60  # Pickup - vacuum grippers on planks (on cans), planks - when planks are in the air
+# Pickup - vacuum grippers on planks (on cans), planks - when planks are in the air
+FRONT_VACUUM_LIFT_UP, FRONT_VACUUM_LIFT_PICKUP, FRONT_VACUUM_LIFT_PLANKS, FRONT_VACUUM_LIFT_DOWN = 300, 80, 200, 60
 CENTER_SWING_UP, CENTER_SWING_LEVEL3, CENTER_SWING_DOWN = 240, 160, 150
-CENTER_LIFT_LEVEL3, CENTER_LIFT_LEVEL2, CENTER_LIFT_POSITIONING_CANS, CENTER_LIFT_DROPPING_CANS, CENTER_LIFT_DOWN = 300, 90, 140, 120, 0 # Dropping cans je kad ih fizički ostavi na dasci, positioning cans je kad ih pozicionira malo iznad daske
+# Dropping cans je kad ih fizički ostavi na dasci, positioning cans je kad ih pozicionira malo iznad daske
+CENTER_LIFT_LEVEL3, CENTER_LIFT_LEVEL2, CENTER_LIFT_POSITIONING_CANS, CENTER_LIFT_DROPPING_CANS, CENTER_LIFT_DOWN = 300, 90, 140, 120, 0
 
 GRIPPER_CLOSED = 50

@@ -26,7 +26,6 @@ def init_position(init_x, init_y, init_theta, final_position: str, final_rotatio
     s(m=Move.ResetOdom(init_x, init_y, init_theta))
     s(m=Move.ResetOdom(init_x, init_y, init_theta))
 
-
     if final_position == "left corner":
         s(m=Move.Distance(-122, 100, 100))
     elif final_position == "middle":
@@ -46,7 +45,6 @@ def init_position(init_x, init_y, init_theta, final_position: str, final_rotatio
 
     s(m=Move.ResetOdom(0, 0, angle))
     s(m=Move.ResetOdom(0, 0, angle))
-
 
     if final_rotation != 0:
         s(m=Move.Distance(120, 100, 100))
@@ -89,8 +87,8 @@ def init_all_servos():
          Servo.FrontVacuumLift(VacuumLift.UP),
          Servo.FrontVacuum(Vacuum.DOWN),
          Servo.CenterSwing(CenterSwing.INIT),
-         Servo.CenterLift(CenterLift.DOWN, 50)
-         #Servo.BackLift(BackGripLift.UP)
+         Servo.CenterLift(CenterLift.DOWN, 50),
+         Servo.BackSwing(BackSwing.HOLD)
          ],
       a=[I_O.Pump(0), I_O.Valve(0), I_O.Magnet(0)])
 
@@ -119,9 +117,7 @@ def init_back_servos():
     '''
 
     s = Strategy()
-    # s(s=[Servo.BackSideGrip(BackSideLeft.CLOSED, BackSideRight.CLOSED),
-    #      Servo.BackCenterGrip(BackCenterLeft.CLOSED, BackCenterRight.CLOSED),
-    #      Servo.BackLift(BackGripLift.DOWN)])
+    s(s=[Servo.BackSwing(BackSwing.PICK)])
 
     return s.steps
 
@@ -134,17 +130,12 @@ def pickup_back_full_stack(back_distance=-200, ID=None):
 
     s = Strategy()
 
-    # s(m=Move.Distance(back_distance, 1000, 400),
-    #   s=[Servo.BackCenterGrip(BackCenterLeft.OPEN, BackCenterRight.OPEN),
-    #      Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN),
-    #      Servo.BackLift(BackGripLift.DOWN)])
-
     # s(c=[Condition.BackSensors(ID)])
 
-    # s(s=[Servo.BackCenterGrip(BackCenterLeft.GRIP, BackCenterRight.GRIP),
-    #      Servo.BackSideGrip(BackSideLeft.GRIP, BackSideRight.GRIP)])
+    s(m=Move.Distance(back_distance, 1000, 400),
+      s=[Servo.BackSwing(BackSwing.PICK)])
 
-    # s(s=[Servo.BackLift(BackGripLift.HOVER)])
+    s(s=[Servo.BackSwing(BackSwing.HOLD)])
 
     return s.steps
 
@@ -167,7 +158,7 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
          Servo.FrontGripLift(FrontGripLift.DOWN),
          Servo.FrontVacuumLift(VacuumLift.HOVER)])
 
-    s(c=[Condition.FrontSensors(ID)])
+    # s(c=[Condition.FrontSensors(ID)])
 
     s(s=[Servo.FrontCenterGrip(FrontCenterGripper.GRIP),
          Servo.FrontVacuumLift(VacuumLift.PICKUP2)],
@@ -199,7 +190,7 @@ def two_level():
          Servo.CenterSwing(CenterSwing.UP)])
 
     s(s=[Servo.CenterLift(CenterLift.HOLD2),
-        Servo.FrontGripLift(FrontGripLift.HOVER + 10)])
+         Servo.FrontGripLift(FrontGripLift.HOVER + 10)])
 
     s(s=[
         Servo.CenterSwing(CenterSwing.DOWN, 30),
@@ -249,8 +240,8 @@ def drop_one_level(backout_distance=-150, p=0):
     s = Strategy()
 
     s(s=[
-        #Servo.CenterLift(CenterLift.DROP1),
-         Servo.FrontGripLift(FrontGripLift.DOWN)],
+        # Servo.CenterLift(CenterLift.DROP1),
+        Servo.FrontGripLift(FrontGripLift.DOWN)],
       a=[I_O.Magnet(0)])
 
     s(m=Move.Distance(backout_distance, 1000, 500),
@@ -274,9 +265,9 @@ def drop_separate_two_level(between_drop_distance=-150, backout_distance=-200):
          Servo.CenterSwing(CenterSwing.DOWN+8),
          Servo.FrontVacuumLift(VacuumLift.DROP1 + 35),
          Servo.FrontVacuum(Vacuum.DOWN, 45)])
-        
+
     s(s=[Servo.FrontVacuumLift(VacuumLift.DROP1),
-        Servo.CenterSwing(CenterSwing.DOWN)])
+         Servo.CenterSwing(CenterSwing.DOWN)])
 
     s(s=[Servo.FrontCenterGrip(FrontCenterGripper.OPEN)],
       a=[I_O.Pump(0), I_O.Valve(0)],
@@ -313,41 +304,10 @@ def lift_two_on_one(forward_distance=150, back_distance=-250):
 
     # s(s=[Servo.FrontVacuumLift(VacuumLift.UP-20)])
     s(s=[Servo.FrontGripLift(FrontGripLift.HOLD),
-           Servo.FrontCenterGrip(FrontCenterGripper.OPEN)],
+         Servo.FrontCenterGrip(FrontCenterGripper.OPEN)],
         a=[I_O.Magnet(0)])
 
     s(m=Move.Distance(back_distance, 1000, 1000),
-      p=Points.LEVEL2+Points.LEVEL3)
-
-    return s.steps
-
-
-def lift_two_on_one_plus(forward_distance=150, back_distance=-250):
-    '''
-       Places two levels on a one level high construction on the ground.
-       Backs out.
-       Points: 25
-    '''
-
-    s = Strategy()
-
-    s(s=[Servo.CenterLift(CenterLift.LIFT2, 50)],
-      a=[I_O.Pump(0), I_O.Valve(0)])
-
-    # s(s=[Servo.CenterLift(CenterLift.UP, 60),
-    #      Servo.FrontVacuumLift(VacuumLift.UP, 60),
-    #      Servo.FrontGripLift(FrontGripLift.UP-20, 30),
-    #      Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
-
-    s(m=Move.Distance(forward_distance, 800, 300),
-      s=[Servo.CenterLift(CenterLift.UP, 60),
-         Servo.FrontVacuumLift(VacuumLift.UP, 60),
-         Servo.FrontGripLift(FrontGripLift.UP-20, 50),
-         Servo.FrontVacuum(Vacuum.DROP, 60)])
-    s(m=Move.Distance(back_distance, 1000, 1000),
-      s=[Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
-         Servo.FrontSideGrip(FrontSideLeft.OPEN, FrontSideRight.OPEN),
-         Servo.FrontVacuumLift(VacuumLift.UP-20)],
       p=Points.LEVEL2+Points.LEVEL3)
 
     return s.steps
@@ -434,8 +394,8 @@ def leave_banner(back_distance=-200, forward_distance=125):
 
     s(m=Move.RotateTo(1.57, 5, 5))
 
-    s(m=Move.Distance(back_distance, 500, 500))
-    # s(s=[Servo.BackSideGrip(BackSideLeft.OPEN, BackSideRight.OPEN)])
+    s(m=Move.Distance(back_distance, 500, 500),
+      s=[Servo.BackSwing(BackSwing.PICK)])
 
     s(m=Move.Distance(forward_distance, 1000, 1000),
       p=Points.BANNER)
@@ -452,10 +412,9 @@ def separate_two_level(rotation):
     s = Strategy()
 
     s(task_steps=drop_one_level(backout_distance=-175, p=-4))
-    s(m=Move.RotateTo(rotation, 15, 15)) #,
-    #   s=[Servo.BackLift(BackGripLift.DOWN)],
-    #     task_steps=close_back())
-    # s(task_steps=pickup_back_full_stack(-255))
+    s(m=Move.RotateTo(rotation, 15, 15),
+      s=[Servo.BackSwing(BackSwing.PICK)])
+    s(task_steps=pickup_back_full_stack(-255))
 
     return s.steps
 
@@ -488,12 +447,11 @@ def drop_back_one_level(rotation=0, forward_distance=250, p=0):
     s = Strategy()
 
     # if (rotation != 0):
-    s(m=Move.RotateTo(rotation, 10, 5),
-        s=[Servo.BackLift(BackGripLift.DOWN)])
+    s(m=Move.RotateTo(rotation, 10, 5))
     # else:
     #     s(s=[Servo.BackLift(BackGripLift.DOWN)])
 
-    s(task_steps=open_back())
+    s(s=[Servo.BackSwing(BackSwing.DROP)])
 
     s(m=Move.Distance(forward_distance, 500, 500),
         p=Points.LEVEL1 + p)
