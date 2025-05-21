@@ -350,11 +350,11 @@ class Execute:
 
         self.sima.stop_threads()
 
-        actuators = [I_O.Pump(0), I_O.Valve(0), I_O.Magnet(0)]
+        # actuators = [I_O.Pump(0), I_O.Valve(0), I_O.Magnet(0)]
 
-        for actuator in actuators:
-            actuator._execute()
-            time.sleep(0.01)
+        # for actuator in actuators:
+        #     actuator._execute()
+        #     time.sleep(0.01)
 
         # grippers = [Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
         #             Servo.FrontSideGrip(FrontSideLeft.OPEN,

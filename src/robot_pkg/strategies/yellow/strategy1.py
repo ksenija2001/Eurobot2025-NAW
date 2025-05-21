@@ -13,19 +13,59 @@ strategy1 = Strategy(color=Color.YELLOW,
 strategy1(m=Move.ResetOdom(0, 0, 1.57),
           task_steps=init_front_servos())
 
-strategy1(task_steps=pickup_back_full_stack())
+# strategy1(task_steps=pickup_back_full_stack())
 
-strategy1(m=Move.Distance(100, 300, 300))
-strategy1(task_steps=drop_back_one_level())
+# strategy1(m=Move.Distance(100, 300, 300))
+# strategy1(task_steps=drop_back_one_level())
 
-# strategy1(task_steps=pickup_front_full_stack())
+strategy1(task_steps=pickup_front_full_stack())
 
-# strategy1(task_steps=two_level())
+strategy1(task_steps=two_level())
 
-# strategy1(task_steps=drop_two_level())
+strategy1(task_steps=drop_two_level())
 
 
-strategy1(c=[Condition.Timeout(100, 50)])
+strategy1(c=[Condition.Timeout(2, 2)])
+
+strategy1(ID=2)
+
+# strategy1(task_steps=init_front_servos())
+
+strategy1(task_steps=pickup_front_full_stack())
+
+strategy1(task_steps=two_level())
+
+strategy1(task_steps=drop_two_level())
+
+strategy1(c=[Condition.Timeout(3, 2)])
+
+strategy1(ID=3)
+strategy1(task_steps=pickup_front_full_stack())
+
+strategy1(task_steps=two_level())
+
+strategy1(task_steps=drop_two_level())
+
+strategy1(c=[Condition.Timeout(4, 2)])
+
+strategy1(ID=4)
+strategy1(task_steps=pickup_front_full_stack())
+
+strategy1(task_steps=two_level())
+
+strategy1(task_steps=drop_two_level())
+
+strategy1(c=[Condition.Timeout(5, 2)])
+
+strategy1(ID=5)
+strategy1(task_steps=pickup_front_full_stack())
+
+strategy1(task_steps=two_level())
+
+strategy1(task_steps=drop_two_level())
+
+# strategy1(c=[Condition.Timeout(3, 2)])
+strategy1(c=[Condition.Timeout(3, 2)])
 
 
 # # strategy1(task_steps=lift_two_on_one())

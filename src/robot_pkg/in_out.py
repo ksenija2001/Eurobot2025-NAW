@@ -109,4 +109,5 @@ class I_O:
         self.sent = True
         packed = [self.pin, self.state]
         data = struct.pack('2B', *packed)
+        print(f"Seding actuator: {data}")
         I_O.send_queue.append(data)

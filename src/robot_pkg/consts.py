@@ -41,6 +41,9 @@ class Points:
     HOME = 10
 
 class IDs(Enum):
+    SET_IO = 0x3F0
+    GET_IO = 0x3FF
+
     SET_LIDAR = 0x4C0
     SET_LIDAR_ODOM = 0x4C1
     
@@ -71,9 +74,6 @@ class IDs(Enum):
 
     GET_SERVO_IN_POSITION = 0x53F
     GET_SERVO_ERROR = 0x53E
-
-    SET_IO = 0x690
-    GET_IO = 0x69F
 
     GET_ODOM = 0x6FF
 
