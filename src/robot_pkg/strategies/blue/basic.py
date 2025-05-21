@@ -110,10 +110,15 @@ basic(task_steps=lift_one_on_two(forward_distance=250))
 # ALTERNATIVE 10 - STACK1 -> 3L BLUE AREA 2, STACK 8
 basic(c=[Condition.CheckStack('STACK10', 10)])
 
+# ALTERNATIVE 10 - STACK1 -> 3L BLUE AREA 2, STACK 8
+basic(c=[Condition.CheckStack('STACK10', 10)])
+
 basic(m=Move.To(MaterialStack.STACK10.x + 10,
                 MaterialStack.STACK10.y - 350,
                 'f', 1500, 1000, 15, 10),
       task_steps=init_front_servos())
+
+basic(m=Move.RotateTo(1.57, 15, 10))
 
 basic(m=Move.RotateTo(1.57, 15, 10))
 
@@ -249,6 +254,7 @@ basic(task_steps=(pickup_front_full_stack(300)))
 ###############################
 
 basic(m=Move.To(MaterialStack.STACK5.x,
+                MaterialStack.STACK5.y + 250,  # 300,
                 MaterialStack.STACK5.y + 250,  # 300,
                 'r', 1000, 700, 10, 10),
       task_steps=init_back_servos())
@@ -400,8 +406,10 @@ basic(m=Move.Distance(-100, 500, 300),
 
 ####################################
 ## NO STACK 10 ALTERNATIVE - ID=10 ##
+## NO STACK 10 ALTERNATIVE - ID=10 ##
 ####################################
 
+basic(ID=10)
 basic(ID=10)
 
 ################################################
@@ -557,6 +565,9 @@ basic(m=Move.To(Area.BLUE_HOME.x - 300,
 basic(c=[Condition.MatchTime(101, 99)])
 
 basic(ID=101,
+      m=Move.To(Area.BLUE_HOME.x - 300,
+                Area.BLUE_HOME.y - 300,
+                'f', 1100, 1500, 15, 15),
       m=Move.To(Area.BLUE_HOME.x - 300,
                 Area.BLUE_HOME.y - 300,
                 'f', 1100, 1500, 15, 15),
