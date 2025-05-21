@@ -196,7 +196,7 @@ def two_level():
         Servo.CenterSwing(CenterSwing.DOWN),
         Servo.FrontVacuum(Vacuum.UP),  # , 30),
         Servo.CenterLift(CenterLift.POSITION2),  # , 50),
-        Servo.FrontVacuumLift(VacuumLift.POSITION2+10, 70)])
+        Servo.FrontVacuumLift(VacuumLift.POSITION2+10)])
 
     return s.steps
 
@@ -394,7 +394,7 @@ def leave_banner(back_distance=-200, forward_distance=125):
 
     s(m=Move.RotateTo(1.57, 5, 5))
 
-    s(m=Move.Distance(back_distance, 500, 500),
+    s(m=Move.Distance(back_distance, 1000, 500),
       s=[Servo.BackSwing(BackSwing.PICK)])
 
     s(m=Move.Distance(forward_distance, 1000, 1000),

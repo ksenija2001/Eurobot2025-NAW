@@ -47,7 +47,7 @@ basic(ID=1,
 ## PICK-UP STACK 6 ##
 #####################
 
-basic(m=Move.Spline([MaterialStack.STACK6.x + 10],
+basic(m=Move.Spline([MaterialStack.STACK6.x + 20],
                     [MaterialStack.STACK6.y + 250],
                     [-1.57],
                     550,
@@ -74,7 +74,7 @@ basic(task_steps=drop_two_level())
 #####################
 
 basic(m=Move.To(MaterialStack.STACK7.x - 290,
-                MaterialStack.STACK7.y - 15,
+                MaterialStack.STACK7.y - 20,
                 'f', 1500, 1500, 15, 15),
       task_steps=init_front_servos())
 
@@ -123,7 +123,7 @@ basic(m=Move.To(MaterialStack.STACK10.x + 10,
 # task_steps = drop_back_one_level()
 basic(m=Move.RotateTo(1.57, 15, 10))  # 5, 5))
 
-basic(task_steps=pickup_front_full_stack(330))#, ID=5))
+basic(task_steps=pickup_front_full_stack(340))#, ID=5))
 
 # TODO ALTERNATIVA ID=5 - NEMA 10 - ide se odma na STACK 1, ostavljaa se trospratnica u BLUE area 2 i ide se na 8 posle
 
