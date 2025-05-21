@@ -164,8 +164,8 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
          Servo.FrontVacuumLift(VacuumLift.PICKUP2)],
       a=[I_O.Pump(1), I_O.Valve(1), I_O.Magnet(1)])
 
-    s(s=[Servo.FrontGripLift(FrontGripLift.HOVER + 5),   ##### NE RADI SA VISE OD +5 NE ZNAMMMM
-         Servo.FrontVacuumLift(VacuumLift.HOVER + 20),
+    s(s=[Servo.FrontGripLift(FrontGripLift.HOVER + 5),  # NE RADI SA VISE OD +5 NE ZNAMMMM
+         Servo.FrontVacuumLift(VacuumLift.HOVER),  # + 20),
          Servo.CenterLift(CenterLift.HOVER - 15)
          ])
 
