@@ -132,10 +132,10 @@ def pickup_back_full_stack(back_distance=-200, forward_distance=200, ID=None):
 
     # s(c=[Condition.BackSensors(ID)])
 
-    s(m=Move.Distance(back_distance, 500, 300),
+    s(m=Move.Distance(back_distance, 500, 400),
       s=[Servo.BackSwing(BackSwing.PICK)])
 
-    s(m=Move.Distance(forward_distance, 500, 500))
+    s(m=Move.Distance(forward_distance, 500, 400))
     s(s=[Servo.BackSwing(BackSwing.HOLD)])
 
     return s.steps
@@ -152,14 +152,15 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
 
     s(task_steps=open_front())
 
-    s(m=Move.Distance(forward_distance, 700, 300),  # 300 SA RAZLOGOM
+    s(m=Move.Distance(forward_distance, 500, 300),  # 300 SA RAZLOGOM
       s=[Servo.FrontVacuum(Vacuum.DOWN),
          Servo.CenterSwing(CenterSwing.DOWN, 50),
          Servo.CenterLift(CenterLift.DOWN),
          Servo.FrontGripLift(FrontGripLift.DOWN),
-         Servo.FrontVacuumLift(VacuumLift.HOVER)])
+         Servo.FrontVacuumLift(VacuumLift.HOVER)],
+      a=[I_O.Magnet(1)])
 
-    # s(c=[Condition.FrontSensors(ID)])
+    s(c=[Condition.FrontSensors(ID)])
 
     s(s=[Servo.FrontCenterGrip(FrontCenterGripper.GRIP),
          Servo.FrontVacuumLift(VacuumLift.PICKUP2)],
@@ -298,7 +299,7 @@ def lift_two_on_one(forward_distance=150, back_distance=-250):
     #      Servo.FrontVacuum(Vacuum.MIDDLE, 60)])
     s(s=[Servo.CenterLift(CenterLift.UP)])
 
-    s(m=Move.Distance(forward_distance, 600, 250),
+    s(m=Move.Distance(forward_distance, 600, 350),
       s=[Servo.FrontVacuumLift(VacuumLift.UP-15, 60),
          Servo.FrontGripLift(FrontGripLift.UP-20, 50),
          Servo.FrontVacuum(Vacuum.DROP, 60)])
@@ -308,7 +309,7 @@ def lift_two_on_one(forward_distance=150, back_distance=-250):
          Servo.FrontCenterGrip(FrontCenterGripper.OPEN)],
         a=[I_O.Magnet(0)])
 
-    s(m=Move.Distance(back_distance, 1000, 1000),
+    s(m=Move.Distance(back_distance, 1500, 1000),
       p=Points.LEVEL2+Points.LEVEL3)
 
     return s.steps
@@ -364,7 +365,7 @@ def lift_one_on_two(forward_distance=200, backout_distance=-250):
          Servo.FrontCenterGrip(FrontCenterGripper.OPEN)],
       a=[I_O.Magnet(0)])
 
-    s(m=Move.Distance(backout_distance, 1000, 500), p=Points.LEVEL3)
+    s(m=Move.Distance(backout_distance, 1000, 1000), p=Points.LEVEL3)
 
     return s.steps
 

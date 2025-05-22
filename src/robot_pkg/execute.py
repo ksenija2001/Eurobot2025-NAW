@@ -111,13 +111,14 @@ class Execute:
                     if next_step_id != False:
                         self._logger.info(
                             f"Condition met TYPE: {ConditionType.STACK}")
+                        break
                     else:
                         next_step_id = None
                         
                     # sensor = [
                     #     cond for cond in step.conditions if cond._type == ConditionType.BACK][0]
                     # step.conditions.remove(sensor)
-                    break
+                    # break
                 if cond._type == ConditionType.BACK:
                     to_break = True
 
@@ -134,6 +135,7 @@ class Execute:
                     if next_step_id != False:
                         self._logger.info(
                             f"Condition met TYPE: {ConditionType.BACK}")
+                        break
                     else:
                         next_step_id = None
                         
@@ -160,6 +162,7 @@ class Execute:
                     if next_step_id != False:
                         self._logger.info(
                             f"Condition met TYPE: {ConditionType.FRONT}")
+                        break
                     else:
                         next_step_id = None
 
@@ -350,11 +353,11 @@ class Execute:
 
         self.sima.stop_threads()
 
-        # actuators = [I_O.Pump(0), I_O.Valve(0), I_O.Magnet(0)]
+        actuators = [I_O.Pump(0), I_O.Valve(0), I_O.Magnet(0)]
 
-        # for actuator in actuators:
-        #     actuator._execute()
-        #     time.sleep(0.01)
+        for actuator in actuators:
+            actuator._execute()
+            time.sleep(0.01)
 
         # grippers = [Servo.FrontCenterGrip(FrontCenterLeft.OPEN, FrontCenterRight.OPEN),
         #             Servo.FrontSideGrip(FrontSideLeft.OPEN,

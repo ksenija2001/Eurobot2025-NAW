@@ -111,3 +111,6 @@ class I_O:
         data = struct.pack('2B', *packed)
         print(f"Seding actuator: {data}")
         I_O.send_queue.append(data)
+        time.sleep(0.01)
+        I_O.send_queue.append(data)
+        time.sleep(0.01)

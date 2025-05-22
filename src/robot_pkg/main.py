@@ -62,6 +62,9 @@ def main_func():
 
         running.set()
 
+        Opponent._setup_connection()
+
+
         execute = Execute(strategy, running)
         execute.start()
 

@@ -42,6 +42,7 @@ class Condition:
                 return self.ID
         elif self._type == ConditionType.CINCH:
             if not args[3]:
+                Variables.started = 1
                 Variables.match_start_time = time.time()  # sets the match start time
                 return self.ID
         elif self._type == ConditionType.SERVO:

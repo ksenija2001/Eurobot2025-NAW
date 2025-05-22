@@ -2,6 +2,7 @@ import socket, time, struct
 from robot_pkg.play_elements import Area, MaterialStack
 
 from robot_pkg.main import log_handler
+from robot_pkg.consts import Variables
 
 class Position:
     def __init__(self, x: float = 0, y: float = 0, theta: float = 0, speed: float = 0):
@@ -36,7 +37,7 @@ class Opponent:
             cls.pc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             cls.pc_socket.setsockopt(
                 socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            cls.pc_socket.connect(('10.166.197.67', 9999))
+            cls.pc_socket.connect(('192.168.50.243', 9999))
 
             cls._logger.info("Computer connected")
         except Exception as e:
@@ -87,7 +88,7 @@ class Opponent:
             cls.area_entry_time = time.time() if current_area else None
         elif current_area is not None and (time.time() - cls.area_entry_time > 2):
             # Opponent has been in this area for more than 2 seconds
-            if not current_area.visited:
+            if not current_area.visited and Variables.started:
                 current_area.visited = True
 
                 s = bytes(area_name, 'utf-8')
@@ -121,9 +122,9 @@ class Opponent:
             cls.stack_entry_time = time.time() if current_stack else None
         elif current_stack is not None and (time.time() - cls.stack_entry_time > 2):
             # Opponent has been near this stack for more than 2 seconds
-            if not current_stack.visited:
-                current_stack.visited = True
+            if not current_stack.visited and Variables.started:
 
+                current_stack.visited = True
                 s = bytes(stack_name, 'utf-8')
 
                 data = ['S'.encode('utf-8'), len(s)]

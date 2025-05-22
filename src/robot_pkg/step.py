@@ -31,10 +31,10 @@ class Step:
             if x <= 3 or y <= 3:  # if x or y is less than 3mm - activate
                 log_handler.get_logger("otuputs").info(f"Executing actuator {output._type}")
                 output._execute()
-                time.sleep(0.01)
+                # time.sleep(0.01)
         
         if len(not_sent) > 0:
-            time.sleep(0.25)
+            time.sleep(0.3)
 
     def servo(self, curr_pose:Position=Position()):
         not_moving = [servo for servo in self.servos if not servo.executed]

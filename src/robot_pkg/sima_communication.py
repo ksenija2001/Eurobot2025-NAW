@@ -15,11 +15,11 @@ class SIMA:
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        # try:
-        #     self.s.bind((IP, 9999))
-        # except:
-        #     self.s.close()
-        #     self.s.bind((IP, 9999))
+        try:
+            self.s.bind((IP, 9999))
+        except:
+            self.s.close()
+            self.s.bind((IP, 9999))
 
         self._logger.info("Opened port")
 
