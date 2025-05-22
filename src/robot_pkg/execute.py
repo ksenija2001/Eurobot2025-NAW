@@ -179,6 +179,7 @@ class Execute:
                 start_pose = Position(Move.pose.x, Move.pose.y, Move.pose.theta, 0)
                 last_moving_step = step
                 step.move()
+            Servo.last_send_time = time.time()
             step.servo()
             step.output()
 

@@ -46,10 +46,12 @@ class Step:
                 log_handler.get_logger("servos").info(f"Executing servo {servo._type}")
                 servo._execute()
                 # moved += 1
-                time.sleep(0.01)
+                # time.sleep(0.01)
 
         # if moved > 0:
         Servo.send_positions()
+        if len(not_moving) > 0:
+            time.sleep(0.01)
 
 if __name__ == "__main__":
     pass

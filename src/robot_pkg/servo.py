@@ -28,6 +28,8 @@ class Servo:
     servo_in_position:dict = {enum_item.value: True for enum_item in ServoType}
     send_queue = can_handler.msg_send_queues[IDs.SET_SERVO_POSITIONS.value]
     servo_positions:dict = {enum_item.value: 0 for enum_item in ServoType}
+    last_send_time:float = 0
+    last_msg = bytes()
     
     logger = log_handler.get_logger("servo")
 
@@ -41,13 +43,13 @@ class Servo:
     
     def _execute(self):
         while not Servo.servo_in_position[self.id]:
-            print(f"WAITING FOR SERVO {self.id}")
+            # print(f"WAITING FOR SERVO {self.id}")
             pass
         
         self.executed = True
         Servo.servo_list.extend([self.id, self.position, self.speed])
         Servo.servo_in_position[self.id] = False
-        
+        # Servo.last_send_time = time.time()
 
     def check_in_position(self):
         return Servo.servo_in_position[self.id]
@@ -72,9 +74,10 @@ class Servo:
             fmt = ">B" + "BHB"*size 
             servo_msg = struct.pack(fmt, *Servo.servo_list)
             Servo.send_queue.append(servo_msg)
+            cls.last_msg = servo_msg
 
             Servo.servo_list.clear()
-
+            cls.last_send_time = time.time()
 
     @classmethod
     def _receive(cls, running:Event):
@@ -109,6 +112,12 @@ class Servo:
 
                 [id, error] = struct.unpack('2B', servo_msg.data)
                 Servo.logger.info(f"Servo {id} error: {error}")
+            
+            if not cls.check_in_positions() and time.time() - cls.last_send_time > 2:
+                Servo.logger.info(f"Sending again: {cls.last_msg}")
+
+                Servo.send_queue.append(cls.last_msg)
+                cls.last_send_time = time.time()
 
             time.sleep(0.001)  # 1ms
     

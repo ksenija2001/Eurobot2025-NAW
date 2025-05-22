@@ -265,8 +265,8 @@ def drop_separate_two_level(between_drop_distance=-150, backout_distance=-200):
 
     s(s=[Servo.CenterLift(CenterLift.DOWN),
          Servo.CenterSwing(CenterSwing.DOWN+8),
-         Servo.FrontVacuumLift(VacuumLift.DROP1 + 35),
-         Servo.FrontVacuum(Vacuum.DOWN, 45)])
+         Servo.FrontVacuumLift(VacuumLift.UP), #DROP1 + 35),
+         Servo.FrontVacuum(Vacuum.DOWN, 25)])
 
     s(s=[Servo.FrontVacuumLift(VacuumLift.DROP1),
          Servo.CenterSwing(CenterSwing.DOWN)])
