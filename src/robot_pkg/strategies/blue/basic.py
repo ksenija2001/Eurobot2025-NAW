@@ -417,7 +417,7 @@ basic(m=Move.To(MaterialStack.STACK10.x + 10,
 
 basic(m=Move.To(Area.BLUE_2.x,
                 Area.BLUE_2.y,
-                'r', 1000, 500, 10, 5))
+                'r', 1000, 1000, 10, 10))
 
 basic(task_steps=drop_back_one_level(rotation=1.57))
 
@@ -443,9 +443,9 @@ basic(c=[Condition.CheckStack('STACK8', 8)])
 basic(m=Move.Spline([MaterialStack.STACK8.x - 230],
                     [MaterialStack.STACK8.y - 35],
                     [3.14],
-                    350, 'r'))
+                    450, 'r'))
 
-basic(task_steps=pickup_back_full_stack(forward_distance=50))
+basic(task_steps=pickup_back_full_stack(back_distance=-150, forward_distance=50))
 
 ##########################
 ##  MOVE TO BLUE AREA 2 ##
@@ -455,7 +455,7 @@ basic(task_steps=pickup_back_full_stack(forward_distance=50))
 basic(m=Move.Spline([Area.BLUE_2.x],
                     [Area.BLUE_2.y + 450],
                     [-1.57],
-                    500,
+                    450,
                     'f'),
       task_steps=two_level())
 
@@ -469,14 +469,16 @@ basic(task_steps=drop_back_one_level(rotation=-1.57))
 
 basic(task_steps=lift_two_on_one(250))
 
-basic(m=Move.RotateTo(1.57, 10, 5))
+basic(m=Move.RotateTo(1.57, 15, 10),
+      task_steps=init_front_servos())
 
-basic(task_steps=pickup_front_full_stack())
+basic(task_steps=pickup_front_full_stack(280))
 
-basic(m=Move.RotateTo(-1.57, 5, 5),
+basic(m=Move.RotateTo(-1.57, 10, 10))
+
+basic(m=Move.Distance(220, 500, 500),
       task_steps=two_level())
 
-basic(m=Move.Distance(200, 500, 300))
 basic(task_steps=drop_two_level(back_distance=-250))
 
 basic(m=Move.RotateTo(1.57, 15, 15))
@@ -495,54 +497,7 @@ basic(m=Move.Spline([MaterialStack.STACK9.x],
 
 basic(m=Move.RotateTo(-1.57, 15, 10))
 
-basic(task_steps=pickup_front_full_stack(270))
-
-basic(c=[Condition.Timeout(20, 0.01)])
-
-basic(ID=9)
-basic(c=[Condition.CheckStack('STACK5', 5)])
-
-basic(m=Move.Spline([MaterialStack.STACK9.x, MaterialStack.STACK5.x],
-                    [MaterialStack.STACK9.y-100, MaterialStack.STACK5.y + 340],
-                    [3.14, -1.57],
-                    400, 'f'),
-      task_steps=init_front_servos())
-
-
-basic(task_steps=pickup_front_full_stack(270))
-
-basic(m=Move.Distance(-350, 500, 500))
-
-basic(c=[Condition.Timeout(20, 0.01)])
-
-basic(ID=5)
-basic(c=[Condition.CheckStack('STACK4', 4)])
-
-basic(m=Move.Spline([MaterialStack.STACK9.x, MaterialStack.STACK4.x + 350],
-                    [MaterialStack.STACK9.y-200, MaterialStack.STACK4.y],
-                    [3.14, 3.14],
-                    400, 'f'),
-      task_steps=init_front_servos())
-
-
-basic(task_steps=pickup_front_full_stack())
-
-basic(c=[Condition.Timeout(20, 0.01)])
-
-basic(ID=4)
-basic(c=[Condition.CheckStack('STACK3', 100)]) 
-
-basic(m=Move.Spline([MaterialStack.STACK3.x + 350],
-                    [MaterialStack.STACK3.y],
-                    [3.14, 3.14],
-                    400, 'f'),
-      task_steps=init_front_servos())
-
-basic(task_steps=pickup_front_full_stack())
-
-basic(c=[Condition.Timeout(20, 0.01)])
-
-basic(ID=20)
+basic(task_steps=pickup_front_full_stack(270, ID=9))
 
 basic(m=Move.To(Area.BLUE_2.x,
                 Area.BLUE_2.y + 500,
@@ -550,11 +505,6 @@ basic(m=Move.To(Area.BLUE_2.x,
       task_steps=two_level())
 
 basic(m=Move.RotateTo(1.57, 15, 10))
-
-###############################################
-## PICK-UP LOWER WITH BACK                   ##
-## LIFT UPPER ON CONSTRUCTION IN BLUE AREA 2 ##
-###############################################
 
 basic(task_steps=drop_one_level(p=-4))
 
@@ -565,14 +515,88 @@ basic(task_steps=pickup_back_full_stack())
 
 basic(task_steps=lift_one_on_two(forward_distance=180, backout_distance=-200))
 
-##############################################
-## LEAVE ONE LEVEL FROM BACK IN BLUE AREA 2 ##
-##############################################
-
 basic(task_steps=drop_back_one_level(rotation=1.57, forward_distance=-100))
 
 basic(m=Move.Distance(100, 500, 500),
       c=[Condition.InPosition(100),])
+
+
+basic(ID=9)
+basic(c=[Condition.CheckStack('STACK5', 5)])
+
+basic(m=Move.Spline([MaterialStack.STACK9.x, MaterialStack.STACK5.x],
+                    [MaterialStack.STACK9.y-200, MaterialStack.STACK5.y + 340],
+                    [3.14, -1.57],
+                    550, 'f'),
+      task_steps=init_front_servos())
+
+basic(task_steps=pickup_front_full_stack(300, ID=5))
+
+basic(task_steps=two_level())
+basic(m=Move.Distance(-250, 500, 500))
+
+basic(task_steps=drop_one_level(-100))
+
+basic(m=Move.To(Area.BLUE_2.x,
+                Area.BLUE_2.y + 500,
+                'r', 1000, 1000, 15, 10))
+
+basic(m=Move.RotateTo(-1.57, 15, 10))
+
+basic(task_steps=lift_one_on_two(250))
+
+# basic(m=Move.Distance(100, 500, 500))
+
+# basic(task_steps=drop_two_level())
+
+basic(c=[Condition.Timeout(100, 0.01),])
+
+basic(ID=5)
+basic(c=[Condition.CheckStack('STACK4', 4)])
+
+basic(m=Move.Spline([MaterialStack.STACK9.x, MaterialStack.STACK4.x + 350],
+                    [MaterialStack.STACK9.y-200, MaterialStack.STACK4.y + 50],
+                    [3.15, 3.14],
+                    550, 'f'),
+      task_steps=init_front_servos())
+
+basic(task_steps=pickup_front_full_stack(ID=4))
+
+basic(m=Move.Distance(-250, 500, 500))
+
+basic(m=Move.RotateTo(-3.14+0.707, 10, 10))
+
+basic(m=Move.Distance(-300, 500, 500))
+
+basic(m=Move.To(Area.BLUE_2.x,
+                Area.BLUE_2.y + 400,
+                'r', 1000, 1000, 10, 5),
+      task_steps=two_level())
+
+basic(m=Move.RotateTo(-1.57, 15, 10))
+
+basic(m=Move.Distance(100, 500, 500))
+
+basic(task_steps=drop_two_level())
+
+basic(c=[Condition.Timeout(100, 0.01),])
+
+
+basic(ID=4)
+basic(c=[Condition.CheckStack('STACK3', 100)]) 
+
+basic(m=Move.Spline([MaterialStack.STACK3.x + 350],
+                    [MaterialStack.STACK3.y],
+                    [3.14, 3.14],
+                    400, 'f'),
+      task_steps=init_front_servos())
+
+basic(task_steps=pickup_front_full_stack(ID=100))
+
+basic(c=[Condition.Timeout(20, 0.01)])
+
+basic(ID=20)
+
 
 # basic(task_steps=drop_two_level(back_distance=-250))
 

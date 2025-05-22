@@ -167,7 +167,7 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
       a=[I_O.Pump(1), I_O.Valve(1), I_O.Magnet(1)])
 
     s(s=[Servo.FrontGripLift(FrontGripLift.HOVER + 5),  # NE RADI SA VISE OD +5 NE ZNAMMMM
-         Servo.FrontVacuumLift(VacuumLift.HOVER),  # + 20),
+         Servo.FrontVacuumLift(VacuumLift.HOVER - 10),  # + 20),
          Servo.CenterLift(CenterLift.HOVER - 15)
          ])
 
@@ -414,9 +414,9 @@ def separate_two_level(rotation):
     s = Strategy()
 
     s(task_steps=drop_one_level(backout_distance=-175, p=-4))
-    s(m=Move.RotateTo(rotation, 15, 15),
+    s(m=Move.RotateTo(rotation, 10, 10),
       s=[Servo.BackSwing(BackSwing.PICK)])
-    s(task_steps=pickup_back_full_stack(-255, forward_distance=50))
+    s(task_steps=pickup_back_full_stack(-275, forward_distance=50))
 
     return s.steps
 
@@ -449,7 +449,7 @@ def drop_back_one_level(rotation=0, forward_distance=250, p=0):
     s = Strategy()
 
     # if (rotation != 0):
-    s(m=Move.RotateTo(rotation, 10, 5))
+    s(m=Move.RotateTo(rotation, 10, 10))
     # else:
     #     s(s=[Servo.BackLift(BackGripLift.DOWN)])
 
