@@ -298,6 +298,7 @@ class Execute:
                     self._logger.info(
                         f"Condition met TYPE: {ConditionType.TIME}")
                     next_step_id = checked[ConditionType.TIME]
+                    break
                 elif ConditionType.TIMEOUT in checked and checked[ConditionType.TIMEOUT] != False:
                     self._logger.info(
                         f"Condition met TYPE: {ConditionType.TIMEOUT}")

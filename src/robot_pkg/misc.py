@@ -52,5 +52,6 @@ class FrontGripLift:
 
 class BackSwing:
     HOLD = 130
+    BANNER = 140
     PICK = 150
     DROP = 165

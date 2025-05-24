@@ -88,7 +88,7 @@ def init_all_servos():
          Servo.FrontVacuum(Vacuum.DOWN),
          Servo.CenterSwing(CenterSwing.INIT),
          Servo.CenterLift(CenterLift.DOWN, 50),
-         Servo.BackSwing(BackSwing.HOLD)
+         Servo.BackSwing(BackSwing.BANNER)
          ],
       a=[I_O.Pump(0), I_O.Valve(0), I_O.Magnet(0)])
 
@@ -170,6 +170,41 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
          Servo.FrontVacuumLift(VacuumLift.HOVER - 10),  # + 20),
          Servo.CenterLift(CenterLift.HOVER - 15)
          ])
+
+    return s.steps
+
+def drop_one_in_two_level(rotation=0, backout_distance=-150, p=0):
+    s = Strategy()
+
+    s(s=[Servo.FrontVacuumLift(VacuumLift.HOVER + 70)])
+    s(s=[Servo.FrontGripLift(100),
+         Servo.CenterLift(CenterLift.DOWN),
+         Servo.FrontVacuumLift(VacuumLift.HOLD+40)])
+
+    s(s=[Servo.FrontVacuum(Vacuum.MIDDLE),
+         Servo.FrontGripLift(FrontGripLift.HOLD),
+         Servo.CenterSwing(CenterSwing.UP)])
+
+    s(s=[Servo.CenterLift(CenterLift.HOLD2),
+        Servo.FrontGripLift(FrontGripLift.DOWN)])
+
+    s(m=Move.Distance(backout_distance, 1000, 500),
+      a=[I_O.Magnet(0)],
+      p=Points.LEVEL1 + p)
+
+    if rotation != 0:
+      s(m=Move.RotateTo(rotation, 15, 10),
+        task_steps=init_back_servos(),
+        s=[Servo.CenterSwing(CenterSwing.DOWN),
+          Servo.FrontVacuum(Vacuum.UP),  # , 30),
+          Servo.CenterLift(CenterLift.POSITION2),  # , 50),
+          Servo.FrontVacuumLift(VacuumLift.POSITION2+10)])
+    else:
+      s(s=[
+        Servo.CenterSwing(CenterSwing.DOWN),
+        Servo.FrontVacuum(Vacuum.UP),  # , 30),
+        Servo.CenterLift(CenterLift.POSITION2),  # , 50),
+        Servo.FrontVacuumLift(VacuumLift.POSITION2+10)])
 
     return s.steps
 
