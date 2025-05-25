@@ -35,6 +35,8 @@ extern "C" {
 #include "motor_control.h"
 #include "synthesis.h"
 #include "spline.h"
+
+#include "ism330dhcx.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

@@ -43,20 +43,32 @@
 FDCAN_HandleTypeDef hfdcan1;
 
 I2C_HandleTypeDef hi2c1;
+DMA_HandleTypeDef hdma_i2c1_rx;
+DMA_HandleTypeDef hdma_i2c1_tx;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
+TIM_HandleTypeDef htim17;
 
 /* USER CODE BEGIN PV */
+ISM330DHCX ism = {0};
+uint8_t buff = 249;
+float dt = 0.005;
+
+uint8_t ism_read = 0;
+
+float roll, pitch, yaw;
+HAL_StatusTypeDef status;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
@@ -64,6 +76,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM7_Init(void);
+static void MX_TIM17_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -90,7 +103,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  __reset_I2C1_LINE();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -102,6 +115,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_FDCAN1_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
@@ -109,6 +123,7 @@ int main(void)
   MX_TIM6_Init();
   MX_I2C1_Init();
   MX_TIM7_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
 //  HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 1, 0); //odom
 //  HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0); //fdcan
@@ -134,6 +149,26 @@ int main(void)
 //  Enable_Motor(&right_motor, 0);
 
   uint8_t i2c_status = HAL_I2C_IsDeviceReady(&hi2c1, 0x6A << 1, 100, 100);
+
+  status = init_ISM330DHCX(&ism, ISM_ADDRESS, &hi2c1);
+//	if(i2c_status != ISM_OK) Error_Handler();
+
+  status = set_OutputDataRate_Accelerometer(&ism, ISM_ODR_416HZ);
+	//if(status != ISM_OK) Error_Handler();
+
+  status = set_OutputDataRate_Gyroscope(&ism, ISM_ODR_416HZ);
+//	if(status != ISM_OK) Error_Handler();
+
+  status = set_Fullscale_Accelerometer(&ism, ISM_FS_ACC_2G);
+//	if(status != ISM_OK) Error_Handler();
+
+  status = set_Fullscale_Gyroscope(&ism, ISM_FS_GYRO_250);
+//	if(status != ISM_OK) Error_Handler();
+
+	HAL_Delay(1000);
+	roll = pitch = yaw = 0;
+
+	HAL_TIM_Base_Start_IT(&htim17);
 
   // Set_RPM(&left_motor, 5000);
   // Set_RPM(&right_motor, -5000);
@@ -274,8 +309,20 @@ int main(void)
 //  Set_RPM(&right_motor, 2000);
 
 
+//  status = get_Axies_All(&ism, dt);
+//  HAL_Delay(5);
+//  status = get_Axies_All(&ism, dt);
+
+
   while (1)
   {
+
+	  if(ism_read){
+		  ism_read = 0;
+		  if(ism.initialized)
+			  status = get_Axies_All(&ism, dt);
+
+	  }
     if (i2c_status == HAL_OK)
     {
       HAL_GPIO_TogglePin(GPIOB, LED_G_Pin);
@@ -683,6 +730,88 @@ static void MX_TIM7_Init(void)
   /* USER CODE BEGIN TIM7_Init 2 */
 
   /* USER CODE END TIM7_Init 2 */
+
+}
+
+/**
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
+
+  /* USER CODE BEGIN TIM17_Init 0 */
+
+  /* USER CODE END TIM17_Init 0 */
+
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  htim17.Instance = TIM17;
+  htim17.Init.Prescaler = 144-1;
+  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim17.Init.Period = 1000;
+  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim17.Init.RepetitionCounter = 0;
+  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_OC_ConfigChannel(&htim17, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim17, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
 }
 
