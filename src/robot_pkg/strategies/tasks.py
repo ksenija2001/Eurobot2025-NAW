@@ -29,7 +29,7 @@ def init_position(init_x, init_y, init_theta, final_position: str, final_rotatio
     if final_position == "left corner":
         s(m=Move.Distance(-122, 100, 100))
     elif final_position == "middle":
-        s(m=Move.Distance(-80, 100, 100))
+        s(m=Move.Distance(-90, 100, 100))
     elif final_position == "right corner":
         s(m=Move.Distance(-42, 100, 100))
 
@@ -303,7 +303,7 @@ def drop_separate_two_level(between_drop_distance=-150, backout_distance=-200):
          Servo.FrontVacuumLift(VacuumLift.UP), #DROP1 + 35),
          Servo.FrontVacuum(Vacuum.DOWN, 25)])
 
-    s(s=[Servo.FrontVacuumLift(VacuumLift.DROP1),
+    s(s=[Servo.FrontVacuumLift(VacuumLift.DROP1 - 10),
          Servo.CenterSwing(CenterSwing.DOWN)])
 
     s(s=[Servo.FrontCenterGrip(FrontCenterGripper.OPEN)],
@@ -364,7 +364,7 @@ def push_two_level(push_distance=150, backout_distance=-300):
     #      Servo.FrontGripLift(FrontGripLift.DOWN),
     #      Servo.FrontVacuumLift(VacuumLift.PUSH)])
 
-    s(m=Move.Distance(push_distance, 500, 85),
+    s(m=Move.Distance(push_distance, 500, 75),
       s=[
         # Servo.CenterLift(CenterLift.DOWN),
         Servo.FrontGripLift(FrontGripLift.DOWN),  # HOVER+20),
@@ -474,7 +474,7 @@ def back_lift_one_on_stack():
     pass
 
 
-def drop_back_one_level(rotation=0, forward_distance=250, p=0):
+def  drop_back_one_level(rotation=0, forward_distance=250, p=0):
     '''
        Drop one level with back servos.
        Forwards out.

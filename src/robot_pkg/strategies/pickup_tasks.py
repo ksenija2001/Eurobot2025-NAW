@@ -224,13 +224,13 @@ def move_spline_stack9(rotation = None, det_ID=None):
 
     return s.steps
 
-def move_spline_stack10(rotation = None, det_ID=None):
+def move_spline_stack10(rotation = None, x_off=0, det_ID=None):
     s = Strategy()
 
     if rotation is not None:
         s(m=Move.RotateTo(rotation, 15, 10))
 
-    s(m=Move.Spline([MaterialStack.STACK10.x],
+    s(m=Move.Spline([MaterialStack.STACK10.x + x_off],
                         [MaterialStack.STACK10.y + 300],
                         [0.0],
                         500, 'f'),
