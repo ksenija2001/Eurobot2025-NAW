@@ -111,7 +111,7 @@ class Opponent:
 
         for name, stack in MaterialStack.get_all_unvisited_stacks():
             # 200 mm radius
-            if stack.distance_to(cls.pose.x, cls.pose.y) < 200:
+            if stack.distance_to(cls.pose.x, cls.pose.y) < 250:
                 current_stack = stack
                 stack_name = name
                 break
@@ -120,7 +120,7 @@ class Opponent:
             # Opponent moved to a new stack or left the previous one
             cls.last_stack = current_stack
             cls.stack_entry_time = time.time() if current_stack else None
-        elif current_stack is not None and (time.time() - cls.stack_entry_time > 2):
+        elif current_stack is not None and (time.time() - cls.stack_entry_time > 1.5):
             # Opponent has been near this stack for more than 2 seconds
             if not current_stack.visited and Variables.started:
 

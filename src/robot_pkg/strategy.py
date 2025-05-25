@@ -56,7 +56,7 @@ class Strategy:
                     c.append(Condition.ServoMoving(None))
 
                 # Don't add to empty steps and to steps after home
-                if (m is not None or len(s) > 0):
+                if (m is not None or len(s) > 0) and ConditionType.TIME not in [cond._type for cond in c]:
                     c.append(Condition.MatchTime(100, 96))
 
                 if m is not None and ConditionType.POSITION not in [cond._type for cond in c]:
