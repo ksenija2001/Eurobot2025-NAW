@@ -130,10 +130,10 @@ def pickup_back_full_stack(back_distance=-200, forward_distance=200, ID=None):
 
     s = Strategy()
 
-    # s(c=[Condition.BackSensors(ID)])
-
     s(m=Move.Distance(back_distance, 500, 400),
       s=[Servo.BackSwing(BackSwing.PICK)])
+    
+    s(c=[Condition.BackSensors(ID)])
 
     s(m=Move.Distance(forward_distance, 500, 400))
     s(s=[Servo.BackSwing(BackSwing.HOLD)])
@@ -173,7 +173,7 @@ def pickup_front_full_stack(forward_distance=250, ID=None):
 
     return s.steps
 
-def drop_one_in_two_level(rotation=0, backout_distance=-150, p=0):
+def drop_one_in_two_level(rotation=None, backout_distance=-150, p=0):
     s = Strategy()
 
     s(s=[Servo.FrontVacuumLift(VacuumLift.HOVER + 70)])
@@ -192,7 +192,7 @@ def drop_one_in_two_level(rotation=0, backout_distance=-150, p=0):
       a=[I_O.Magnet(0)],
       p=Points.LEVEL1 + p)
 
-    if rotation != 0:
+    if rotation != None:
       s(m=Move.RotateTo(rotation, 15, 10),
         task_steps=init_back_servos(),
         s=[Servo.CenterSwing(CenterSwing.DOWN),

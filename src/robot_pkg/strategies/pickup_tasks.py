@@ -29,6 +29,26 @@ def move_to_front_STACK7(init=True):
 
     return s.steps
 
+def move_to_front_STACK4(init=True):
+    s = Strategy()
+
+    if init:
+        s(m=Move.To(MaterialStack.STACK4.x + 290,
+                    MaterialStack.STACK4.y - 20,
+                    'f', 1500, 1500, 15, 15),
+        task_steps=init_front_servos())
+
+        s(m=Move.RotateTo(3.14, 15, 10))
+    else:
+        s(m=Move.To(MaterialStack.STACK4.x + 290,
+            MaterialStack.STACK4.y - 20,
+            'f', 1000, 1000, 10, 5))
+        
+        s(m=Move.RotateTo(3.14, 5, 5))
+
+    return s.steps
+
+
 def move_to_front_STACK6(init=True):
     s = Strategy()
 
@@ -49,6 +69,27 @@ def move_to_front_STACK6(init=True):
 
     return s.steps
 
+def move_to_front_STACK5(init=True):
+    s = Strategy()
+
+    if init:
+        s(m=Move.To(MaterialStack.STACK5.x - 10,
+                    MaterialStack.STACK5.y + 200,
+                    'f', 1500, 1500, 15, 15),
+         task_steps=init_front_servos())
+
+        s(m=Move.RotateTo(-1.57, 15, 10))
+
+    else:
+        s(m=Move.To(MaterialStack.STACK5.x - 10,
+                    MaterialStack.STACK5.y + 200,
+                    'f', 1000, 1000, 10, 5))
+
+        s(m=Move.RotateTo(-1.57, 5, 5))
+
+    return s.steps
+
+
 def move_to_front_STACK10(init=True):
     s = Strategy()
 
@@ -67,6 +108,27 @@ def move_to_front_STACK10(init=True):
         s(m=Move.RotateTo(1.57, 5, 5))
 
     return s.steps
+
+
+def move_to_front_STACK9(init=True):
+    s = Strategy()
+
+    if init:
+        s(m=Move.To(MaterialStack.STACK9.x - 10,
+                    MaterialStack.STACK9.y - 350,
+                    'f', 1500, 1500, 15, 15),
+        task_steps=init_front_servos())
+
+        s(m=Move.RotateTo(1.57, 15, 10))
+    else:
+        s(m=Move.To(MaterialStack.STACK9.x - 10,
+            MaterialStack.STACK9.y - 350,
+            'f', 1000, 1000, 10, 5))
+
+        s(m=Move.RotateTo(1.57, 5, 5))
+
+    return s.steps
+
 
 def move_to_front_STACK1(init=True):
     s = Strategy()
@@ -87,10 +149,68 @@ def move_to_front_STACK1(init=True):
 
     return s.steps
 
-def move_spline_stack9(rotation = 0, det_ID=None):
+def move_to_front_STACK2(init=True):
     s = Strategy()
 
-    if rotation != 0:
+    if init:
+        s(m=Move.To(MaterialStack.STACK2.x + 10,
+                    MaterialStack.STACK2.y - 365,
+                    'f', 1500, 1500, 15, 15),
+        task_steps=init_front_servos())
+
+        s(m=Move.RotateTo(1.57, 15, 10))
+    else:
+        s(m=Move.To(MaterialStack.STACK2.x + 10,
+                    MaterialStack.STACK2.y - 365,
+                    'f', 1000, 1000, 10, 5))
+
+        s(m=Move.RotateTo(1.57, 5, 5))
+
+    return s.steps
+
+def move_to_front_STACK3(init=True):
+    s = Strategy()
+
+    if init:
+        s(m=Move.To(MaterialStack.STACK3.x + 300,
+                    MaterialStack.STACK3.y - 15,
+                    'f', 1500, 1500, 15, 15),
+        task_steps=init_front_servos())
+
+        s(m=Move.RotateTo(3.14, 15, 10))
+    else:
+        s(m=Move.To(MaterialStack.STACK3.x + 300,
+                    MaterialStack.STACK3.y - 15,
+                    'f', 1000, 1000, 10, 5))
+
+        s(m=Move.RotateTo(3.14, 5, 5))
+
+    return s.steps
+
+def move_to_front_STACK8(init=True):
+    s = Strategy()
+
+    if init:
+        s(m=Move.To(MaterialStack.STACK8.x - 300,
+                    MaterialStack.STACK8.y,
+                    'f', 1500, 1500, 15, 15),
+        task_steps=init_front_servos())
+
+        s(m=Move.RotateTo(0.0, 15, 10))
+    else:
+        s(m=Move.To(MaterialStack.STACK8.x - 300,
+                    MaterialStack.STACK8.y,
+                    'f', 1000, 1000, 10, 5))
+
+        s(m=Move.RotateTo(0.0, 5, 5))
+
+    return s.steps
+
+
+def move_spline_stack9(rotation = None, det_ID=None):
+    s = Strategy()
+
+    if rotation is not None:
         s(m=Move.RotateTo(rotation, 15, 10))
 
     s(m=Move.Spline([MaterialStack.STACK9.x - 10],
@@ -104,11 +224,28 @@ def move_spline_stack9(rotation = 0, det_ID=None):
 
     return s.steps
 
-
-def move_spline_stack5(rotation = 0, det_ID=None):
+def move_spline_stack10(rotation = None, det_ID=None):
     s = Strategy()
 
-    if rotation != 0:
+    if rotation is not None:
+        s(m=Move.RotateTo(rotation, 15, 10))
+
+    s(m=Move.Spline([MaterialStack.STACK10.x],
+                        [MaterialStack.STACK10.y + 300],
+                        [0.0],
+                        500, 'f'),
+        task_steps=init_front_servos(),
+        c=[Condition.Detection(det_ID, 0)])
+    
+    s(m=Move.RotateTo(-1.57, 15, 10))
+
+    return s.steps
+
+
+def move_spline_stack5(rotation = None, det_ID=None):
+    s = Strategy()
+
+    if rotation is not None:
         s(m=Move.RotateTo(rotation, 15, 10))
 
     s(m=Move.Spline([MaterialStack.STACK5.x],
@@ -120,10 +257,26 @@ def move_spline_stack5(rotation = 0, det_ID=None):
 
     return s.steps
 
-def move_spline_stack4(rotation = 0, x_off=0, y_off=0, det_ID=None):
+def move_spline_stack6(rotation = None, x_off=0, det_ID=None):
     s = Strategy()
 
-    if rotation != 0:
+    if rotation is not None:
+        s(m=Move.RotateTo(rotation, 15, 10))
+
+    s(m=Move.Spline([MaterialStack.STACK6.x - 10 + x_off],
+                        [MaterialStack.STACK6.y + 340],
+                        [-1.57],
+                        550, 'f'),
+        task_steps=init_front_servos(),
+        c=[Condition.Detection(det_ID, 0)])
+
+    return s.steps
+
+
+def move_spline_stack4(rotation = None, x_off=0, y_off=0, det_ID=None):
+    s = Strategy()
+
+    if rotation is not None:
         s(m=Move.RotateTo(rotation, 15, 10))
 
     s(m=Move.Spline([MaterialStack.STACK4.x + 350 + x_off],
@@ -135,15 +288,45 @@ def move_spline_stack4(rotation = 0, x_off=0, y_off=0, det_ID=None):
 
     return s.steps
 
-def move_spline_stack3(rotation = 0, x_off=0, y_off=0, det_ID=None):
+def move_spline_stack7(rotation = None, x_off=0, y_off=0, det_ID=None):
     s = Strategy()
 
-    if rotation != 0:
+    if rotation is not None:
+        s(m=Move.RotateTo(rotation, 15, 10))
+
+    s(m=Move.Spline([MaterialStack.STACK7.x - 350 + x_off],
+                        [MaterialStack.STACK7.y + y_off],
+                        [0.0],
+                        550, 'f'),
+        task_steps=init_front_servos(),
+        c=[Condition.Detection(det_ID, 0)])
+
+    return s.steps
+
+def move_spline_stack3(rotation = None, x_off=0, y_off=0, det_ID=None):
+    s = Strategy()
+
+    if rotation is not None:
         s(m=Move.RotateTo(rotation, 15, 10))
 
     s(m=Move.Spline([MaterialStack.STACK3.x + 350 + x_off],
                         [MaterialStack.STACK3.y - 50 + y_off],
                         [3.14],
+                        550, 'f'),
+        task_steps=init_front_servos(),
+        c=[Condition.Detection(det_ID, 0)])
+
+    return s.steps
+
+def move_spline_stack8(rotation = None, x_off=0, y_off=0, det_ID=None):
+    s = Strategy()
+
+    if rotation is not None:
+        s(m=Move.RotateTo(rotation, 15, 10))
+
+    s(m=Move.Spline([MaterialStack.STACK8.x - 350 + x_off],
+                        [MaterialStack.STACK8.y - 50 + y_off],
+                        [0.0],
                         550, 'f'),
         task_steps=init_front_servos(),
         c=[Condition.Detection(det_ID, 0)])
@@ -285,6 +468,146 @@ def check_yellow_side_stacks():
     s(m=Move.RotateTo(-1.57, 15, 10))
 
     s(task_steps=lift_one_on_two(320))
+
+    s(c=[Condition.Timeout(100, 0.01),])
+
+    return s.steps
+
+def check_blue_side_stacks():
+    s = Strategy()
+
+    s(c=[Condition.CheckStack('STACK10', 10)])
+
+    s(task_steps=move_spline_stack10(1.57, det_ID=10))
+    # s(m=Move.RotateTo(1.57, 15, 10))
+    # s(m=Move.Spline([MaterialStack.STACK9.x],
+    #                     [MaterialStack.STACK9.y + 300],
+    #                     [3.14],
+    #                     500, 'f'),
+    #     task_steps=init_front_servos(),
+    #     c=[Condition.Detection(9, 0)])
+
+    # s(m=Move.RotateTo(-1.57, 15, 10))
+
+    s(task_steps=pickup_front_full_stack(270, ID=10))
+
+    s(m=Move.To(Area.YELLOW_2.x,
+                    Area.YELLOW_2.y + 500,
+                    'r', 1000, 500, 5, 5),
+        task_steps=two_level())
+
+    s(m=Move.RotateTo(1.57, 15, 10))
+
+    s(task_steps=drop_one_level(p=-4))
+
+    s(m=Move.RotateTo(-1.57, 15, 10),
+        task_steps=init_back_servos())
+
+    s(task_steps=pickup_back_full_stack(-250))
+
+    s(task_steps=lift_one_on_two(forward_distance=280, backout_distance=-200))
+
+    s(task_steps=drop_back_one_level(rotation=1.57, forward_distance=-100))
+
+    s(m=Move.Distance(100, 500, 500),
+        c=[Condition.InPosition(100),])
+
+
+    s(ID=10)
+    s(c=[Condition.CheckStack('STACK6', 6)])
+
+    s(task_steps=move_spline_stack6(0.3535, det_ID=6))
+    # s(m=Move.RotateTo(3.14-0.3535, 15, 10))
+    # s(m=Move.Spline([MaterialStack.STACK5.x + 10],
+    #                     [MaterialStack.STACK5.y + 340],
+    #                     [-1.57],
+    #                     550, 'f'),
+    #     task_steps=init_front_servos(),
+    #     c=[Condition.Detection(5, 0)])
+
+    s(task_steps=pickup_front_full_stack(330, ID=6))
+
+    s(m=Move.To(Area.YELLOW_3.x - 300, Area.YELLOW_3.y, 
+                'r', 1000, 500, 5, 5),
+        task_steps=two_level())
+
+    s(m=Move.RotateTo(0.0, 10, 10))
+
+    s(task_steps=drop_one_level(-100))
+
+    s(m=Move.To(Area.YELLOW_2.x,
+                    Area.YELLOW_2.y + 500,
+                    'r', 1500, 1000, 15, 10))
+
+    s(m=Move.RotateTo(-1.57, 15, 10))
+
+    s(task_steps=lift_one_on_two(340))
+
+    s(c=[Condition.Timeout(100, 0.01),])
+
+
+    s(ID=6)
+    s(c=[Condition.CheckStack('STACK7', 7)])
+
+    s(task_steps=move_spline_stack7(0.3535, det_ID=7))
+    # s(m=Move.RotateTo(3.14-0.3535, 15, 10))
+    # s(m=Move.Spline([MaterialStack.STACK4.x + 350],
+    #                     [MaterialStack.STACK4.y],
+    #                     [3.14],
+    #                     550, 'f'),
+    #     task_steps=init_front_servos(),
+    #     c=[Condition.Detection(4, 0)])
+
+    s(task_steps=pickup_front_full_stack(ID=7))
+
+    s(m=Move.Distance(-120, 500, 500))
+
+    s(m=Move.RotateTo(-1.57, 5, 5),
+        task_steps=two_level())
+
+    s(m=Move.Distance(200, 500, 500))
+
+    s(task_steps=drop_one_level(-600))
+
+    s(m=Move.To(Area.YELLOW_2.x,
+                    Area.YELLOW_2.y + 500,
+                    'f', 1500, 1000, 15, 10))
+
+    s(m=Move.RotateTo(-1.57, 15, 10))
+    s(task_steps=lift_one_on_two(320))
+
+    s(c=[Condition.Timeout(100, 0.01),])
+
+
+    s(ID=7)
+    s(c=[Condition.CheckStack('STACK8', 100)]) 
+
+    s(task_steps=move_spline_stack8(0.3535, y_off=40, det_ID=None))
+    # s(m=Move.RotateTo(3.14-0.3535, 15, 10))
+    # s(m=Move.Spline([MaterialStack.STACK3.x + 350],
+    #                     [MaterialStack.STACK3.y - 50],
+    #                     [3.14],
+    #                     550, 'f'),
+    #     task_steps=init_front_servos())
+
+    s(task_steps=pickup_front_full_stack(270, ID=100))
+
+    s(m=Move.Distance(-120, 500, 500))
+
+    s(m=Move.RotateTo(-1.57, 10, 10), )
+
+    s(m=Move.Distance(400, 500, 500),
+        task_steps=two_level())
+
+    s(task_steps=drop_one_level(-200))
+
+    s(m=Move.To(Area.YELLOW_2.x,
+                    Area.YELLOW_2.y + 400,
+                    'f', 1500, 1000, 15, 10))
+
+    s(m=Move.RotateTo(-1.57, 15, 10))
+
+    s(task_steps=lift_one_on_two(270))
 
     s(c=[Condition.Timeout(100, 0.01),])
 
