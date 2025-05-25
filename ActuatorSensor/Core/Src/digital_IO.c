@@ -39,7 +39,7 @@ void TIM7_Input_Poll_IT(TIM_HandleTypeDef* tim){
 		if ( inputs[i].state != inputs[i].last_state){
 			data[0] = i+1;
 			data[1] = inputs[i].state;
-			FDCAN_Send_Data(0x69F, FDCAN_DLC_BYTES_2, 2, data);
+			FDCAN_Send_Data(0x3FF, FDCAN_DLC_BYTES_2, 2, data);
 		}
 
 		inputs[i].last_state = inputs[i].state;

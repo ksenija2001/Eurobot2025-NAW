@@ -13,7 +13,7 @@
 #include "stdlib.h"
 #include "utils.h"
 #include "ax_servo.h"
-#include "rc_servo.h"
+//#include "rc_servo.h"
 #include "digital_IO.h"
 
 uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan);

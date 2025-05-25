@@ -9,6 +9,7 @@
 
 extern FDCAN_HandleTypeDef hfdcan1;
 extern UART_HandleTypeDef huart1;
+extern TIM_HandleTypeDef htim6;
 
 FDCAN_FilterTypeDef sFilterConfig;
 FDCAN_RxHeaderTypeDef RxHeader;
@@ -20,11 +21,16 @@ uint8_t TxData[64];
 uint8_t send_status = HAL_ERROR;
 uint8_t receive_status = HAL_ERROR;
 
-uint8_t ids[10];
-uint16_t angles[10];
-uint8_t speeds[10];
+uint8_t ids[11];
+uint16_t angles[11];
+uint8_t speeds[11];
+
+uint8_t xl_ids[11];
+uint16_t xl_angles[11];
+uint16_t xl_speeds[11];
 uint8_t servo_id;
 uint8_t state;
+uint8_t output;
 
 uint8_t FDCAN_Init(FDCAN_HandleTypeDef *hfdcan)
 {
@@ -65,15 +71,37 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 		{
 			switch (RxHeader.Identifier)
 			{
+			case 0x4CF:
+				break;
 			case 0x530: // Set servo position and speed
 				uint8_t servo_num = RxData[0];
-				for (uint8_t i=0; i<servo_num; ++i){
-					ids[i] = RxData[i*4 +1];
-					angles[i] = ((uint16_t)RxData[i*4 + 1 + 1] << 8) | RxData[i*4 + 2 + 1];
-					speeds[i] = RxData[i*4 + 3 + 1];
+				uint8_t xl_servo_num = 0;
+				for (uint8_t i=0, j=0, k=0; i<servo_num; ++i){
+					if (RxData[i*4 +1] == 8){
+						xl_ids[j] = RxData[i*4 +1];
+						xl_angles[j] = ((uint16_t)RxData[i*4 + 1 + 1] << 8) | RxData[i*4 + 2 + 1];
+						xl_speeds[j++] = RxData[i*4 + 3 + 1];
+						xl_servo_num++;
+					} else {
+						ids[k] = RxData[i*4 +1];
+						angles[k]= ((uint16_t)RxData[i*4 + 1 + 1] << 8) | RxData[i*4 + 2 + 1];
+						speeds[k++] = RxData[i*4 + 3 + 1];
+					}
 				}
 
-				Sync_Set_Goal_Position(&huart1, ids, angles, speeds, servo_num);
+				HAL_TIM_Base_Stop_IT(&htim6);
+
+				if (servo_num - xl_servo_num > 0)
+					Sync_Set_Goal_Position(&huart1, ids, angles, speeds, servo_num - xl_servo_num);
+
+//				HAL_Delay(1);
+
+				if (xl_servo_num > 0)
+					Sync_Set_Goal_Position_XL(&huart1, xl_ids, xl_angles, xl_speeds, xl_servo_num);
+
+				htim6.Instance->CCR1 = 0;
+
+				HAL_TIM_Base_Start_IT(&htim6);
 
 				break;
 			case 0x531: // Get servo position
@@ -88,25 +116,27 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 //				}
 
 				break;
-			case 0x532: // Set position for RC servos
-				servo_id = RxData[0];
-				uint8_t position = RxData[1];
-
-				// IDs of RC servos start from 11, but indexing is from 0
-				if (position > 150) position = 150;
-				else if (position < 20) position = 20;
-
-				Set_Target_Angle(servo_id-11, position);
-				Set_Angle(servo_id-11, position);
-
-				break;
+//			case 0x532: // Set position for RC servos
+//				servo_id = RxData[0];
+//				uint8_t position = RxData[1];
+//
+//				// IDs of RC servos start from 11, but indexing is from 0
+//				if (position > 150) position = 150;
+//				else if (position < 20) position = 20;
+//
+//				Set_Target_Angle(servo_id-11, position);
+//				Set_Angle(servo_id-11, position);
+//
+//				break;
 			case 0x533: // Enable Torque for all
 				state = RxData[0];
 
 				Enable_Torque(&huart1, 0xFE, state);
+				Enable_Torque_XL(&huart1, 0x08, state);
 
-			case 0x690: // Enable/disable output pin
-				uint8_t output = RxData[0];
+				break;
+			case 0x3F0: // Enable/disable output pin
+				output = RxData[0];
 				state = RxData[1];
 
 				Set_Output(output, state & 0x01);

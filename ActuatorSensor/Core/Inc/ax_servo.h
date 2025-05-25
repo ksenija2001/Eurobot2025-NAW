@@ -12,7 +12,7 @@
 #include "stm32g4xx_hal.h"
 #include "fdcan.h"
 
-#define SERVO_NUM 10
+#define SERVO_NUM 11
 
 #define HEADER 0xFF
 
@@ -55,8 +55,13 @@ void Get_Present_Speed(UART_HandleTypeDef* huart, uint8_t ID);
 void Get_Moving_Status(UART_HandleTypeDef* huart, uint8_t ID);
 void Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t ID, uint16_t angle);
 void Set_Moving_Speed(UART_HandleTypeDef* huart, uint8_t ID, uint8_t speed_percentage);
+
 void wait_RxState(UART_HandleTypeDef* huart);
 
+void Enable_Torque_XL(UART_HandleTypeDef* huart, uint8_t ID, uint8_t on_off);
+void Sync_Set_Goal_Position_XL(UART_HandleTypeDef* huart, uint8_t* IDs, uint16_t* angles, uint16_t* speeds, uint8_t size);
+void Set_Goal_Position_XL(UART_HandleTypeDef* huart, uint8_t ID, uint16_t angle);
+void Get_Present_Position_XL(UART_HandleTypeDef* huart, uint8_t ID);
 
 extern uint8_t rx_buffer[256];
 

@@ -23,10 +23,10 @@ typedef struct {
 	uint16_t channel;
 } sTIM_t;
 
-typedef struct {
-	ADC_HandleTypeDef* adc;
-	uint32_t output;
-} sADC_t;
+//typedef struct {
+//	ADC_HandleTypeDef* adc;
+//	uint32_t output;
+//} sADC_t;
 
 
 

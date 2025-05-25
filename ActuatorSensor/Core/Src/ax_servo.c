@@ -79,8 +79,14 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 		switch (last_command) {
 		case PRESENT_POSITION:
+		case 132:
 			position =  ((uint16_t)rx_buffer[rx_index+6] << 8) | rx_buffer[rx_index+5];
-			angle = 300/1023.0 * position;
+			if (id == 8){
+				angle = 360/4095.0 * position;
+
+			} else {
+				angle = 300/1023.0 * position;
+			}
 
 			// 20deg tolerance between present and goal angle - the larger the tolerance the faster the execution
 			if ( abs(angle - servo_angles[id]) < 29 ){
@@ -150,11 +156,14 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 void TIM6_Moving_IT(TIM_HandleTypeDef* tim, UART_HandleTypeDef* huart){
 	if (moving_servos[servo_counter] && angle_counter[servo_counter] < 2){
 //		Get_Moving_Status(huart, servo_counter);
-		Get_Present_Position(huart, servo_counter);
+		if (servo_counter == 8) Get_Present_Position_XL(huart, servo_counter);
+		else Get_Present_Position(huart, servo_counter);
 	}
 	else if (moving_servos[servo_counter]){
 		// If servo hasn't moved set its position again
-		Set_Goal_Position(huart, servo_counter, servo_angles[servo_counter]);
+		if (servo_counter == 8) Set_Goal_Position_XL(huart, servo_counter, servo_angles[servo_counter]);
+		else Set_Goal_Position(huart, servo_counter, servo_angles[servo_counter]);
+
 		angle_counter[servo_counter] = 0;
 	}
 
@@ -193,6 +202,19 @@ void Reboot(UART_HandleTypeDef* huart, uint8_t ID){
 	AX_Transmit(huart, msg, 6, 6);
 }
 
+void Enable_Torque_XL(UART_HandleTypeDef* huart, uint8_t ID, uint8_t on_off){
+	wait_RxState(huart);
+
+//	while( huart->RxState != HAL_UART_STATE_READY);
+
+	uint8_t msg[] = {HEADER, HEADER, ID, 2 + 2, WRITE, 64, (on_off & 0x01), 0x00};
+	msg[7] = Checksum(msg, 7);
+
+	last_command = 64;
+
+	AX_Transmit(huart, msg, 8, 6);
+}
+
 void Enable_Torque(UART_HandleTypeDef* huart, uint8_t ID, uint8_t on_off){
 	wait_RxState(huart);
 
@@ -226,7 +248,7 @@ void Sync_Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t* IDs, uint16_t* a
 	uint8_t msg[64] = {HEADER, HEADER, 0xFE, length, SYNC_WRITE, GOAL_POSITION, 4};  // moving speed is right behind goal position, writing 4 bytes in total
 
 	for (uint8_t i=0; i<size; ++i){
-		if ( angles[i] > 300) angles[i] = 300;
+		if ( angles[i] > 300 && IDs[i] != 8) angles[i] = 300;
 		if ( speeds[i] > 100) speeds[i] = 100;
 
 		servo_angles[IDs[i]] = angles[i];
@@ -239,6 +261,42 @@ void Sync_Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t* IDs, uint16_t* a
 		msg[5*(i+1) + 4] = (uint8_t)((position & 0xFF00) >> 8); // position upper byte
 		msg[5*(i+1) + 5] = (uint8_t)(speed & 0x00FF);           // speed lower byte
 		msg[5*(i+1) + 6] = (uint8_t)((speed & 0xFF00) >> 8);    // speed upper byte
+	}
+
+	msg[length + 3] = Checksum(msg, length + 3);
+
+	AX_Transmit(huart, msg, length + 4, 0); // Sync Write uses Broadcast ID -> no status response
+
+	for (uint8_t i=0; i<size; ++i){
+		moving_servos[IDs[i]] = 1;
+		angle_counter[IDs[i]] = 0;
+	}
+}
+
+void Sync_Set_Goal_Position_XL(UART_HandleTypeDef* huart, uint8_t* IDs, uint16_t* angles, uint16_t* speeds, uint8_t size){
+	while( huart->RxState != HAL_UART_STATE_READY);
+
+	uint8_t length = size * (8+1) + 2 + 2;
+	uint8_t msg[64] = {HEADER, HEADER, 0xFE, length, SYNC_WRITE, 112, 8};  // moving speed is right behind goal position, writing 4 bytes in total
+
+	for (uint8_t i=0; i<size; ++i){
+		if (angles[i] > 1000) angles[i] = 1000;
+		if ( speeds[i] > 100) speeds[i] = 100;
+
+		servo_angles[IDs[i]] = angles[i];
+
+		position = 4095/360.0 * angles[i];
+		speed = 32767/100.0 * speeds[i];
+
+		msg[9*(i+1) - 2] = IDs[i];                              // servo ID
+		msg[9*(i+1) - 1] = (uint8_t)(speed & 0x00FF);        // position lower byte
+		msg[9*(i+1) + 0] = (uint8_t)((speed & 0xFF00) >> 8); // position upper byte
+		msg[9*(i+1) + 1] = (uint8_t)((speed & 0xFF0000) >> 16);
+		msg[9*(i+1) + 2] = (uint8_t)((speed & 0xFF000000) >> 24);
+		msg[9*(i+1) + 3] = (uint8_t)(position & 0x00FF);        // position lower byte
+		msg[9*(i+1) + 4] = (uint8_t)((position & 0xFF00) >> 8); // position upper byte
+		msg[9*(i+1) + 5] = 0x00;
+		msg[9*(i+1) + 6] = 0x00;
 	}
 
 	msg[length + 3] = Checksum(msg, length + 3);
@@ -266,6 +324,20 @@ void Set_Goal_Position(UART_HandleTypeDef* huart, uint8_t ID, uint16_t angle){
 	moving_servos[ID] = 1;
 }
 
+void Set_Goal_Position_XL(UART_HandleTypeDef* huart, uint8_t ID, uint16_t angle){
+	wait_RxState(huart);
+//	while( huart->RxState != HAL_UART_STATE_READY);
+
+	if ( angle > 1000) angle = 1000;
+	position = 4095/360.0 * angle;
+	uint8_t msg[] = {HEADER, HEADER, ID, 3 + 4, WRITE, 116, (uint8_t)(position & 0x00FF), (uint8_t)((position & 0xFF00) >> 8),0x00, 0x00, 0x00};
+	msg[8]  = Checksum(msg, 10);
+
+	last_command = 116;
+	AX_Transmit(huart, msg, 11, 6);
+	moving_servos[ID] = 1;
+}
+
 void Set_Moving_Speed(UART_HandleTypeDef* huart, uint8_t ID, uint8_t speed_percentage){
 	while( huart->RxState != HAL_UART_STATE_READY);
 
@@ -286,6 +358,17 @@ void Get_Present_Position(UART_HandleTypeDef* huart, uint8_t ID){
 	msg[7] = Checksum(msg, 7);
 
 	last_command = PRESENT_POSITION;
+	AX_Transmit(huart, msg, 8, 8);
+}
+
+void Get_Present_Position_XL(UART_HandleTypeDef* huart, uint8_t ID){
+	wait_RxState(huart);
+//	while( huart->RxState != HAL_UART_STATE_READY);
+
+	uint8_t msg[] = {HEADER, HEADER, ID, 2 + 2 , READ, 132, 0x04, 0x00};
+	msg[7] = Checksum(msg, 7);
+
+	last_command = 132;
 	AX_Transmit(huart, msg, 8, 8);
 }
 
