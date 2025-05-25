@@ -156,7 +156,7 @@ void spline_move(float *x, float *y, float *theta, uint8_t num_of_points, float 
 
 	spline.speed_coef = max_speed / spline_find_max_speed();
 	spline.t_accel = max_speed / 10000.0;
-	spline.t_deccel = max_speed / 8000.0;
+	spline.t_deccel = max_speed / 6000.0; //8000.0;
 	spline.end_angle = theta[num_of_points - 1];
 	spline.index = 0;
 }

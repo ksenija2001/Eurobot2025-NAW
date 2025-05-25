@@ -66,62 +66,59 @@ void synthesis_stop(){
 }
 
 uint8_t synthesis_is_stuck(){//1000
-	if(fabs(odom.trans_vel - synthesis.NEXT_STATE.pData[1]) > 750 && fabs(odom.trans_vel) < 100){
-		return 1;
+	if(fabs(odom.trans_vel - synthesis.NEXT_STATE.pData[1]) > 400 /*&& fabs(odom.trans_vel) < 100*/){
+		if(odom.x > 2600){
+			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ // theta 0
+//				odom.x = 3000 - FRONT_HALF_DISTANCE;
+//				odom.theta = 0;
+				return 1;
+			}
+			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ // theta PI
+//				odom.x = 3000 - BACK_HALF_DISTANCE;
+//				odom.theta = M_PI;
+				return 1;
+			}
+		}
+		if(odom.x < 400){
+			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ //tehta 0
+//				odom.x = BACK_HALF_DISTANCE;
+//				odom.theta = 0;
+				return 1;
+			}
+			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ //theta PI
+//				odom.x = FRONT_HALF_DISTANCE;
+//				odom.theta = M_PI;
+				return 1;
+			}
+		}
+		if(odom.y > 1200){
+			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
+//				odom.y = 2000-FRONT_HALF_DISTANCE;
+//				odom.theta = M_PI_2;
+				return 1;
+			}
+			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
+//				odom.y = 2000-BACK_HALF_DISTANCE;
+//				odom.theta = -M_PI_2;
+				return 1;
+			}
+		}
+
+		if(odom.y < 400){
+			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
+//				odom.y = BACK_HALF_DISTANCE;
+//				odom.theta = M_PI_2;
+				return 1;
+			}
+			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
+//				odom.y = FRONT_HALF_DISTANCE;
+//				odom.theta = -M_PI_2;
+				return 1;
+			}
+		}
+
 	}
 	return 0;
-//		if(odom.x > 2600){
-//			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ // theta 0
-////				odom.x = 3000 - FRONT_HALF_DISTANCE;
-////				odom.theta = 0;
-//				return 1;
-//			}
-//			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ // theta PI
-////				odom.x = 3000 - BACK_HALF_DISTANCE;
-////				odom.theta = M_PI;
-//				return 1;
-//			}
-//		}
-//		else if(odom.x < 400){
-//			if(fabs(normalize(odom.theta - 0)) < M_PI_4){ //tehta 0
-////				odom.x = BACK_HALF_DISTANCE;
-////				odom.theta = 0;
-//				return 1;
-//			}
-//			else if(fabs(normalize(odom.theta - M_PI)) < M_PI_4){ //theta PI
-////				odom.x = FRONT_HALF_DISTANCE;
-////				odom.theta = M_PI;
-//				return 1;
-//			}
-//		}
-//		else if(odom.y > 1200){
-//			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
-////				odom.y = 2000-FRONT_HALF_DISTANCE;
-////				odom.theta = M_PI_2;
-//				return 1;
-//			}
-//			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
-////				odom.y = 2000-BACK_HALF_DISTANCE;
-////				odom.theta = -M_PI_2;
-//				return 1;
-//			}
-//		}
-//
-//		else if(odom.y < 400){
-//			if(fabs(normalize(odom.theta - M_PI_2)) < M_PI_4){ //theta PI/2
-////				odom.y = BACK_HALF_DISTANCE;
-////				odom.theta = M_PI_2;
-//				return 1;
-//			}
-//			else if(fabs(normalize(odom.theta - (-M_PI_2))) < M_PI_4){ // theta -PI/2
-////				odom.y = FRONT_HALF_DISTANCE;
-////				odom.theta = -M_PI_2;
-//				return 1;
-//			}
-//		}
-//
-//	}
-
 }
 
 void synthesis_calc_coef(float T){
